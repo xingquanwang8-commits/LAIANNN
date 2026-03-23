@@ -1,30 +1,18 @@
 <template>
   <div class="page-shell">
     <section class="page-card page-card--section">
-      <PageHeader
-        title="出库审批"
-        description="集中查看出库申请记录，支持查看明细、审批通过与驳回。"
-      />
+      <PageHeader title="出库审批" description="集中查看出库申请记录，支持详情查看、审批通过、驳回和归还登记。">
+      </PageHeader>
     </section>
 
     <section class="page-card page-card--section">
-      <el-form :inline="true" :model="queryForm" class="outbound-filter">
+      <el-form :inline="true" :model="queryForm">
         <el-form-item label="关键词">
-          <el-input
-            v-model="queryForm.keyword"
-            placeholder="单号 / 用途 / 去向"
-            clearable
-            @keyup.enter="handleSearch"
-          />
+          <el-input v-model="queryForm.keyword" placeholder="单号 / 用途 / 去向" clearable @keyup.enter="loadData" />
         </el-form-item>
         <el-form-item label="审批状态">
-          <el-select v-model="queryForm.approveStatus" placeholder="全部状态" clearable>
-            <el-option
-              v-for="item in statusOptions"
-              :key="item.itemValue"
-              :label="item.itemLabel"
-              :value="item.itemValue"
-            />
+          <el-select v-model="queryForm.approveStatus" clearable placeholder="全部状态">
+            <el-option v-for="item in statusOptions" :key="item.itemValue" :label="item.itemLabel" :value="item.itemValue" />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -39,42 +27,44 @@
         <el-table-column prop="destination" label="去向" min-width="180" />
         <el-table-column prop="handlerName" label="经手人" min-width="120" />
         <el-table-column label="申请时间" min-width="150">
-          <template #default="{ row }">
-            {{ formatDateTime(row.outboundTime) }}
-          </template>
+          <template #default="{ row }">{{ formatDateTime(row.outboundTime) }}</template>
         </el-table-column>
         <el-table-column label="审批状态" min-width="120">
           <template #default="{ row }">
-            <StatusTag
-              :status="row.approveStatus"
-              :label="resolveDictLabel(statusOptions, row.approveStatus)"
-            />
+            <StatusTag :status="row.approveStatus" :label="resolveDictLabel(statusOptions, row.approveStatus)" />
           </template>
         </el-table-column>
         <el-table-column prop="detailCount" label="文物数量" min-width="90" />
-        <el-table-column label="操作" fixed="right" width="240">
+        <el-table-column label="操作" fixed="right" width="300">
           <template #default="{ row }">
-            <el-button text type="primary" @click="handleView(row)">查看</el-button>
+            <el-button text type="primary" @click="handleView(row.id)">查看</el-button>
             <el-button
               v-if="row.approveStatus === 'PENDING' && authStore.hasPermission('inventory:outbound:approve')"
               text
-              @click="handleApprove(row)"
+              @click="handleApprove(row.id)"
             >
               通过
             </el-button>
             <el-button
               v-if="row.approveStatus === 'PENDING' && authStore.hasPermission('inventory:outbound:reject')"
               text
-              style="color: var(--danger)"
-              @click="handleReject(row)"
+              type="danger"
+              @click="handleReject(row.id)"
             >
               驳回
+            </el-button>
+            <el-button
+              v-if="row.approveStatus === 'APPROVED' && authStore.hasPermission('inventory:outbound:approve')"
+              text
+              @click="handleReturn(row.id)"
+            >
+              归还登记
             </el-button>
           </template>
         </el-table-column>
       </el-table>
 
-      <div class="relic-pagination">
+      <div class="table-footer">
         <el-pagination
           :current-page="queryForm.pageNum"
           :page-size="queryForm.pageSize"
@@ -93,10 +83,7 @@
           <el-descriptions :column="2" border>
             <el-descriptions-item label="出库单号">{{ detail.orderNo }}</el-descriptions-item>
             <el-descriptions-item label="审批状态">
-              <StatusTag
-                :status="detail.approveStatus"
-                :label="resolveDictLabel(statusOptions, detail.approveStatus)"
-              />
+              <StatusTag :status="detail.approveStatus" :label="resolveDictLabel(statusOptions, detail.approveStatus)" />
             </el-descriptions-item>
             <el-descriptions-item label="用途">{{ detail.purpose }}</el-descriptions-item>
             <el-descriptions-item label="去向">{{ detail.destination }}</el-descriptions-item>
@@ -109,10 +96,7 @@
           </el-descriptions>
 
           <div class="outbound-drawer__table">
-            <PageHeader
-              title="文物明细"
-              description="展示当前出库申请对应的文物清单与申请时状态快照。"
-            />
+            <PageHeader title="文物明细" description="展示当前出库申请对应的文物清单与状态快照。" />
             <el-table :data="detail.details || []">
               <el-table-column prop="relicNo" label="文物编号" min-width="140" />
               <el-table-column prop="relicName" label="文物名称" min-width="180" />
@@ -125,7 +109,6 @@
                   />
                 </template>
               </el-table-column>
-              <el-table-column prop="remark" label="备注" min-width="160" />
             </el-table>
           </div>
         </template>
@@ -135,9 +118,15 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { approveOutboundApi, getOutboundDetailApi, getOutboundPageApi, rejectOutboundApi } from '@/api/outbound'
+import {
+  approveOutboundApi,
+  getOutboundDetailApi,
+  getOutboundPageApi,
+  rejectOutboundApi,
+  returnOutboundApi
+} from '@/api/outbound'
 import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -175,11 +164,11 @@ async function loadData() {
   }
 }
 
-async function handleView(row) {
+async function handleView(id) {
   drawerVisible.value = true
   drawerLoading.value = true
   try {
-    detail.value = await getOutboundDetailApi(row.id)
+    detail.value = await getOutboundDetailApi(id)
   } finally {
     drawerLoading.value = false
   }
@@ -211,24 +200,22 @@ function handleSizeChange(pageSize) {
   loadData()
 }
 
-async function handleApprove(row) {
+async function handleApprove(id) {
   try {
     const { value } = await ElMessageBox.prompt('可填写审批意见（选填）', '审批通过', {
       confirmButtonText: '确认通过',
       cancelButtonText: '取消',
       inputPlaceholder: '请输入审批意见'
     })
-    await approveOutboundApi(row.id, {
-      approveRemark: value
-    })
+    await approveOutboundApi(id, { approveRemark: value })
     ElMessage.success('出库申请已审批通过')
     await loadData()
   } catch (error) {
-    // 取消输入时不提示。
+    // Ignore cancel.
   }
 }
 
-async function handleReject(row) {
+async function handleReject(id) {
   try {
     const { value } = await ElMessageBox.prompt('请输入驳回原因', '驳回申请', {
       confirmButtonText: '确认驳回',
@@ -237,26 +224,32 @@ async function handleReject(row) {
       inputPattern: /.+/,
       inputErrorMessage: '驳回原因不能为空'
     })
-    await rejectOutboundApi(row.id, {
-      approveRemark: value
-    })
+    await rejectOutboundApi(id, { approveRemark: value })
     ElMessage.success('出库申请已驳回')
     await loadData()
   } catch (error) {
-    // 取消输入时不提示。
+    // Ignore cancel.
   }
 }
 
-onMounted(async () => {
-  await dictStore.ensureMultipleItems(['outbound_status', 'relic_status'])
+async function handleReturn(id) {
+  await returnOutboundApi(id, {
+    returnTime: new Date().toISOString().slice(0, 19),
+    remark: '前端登记归还'
+  })
+  ElMessage.success('已完成归还登记')
   await loadData()
-})
+}
+
+dictStore.ensureMultipleItems(['outbound_status', 'relic_status'])
+loadData()
 </script>
 
 <style scoped>
-.outbound-filter {
+.table-footer {
   display: flex;
-  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-top: 18px;
 }
 
 .outbound-drawer__table {

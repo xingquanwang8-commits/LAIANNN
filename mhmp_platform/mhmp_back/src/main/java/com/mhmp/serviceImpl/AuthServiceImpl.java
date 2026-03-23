@@ -59,10 +59,10 @@ public class AuthServiceImpl implements AuthService {
     public LoginVO login(LoginDTO loginDTO) {
         SysUser user = sysUserMapper.findByUsername(loginDTO.getUsername());
         if (user == null || !"ENABLED".equals(user.getStatus())) {
-            throw new BusinessException(401, "用户名或密码错误");
+            throw new BusinessException(401, "Username or password is incorrect");
         }
         if (!matchesPassword(loginDTO.getPassword(), user.getPassword())) {
-            throw new BusinessException(401, "用户名或密码错误");
+            throw new BusinessException(401, "Username or password is incorrect");
         }
         user.setLastLoginTime(LocalDateTime.now());
         user.setUpdateBy(user.getId());
@@ -89,7 +89,7 @@ public class AuthServiceImpl implements AuthService {
         LoginUser loginUser = requireLoginUser();
         SysUser user = sysUserMapper.selectById(loginUser.getId());
         if (user == null) {
-            throw new BusinessException(401, "当前登录用户不存在");
+            throw new BusinessException(401, "Current user does not exist");
         }
         CurrentUserVO vo = new CurrentUserVO();
         vo.setId(user.getId());
@@ -134,7 +134,7 @@ public class AuthServiceImpl implements AuthService {
     public LoginUser loadLoginUserByUsername(String username) {
         SysUser user = sysUserMapper.findByUsername(username);
         if (user == null || !"ENABLED".equals(user.getStatus())) {
-            throw new BusinessException(401, "用户不存在或已禁用");
+            throw new BusinessException(401, "User does not exist or has been disabled");
         }
         List<String> permissions = sysUserMapper.selectPermissionCodesByUserId(user.getId());
         return LoginUser.builder()
@@ -152,7 +152,7 @@ public class AuthServiceImpl implements AuthService {
     private LoginUser requireLoginUser() {
         LoginUser loginUser = SecurityUtils.getLoginUser();
         if (loginUser == null) {
-            throw new BusinessException(401, "未登录或登录已过期");
+            throw new BusinessException(401, "Not logged in or session expired");
         }
         return loginUser;
     }

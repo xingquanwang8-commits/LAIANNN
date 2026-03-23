@@ -3,7 +3,7 @@
     <div class="sidebar-brand">
       <div class="sidebar-brand__badge">MH</div>
       <div>
-        <div class="sidebar-brand__title">馆藏管理平台</div>
+        <div class="sidebar-brand__title">博物馆管理平台</div>
         <div class="sidebar-brand__desc">Museum Heritage Management</div>
       </div>
     </div>

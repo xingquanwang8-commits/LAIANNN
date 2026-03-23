@@ -1,184 +1,195 @@
 <template>
   <div class="page-shell">
     <section class="page-card page-card--section">
-      <PageHeader
-        title="出库申请"
-        description="先填写出库用途与去向，再从当前在库文物中选择待申请对象。"
-      />
-    </section>
-
-    <section class="page-card page-card--section">
-      <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
-        <div class="page-grid outbound-form-grid">
-          <el-form-item label="用途" prop="purpose">
-            <el-input v-model="form.purpose" placeholder="如：馆际专题展 / 学术研究展示" />
-          </el-form-item>
-          <el-form-item label="去向" prop="destination">
-            <el-input v-model="form.destination" placeholder="请输入去向单位或展陈地点" />
-          </el-form-item>
-          <el-form-item label="经手人" prop="handlerName">
-            <el-input v-model="form.handlerName" placeholder="请输入经手人姓名" />
-          </el-form-item>
-          <el-form-item label="申请时间" prop="outboundTime">
-            <el-date-picker
-              v-model="form.outboundTime"
-              type="datetime"
-              placeholder="请选择申请时间"
-              format="YYYY-MM-DD HH:mm"
-              value-format="YYYY-MM-DDTHH:mm:ss"
-            />
-          </el-form-item>
-        </div>
-        <el-form-item label="备注">
-          <el-input v-model="form.remark" type="textarea" :rows="3" placeholder="可补充审批说明或外借背景" />
-        </el-form-item>
-      </el-form>
-    </section>
-
-    <section class="page-card page-card--section">
-      <PageHeader
-        title="选择文物"
-        description="只展示当前状态为“在库”的文物，勾选后将一并提交到出库申请。"
-      >
+      <PageHeader title="出库申请" description="填写出库用途与去向，从在库文物中选择对象后提交申请。">
         <template #extra>
-          <el-tag type="info" effect="plain" round>已选 {{ selectedRows.length }} 件</el-tag>
+          <el-button type="primary" @click="dialogVisible = true">新建申请</el-button>
         </template>
       </PageHeader>
+    </section>
 
-      <el-form :inline="true" :model="relicQuery" class="outbound-filter">
+    <section class="page-card page-card--section">
+      <el-form :inline="true" :model="queryForm">
         <el-form-item label="关键词">
-          <el-input
-            v-model="relicQuery.keyword"
-            placeholder="文物编号 / 名称"
-            clearable
-            @keyup.enter="handleRelicSearch"
-          />
+          <el-input v-model="queryForm.keyword" placeholder="单号 / 用途 / 去向" clearable @keyup.enter="loadOrders" />
         </el-form-item>
-        <el-form-item label="类别">
-          <el-select v-model="relicQuery.categoryCode" placeholder="全部类别" clearable>
-            <el-option
-              v-for="item in categoryOptions"
-              :key="item.itemValue"
-              :label="item.itemLabel"
-              :value="item.itemValue"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="位置">
-          <el-select v-model="relicQuery.storageLocationCode" placeholder="全部位置" clearable>
-            <el-option
-              v-for="item in locationOptions"
-              :key="item.itemValue"
-              :label="item.itemLabel"
-              :value="item.itemValue"
-            />
+        <el-form-item label="状态">
+          <el-select v-model="queryForm.approveStatus" clearable placeholder="全部状态">
+            <el-option v-for="item in statusOptions" :key="item.itemValue" :label="item.itemLabel" :value="item.itemValue" />
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleRelicSearch">查询</el-button>
-          <el-button @click="handleRelicReset">重置</el-button>
+          <el-button type="primary" @click="handleSearch">查询</el-button>
+          <el-button @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
+    </section>
 
-      <el-table
-        ref="tableRef"
-        v-loading="tableLoading"
-        :data="pageData.records"
-        row-key="id"
-        @selection-change="handleSelectionChange"
-      >
-        <el-table-column type="selection" width="50" />
-        <el-table-column prop="relicNo" label="文物编号" min-width="140" />
-        <el-table-column prop="name" label="文物名称" min-width="180" />
-        <el-table-column label="类别" min-width="120">
+    <section class="page-card page-card--section">
+      <el-table :data="pageData.records" v-loading="loading">
+        <el-table-column prop="orderNo" label="出库单号" min-width="150" />
+        <el-table-column prop="purpose" label="用途" min-width="180" />
+        <el-table-column prop="destination" label="去向" min-width="180" />
+        <el-table-column prop="handlerName" label="经手人" min-width="120" />
+        <el-table-column label="申请时间" min-width="160">
+          <template #default="{ row }">{{ formatDateTime(row.outboundTime) }}</template>
+        </el-table-column>
+        <el-table-column label="审批状态" min-width="120">
           <template #default="{ row }">
-            {{ resolveDictLabel(categoryOptions, row.categoryCode) }}
+            <StatusTag :status="row.approveStatus" :label="resolveDictLabel(statusOptions, row.approveStatus)" />
           </template>
         </el-table-column>
-        <el-table-column label="位置" min-width="120">
+        <el-table-column prop="detailCount" label="文物数量" width="100" />
+        <el-table-column label="操作" width="100">
           <template #default="{ row }">
-            {{ resolveDictLabel(locationOptions, row.storageLocationCode) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="状态" min-width="110">
-          <template #default="{ row }">
-            <StatusTag
-              :status="row.currentStatus"
-              :label="resolveDictLabel(statusOptions, row.currentStatus)"
-            />
+            <el-button text type="primary" @click="openDetail(row.id)">详情</el-button>
           </template>
         </el-table-column>
       </el-table>
 
-      <div class="relic-pagination">
+      <div class="table-footer">
         <el-pagination
-          :current-page="relicQuery.pageNum"
-          :page-size="relicQuery.pageSize"
-          :page-sizes="[8, 12, 20]"
+          :current-page="queryForm.pageNum"
+          :page-size="queryForm.pageSize"
+          :page-sizes="[10, 20, 30]"
           :total="pageData.total"
           layout="total, sizes, prev, pager, next"
           @current-change="handleCurrentChange"
           @size-change="handleSizeChange"
         />
       </div>
-
-      <div class="outbound-submit">
-        <el-button type="primary" :loading="submitting" @click="handleSubmit">
-          提交出库申请
-        </el-button>
-      </div>
     </section>
+
+    <el-dialog v-model="dialogVisible" title="新建出库申请" width="760px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="96px">
+        <el-row :gutter="14">
+          <el-col :span="12">
+            <el-form-item label="用途" prop="purpose">
+              <el-input v-model="form.purpose" placeholder="如：专题展览 / 学术研究" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="去向" prop="destination">
+              <el-input v-model="form.destination" placeholder="请输入去向单位或地点" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="经手人" prop="handlerName">
+              <el-input v-model="form.handlerName" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="申请时间" prop="outboundTime">
+              <el-date-picker v-model="form.outboundTime" type="datetime" value-format="YYYY-MM-DDTHH:mm:ss" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="文物选择" prop="relicIds">
+              <el-select v-model="form.relicIds" multiple filterable placeholder="请选择在库文物">
+                <el-option
+                  v-for="item in relicOptions"
+                  :key="item.id"
+                  :label="`${item.relicNo} / ${item.name}`"
+                  :value="item.id"
+                />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="备注">
+              <el-input v-model="form.remark" type="textarea" :rows="3" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
+      <template #footer>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="saving" @click="handleSave">提交</el-button>
+      </template>
+    </el-dialog>
+
+    <el-drawer v-model="drawerVisible" title="出库申请详情" size="52%">
+      <el-descriptions v-if="detail" :column="2" border>
+        <el-descriptions-item label="出库单号">{{ detail.orderNo || '--' }}</el-descriptions-item>
+        <el-descriptions-item label="审批状态">
+          <StatusTag :status="detail.approveStatus" :label="resolveDictLabel(statusOptions, detail.approveStatus)" />
+        </el-descriptions-item>
+        <el-descriptions-item label="用途">{{ detail.purpose || '--' }}</el-descriptions-item>
+        <el-descriptions-item label="去向">{{ detail.destination || '--' }}</el-descriptions-item>
+        <el-descriptions-item label="经手人">{{ detail.handlerName || '--' }}</el-descriptions-item>
+        <el-descriptions-item label="申请时间">{{ formatDateTime(detail.outboundTime) }}</el-descriptions-item>
+        <el-descriptions-item label="审批时间">{{ formatDateTime(detail.approveTime) }}</el-descriptions-item>
+        <el-descriptions-item label="归还时间">{{ formatDateTime(detail.returnTime) }}</el-descriptions-item>
+        <el-descriptions-item label="审批意见" :span="2">{{ detail.approveRemark || '--' }}</el-descriptions-item>
+        <el-descriptions-item label="备注" :span="2">{{ detail.remark || '--' }}</el-descriptions-item>
+      </el-descriptions>
+
+      <el-table :data="detail?.details || []" class="drawer-table">
+        <el-table-column prop="relicNo" label="文物编号" min-width="130" />
+        <el-table-column prop="relicName" label="文物名称" min-width="160" />
+        <el-table-column prop="quantity" label="数量" width="90" />
+        <el-table-column label="状态快照" min-width="120">
+          <template #default="{ row }">
+            <StatusTag :status="row.currentStatusSnapshot" :label="resolveDictLabel(relicStatusOptions, row.currentStatusSnapshot)" />
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-drawer>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { createOutboundApi } from '@/api/outbound'
+import { createOutboundApi, getOutboundDetailApi, getOutboundPageApi } from '@/api/outbound'
 import { getRelicPageApi } from '@/api/relic'
 import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import { useDictStore } from '@/stores/dict'
-import { resolveDictLabel } from '@/utils/format'
+import { formatDateTime, resolveDictLabel } from '@/utils/format'
 
 const dictStore = useDictStore()
-const formRef = ref(null)
-const tableRef = ref(null)
-const tableLoading = ref(false)
-const submitting = ref(false)
-const selectedRows = ref([])
+
+const loading = ref(false)
+const saving = ref(false)
+const dialogVisible = ref(false)
+const drawerVisible = ref(false)
+const formRef = ref()
+const detail = ref(null)
+const relicOptions = ref([])
 const pageData = ref({
   total: 0,
+  pageNum: 1,
+  pageSize: 10,
   records: []
+})
+
+const queryForm = reactive({
+  pageNum: 1,
+  pageSize: 10,
+  keyword: '',
+  approveStatus: ''
 })
 
 const form = reactive({
   purpose: '',
   destination: '',
   handlerName: '',
-  outboundTime: getCurrentDateTime(),
-  remark: ''
+  outboundTime: '',
+  remark: '',
+  relicIds: []
 })
 
 const rules = {
   purpose: [{ required: true, message: '请输入用途', trigger: 'blur' }],
   destination: [{ required: true, message: '请输入去向', trigger: 'blur' }],
   handlerName: [{ required: true, message: '请输入经手人', trigger: 'blur' }],
-  outboundTime: [{ required: true, message: '请选择申请时间', trigger: 'change' }]
+  outboundTime: [{ required: true, message: '请选择申请时间', trigger: 'change' }],
+  relicIds: [{ required: true, type: 'array', message: '请选择文物', trigger: 'change' }]
 }
 
-const relicQuery = reactive({
-  pageNum: 1,
-  pageSize: 8,
-  keyword: '',
-  categoryCode: '',
-  storageLocationCode: '',
-  currentStatus: 'IN_STOCK'
-})
-
-const categoryOptions = computed(() => dictStore.itemsMap.relic_category || [])
-const locationOptions = computed(() => dictStore.itemsMap.storage_location || [])
-const statusOptions = computed(() => dictStore.itemsMap.relic_status || [])
+const statusOptions = computed(() => dictStore.itemsMap.outbound_status || [])
+const relicStatusOptions = computed(() => dictStore.itemsMap.relic_status || [])
 
 function getCurrentDateTime() {
   const now = new Date()
@@ -191,108 +202,97 @@ function getCurrentDateTime() {
   return `${year}-${month}-${day}T${hour}:${minute}:${second}`
 }
 
-async function loadRelics() {
-  tableLoading.value = true
+function resetForm() {
+  Object.assign(form, {
+    purpose: '',
+    destination: '',
+    handlerName: '',
+    outboundTime: getCurrentDateTime(),
+    remark: '',
+    relicIds: []
+  })
+}
+
+async function loadRelicOptions() {
+  const page = await getRelicPageApi({
+    pageNum: 1,
+    pageSize: 200,
+    currentStatus: 'IN_STOCK'
+  })
+  relicOptions.value = page.records || []
+}
+
+async function loadOrders() {
+  loading.value = true
   try {
-    pageData.value = await getRelicPageApi(relicQuery)
+    pageData.value = await getOutboundPageApi(queryForm)
   } finally {
-    tableLoading.value = false
+    loading.value = false
   }
 }
 
-function handleSelectionChange(rows) {
-  selectedRows.value = rows
+function handleSearch() {
+  queryForm.pageNum = 1
+  loadOrders()
 }
 
-function handleRelicSearch() {
-  relicQuery.pageNum = 1
-  loadRelics()
-}
-
-function handleRelicReset() {
-  Object.assign(relicQuery, {
+function handleReset() {
+  Object.assign(queryForm, {
     pageNum: 1,
-    pageSize: 8,
+    pageSize: 10,
     keyword: '',
-    categoryCode: '',
-    storageLocationCode: '',
-    currentStatus: 'IN_STOCK'
+    approveStatus: ''
   })
-  loadRelics()
+  loadOrders()
 }
 
-function handleCurrentChange(pageNum) {
-  relicQuery.pageNum = pageNum
-  loadRelics()
-}
-
-function handleSizeChange(pageSize) {
-  relicQuery.pageSize = pageSize
-  relicQuery.pageNum = 1
-  loadRelics()
-}
-
-async function handleSubmit() {
+async function handleSave() {
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) {
     return
   }
-  if (!selectedRows.value.length) {
-    ElMessage.warning('请先勾选至少一件文物')
-    return
-  }
-  submitting.value = true
+  saving.value = true
   try {
-    await createOutboundApi({
-      ...form,
-      relicIds: selectedRows.value.map((item) => item.id)
-    })
+    await createOutboundApi(form)
     ElMessage.success('出库申请已提交')
-    Object.assign(form, {
-      purpose: '',
-      destination: '',
-      handlerName: '',
-      outboundTime: getCurrentDateTime(),
-      remark: ''
-    })
-    tableRef.value?.clearSelection()
-    selectedRows.value = []
-    await loadRelics()
+    dialogVisible.value = false
+    resetForm()
+    await loadOrders()
   } finally {
-    submitting.value = false
+    saving.value = false
   }
 }
 
-onMounted(async () => {
-  await dictStore.ensureMultipleItems([
-    'relic_category',
-    'storage_location',
-    'relic_status'
-  ])
-  await loadRelics()
-})
+async function openDetail(id) {
+  detail.value = await getOutboundDetailApi(id)
+  drawerVisible.value = true
+}
+
+function handleCurrentChange(pageNum) {
+  queryForm.pageNum = pageNum
+  loadOrders()
+}
+
+function handleSizeChange(pageSize) {
+  queryForm.pageSize = pageSize
+  queryForm.pageNum = 1
+  loadOrders()
+}
+
+resetForm()
+dictStore.ensureMultipleItems(['outbound_status', 'relic_status'])
+loadOrders()
+loadRelicOptions()
 </script>
 
 <style scoped>
-.outbound-form-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.outbound-filter {
-  display: flex;
-  flex-wrap: wrap;
-  margin-top: 16px;
-}
-
-.outbound-submit {
+.table-footer {
   display: flex;
   justify-content: flex-end;
   margin-top: 18px;
 }
 
-@media (max-width: 960px) {
-  .outbound-form-grid {
-    grid-template-columns: 1fr;
-  }
+.drawer-table {
+  margin-top: 18px;
 }
 </style>

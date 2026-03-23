@@ -1,10 +1,7 @@
 <template>
   <div class="page-shell" v-loading="loading">
     <section class="page-card page-card--section">
-      <PageHeader
-        :title="detail?.name || '文物详情'"
-        description="展示文物基础信息、保存状态与附件数据。"
-      >
+      <PageHeader :title="detail?.name || '文物详情'" description="展示文物档案、保存状态、附件与鉴定报告信息。">
         <template #extra>
           <el-button @click="router.push('/relic/list')">返回列表</el-button>
           <el-button
@@ -40,10 +37,7 @@
             {{ resolveDictLabel(locationOptions, detail.storageLocationCode) }}
           </el-descriptions-item>
           <el-descriptions-item label="当前状态">
-            <StatusTag
-              :status="detail.currentStatus"
-              :label="resolveDictLabel(statusOptions, detail.currentStatus)"
-            />
+            <StatusTag :status="detail.currentStatus" :label="resolveDictLabel(statusOptions, detail.currentStatus)" />
           </el-descriptions-item>
           <el-descriptions-item label="保存状态">
             {{ resolveDictLabel(preservationOptions, detail.preservationStatusCode) }}
@@ -68,18 +62,13 @@
     </section>
 
     <section class="page-card page-card--section">
-      <PageHeader
-        title="附件资料"
-        description="附件数据来自文物附件接口，支持图片与鉴定报告地址查看。"
-      />
+      <PageHeader title="附件资料" description="展示文物附件记录，可直接打开附件文件地址。" />
 
       <el-table v-if="attachments.length" :data="attachments">
         <el-table-column prop="attachmentType" label="附件类型" min-width="120" />
         <el-table-column prop="fileName" label="文件名称" min-width="240" />
         <el-table-column label="文件大小" min-width="120">
-          <template #default="{ row }">
-            {{ row.fileSize ? `${(row.fileSize / 1024).toFixed(1)} KB` : '--' }}
-          </template>
+          <template #default="{ row }">{{ row.fileSize ? `${(row.fileSize / 1024).toFixed(1)} KB` : '--' }}</template>
         </el-table-column>
         <el-table-column prop="remark" label="备注" min-width="160" />
         <el-table-column label="操作" width="120">
@@ -94,7 +83,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getRelicAttachmentsApi, getRelicDetailApi } from '@/api/relic'
 import PageHeader from '@/components/common/PageHeader.vue'
@@ -132,16 +121,14 @@ async function loadDetail() {
   }
 }
 
-onMounted(async () => {
-  await dictStore.ensureMultipleItems([
-    'relic_category',
-    'relic_material',
-    'relic_status',
-    'storage_location',
-    'preservation_status'
-  ])
-  await loadDetail()
-})
+dictStore.ensureMultipleItems([
+  'relic_category',
+  'relic_material',
+  'relic_status',
+  'storage_location',
+  'preservation_status'
+])
+loadDetail()
 </script>
 
 <style scoped>

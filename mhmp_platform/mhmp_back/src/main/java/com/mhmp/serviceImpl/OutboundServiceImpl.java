@@ -9,6 +9,7 @@ import com.mhmp.common.util.SecurityUtils;
 import com.mhmp.dto.OutboundApproveDTO;
 import com.mhmp.dto.OutboundCreateDTO;
 import com.mhmp.dto.OutboundPageQueryDTO;
+import com.mhmp.dto.OutboundReturnDTO;
 import com.mhmp.entity.Relic;
 import com.mhmp.entity.RelicOutboundDetail;
 import com.mhmp.entity.RelicOutboundOrder;
@@ -146,6 +147,24 @@ public class OutboundServiceImpl implements OutboundService {
         order.setApproveBy(currentUserId);
         order.setApproveTime(LocalDateTime.now());
         order.setApproveRemark(approveDTO.getApproveRemark());
+        order.setUpdateBy(currentUserId);
+        relicOutboundOrderMapper.updateById(order);
+        updateRelicStatus(id, "IN_STOCK", currentUserId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void returnOrder(Long id, OutboundReturnDTO returnDTO) {
+        RelicOutboundOrder order = getOrderOrThrow(id);
+        if (!"APPROVED".equals(order.getApproveStatus()) && !"RETURNED".equals(order.getApproveStatus())) {
+            throw new BusinessException("Only approved outbound orders can be returned");
+        }
+        Long currentUserId = SecurityUtils.getUserId();
+        order.setApproveStatus("RETURNED");
+        order.setReturnTime(returnDTO.getReturnTime() == null ? LocalDateTime.now() : returnDTO.getReturnTime());
+        if (StringUtils.hasText(returnDTO.getRemark())) {
+            order.setRemark(returnDTO.getRemark());
+        }
         order.setUpdateBy(currentUserId);
         relicOutboundOrderMapper.updateById(order);
         updateRelicStatus(id, "IN_STOCK", currentUserId);

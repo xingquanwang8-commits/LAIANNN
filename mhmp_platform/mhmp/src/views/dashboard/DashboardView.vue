@@ -3,54 +3,61 @@
     <section class="page-card page-card--section">
       <PageHeader
         title="工作台"
-        description="保留简洁信息密度，帮助演示登录后角色、菜单与核心业务入口。"
+        description="展示文物保管、审批、修复与盘点的核心摘要，作为答辩演示的统一入口。"
       />
     </section>
 
-    <section class="page-grid dashboard-grid">
+    <section class="page-grid dashboard-summary">
+      <article
+        v-for="item in summaryCards"
+        :key="item.label"
+        class="page-card page-card--section summary-card"
+      >
+        <div class="summary-card__label">{{ item.label }}</div>
+        <div class="summary-card__value">{{ item.value }}</div>
+        <div class="summary-card__note">{{ item.note }}</div>
+      </article>
+    </section>
+
+    <section class="page-grid dashboard-main">
       <article class="page-card page-card--section dashboard-hero">
         <div>
-          <div class="dashboard-hero__eyebrow">当前登录账号</div>
+          <div class="dashboard-hero__eyebrow">当前账号</div>
           <h2 class="dashboard-hero__title">{{ authStore.displayName }}</h2>
           <p class="dashboard-hero__desc">
-            欢迎进入馆藏管理后台。当前账号共拥有
-            <strong>{{ authStore.permissions.length }}</strong>
-            个权限点，可访问
-            <strong>{{ shortcutList.length }}</strong>
-            个首批联调页面。
+            当前角色：{{ authStore.user?.roles?.join(' / ') || '未分配角色' }}，
+            已加载 {{ authStore.menus.length }} 个菜单入口，可直接用于联调和答辩演示。
           </p>
         </div>
-        <el-button type="primary" @click="router.push('/relic/list')">进入文物管理</el-button>
+        <el-button type="primary" @click="router.push('/relic/list')">进入文物列表</el-button>
       </article>
 
-      <article class="page-card page-card--section">
-        <div class="dashboard-stat__label">角色信息</div>
-        <div class="dashboard-stat__value">{{ roleText }}</div>
-        <div class="dashboard-stat__note text-secondary">角色信息来自后端当前用户接口</div>
-      </article>
-
-      <article class="page-card page-card--section">
-        <div class="dashboard-stat__label">当前菜单</div>
-        <div class="dashboard-stat__value">{{ authStore.menus.length }}</div>
-        <div class="dashboard-stat__note text-secondary">仅展示当前已支持并可真实联调的模块</div>
+      <article class="page-card page-card--section dashboard-panel">
+        <div class="dashboard-panel__title">待办提醒</div>
+        <ul class="dashboard-todo">
+          <li>待出库审批：{{ summary.outboundPendingCount || 0 }} 单</li>
+          <li>待修复审批：{{ summary.repairPendingCount || 0 }} 单</li>
+          <li>修复进行中：{{ summary.repairingCount || 0 }} 单</li>
+          <li>盘点进行中：{{ summary.inventoryRunningCount || 0 }} 单</li>
+        </ul>
       </article>
     </section>
 
     <section class="page-card page-card--section">
       <PageHeader
         title="快捷入口"
-        description="保留首批联调页面，避免出现后端暂未完成的空菜单。"
+        description="常用菜单直接跳转，优先聚焦当前已实现的业务流程。"
       />
 
-      <div class="dashboard-shortcuts">
+      <div class="shortcut-grid">
         <button
-          v-for="item in shortcutList"
-          :key="item.path"
-          class="dashboard-shortcut"
-          @click="router.push(item.path)"
+          v-for="menu in shortcuts"
+          :key="menu.id"
+          class="shortcut-card"
+          @click="router.push(menu.path)"
         >
-          <div class="dashboard-shortcut__title">{{ item.title }}</div>
-          <div class="dashboard-shortcut__path">{{ item.path }}</div>
+          <div class="shortcut-card__title">{{ menu.menuName }}</div>
+          <div class="shortcut-card__path">{{ menu.path }}</div>
         </button>
       </div>
     </section>
@@ -58,44 +65,84 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { getDashboardSummaryApi } from '@/api/dashboard'
 import PageHeader from '@/components/common/PageHeader.vue'
 import { useAuthStore } from '@/stores/auth'
+import { collectShortcutMenus } from '@/utils/menu'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
-const roleText = computed(() => authStore.user?.roles?.join(' / ') || '未分配角色')
+const summary = ref({
+  totalRelicCount: 0,
+  inStockRelicCount: 0,
+  outboundPendingCount: 0,
+  repairPendingCount: 0,
+  repairingCount: 0,
+  inventoryRunningCount: 0
+})
 
-const shortcutList = computed(() => {
-  const result = []
-  authStore.menus.forEach((menu) => {
-    if (menu.children?.length) {
-      menu.children.forEach((child) => {
-        if (child.path) {
-          result.push({
-            title: child.menuName,
-            path: child.path
-          })
-        }
-      })
-      return
-    }
-    if (menu.path) {
-      result.push({
-        title: menu.menuName,
-        path: menu.path
-      })
-    }
-  })
-  return result
+const summaryCards = computed(() => [
+  {
+    label: '文物总量',
+    value: summary.value.totalRelicCount || 0,
+    note: '系统已登记馆藏文物数量'
+  },
+  {
+    label: '在库文物',
+    value: summary.value.inStockRelicCount || 0,
+    note: '当前可正常在库查询的文物数量'
+  },
+  {
+    label: '待审批出库',
+    value: summary.value.outboundPendingCount || 0,
+    note: '等待管理员审批的出库申请'
+  },
+  {
+    label: '待修复审批',
+    value: summary.value.repairPendingCount || 0,
+    note: '刚提交、待修复方案审批的任务'
+  }
+])
+
+const shortcuts = computed(() => collectShortcutMenus(authStore.menus, 10))
+
+async function loadSummary() {
+  summary.value = await getDashboardSummaryApi()
+}
+
+onMounted(() => {
+  loadSummary()
 })
 </script>
 
 <style scoped>
-.dashboard-grid {
-  grid-template-columns: 2fr 1fr 1fr;
+.dashboard-summary {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.summary-card__label {
+  color: var(--text-second);
+  font-size: 13px;
+}
+
+.summary-card__value {
+  margin-top: 10px;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.summary-card__note {
+  margin-top: 12px;
+  color: var(--text-second);
+  line-height: 1.7;
+  font-size: 13px;
+}
+
+.dashboard-main {
+  grid-template-columns: 2fr 1fr;
 }
 
 .dashboard-hero {
@@ -125,37 +172,32 @@ const shortcutList = computed(() => {
 }
 
 .dashboard-hero__desc {
-  max-width: 600px;
+  max-width: 620px;
   margin: 12px 0 0;
   line-height: 1.8;
   color: var(--text-second);
 }
 
-.dashboard-stat__label {
-  color: var(--text-second);
-  font-size: 13px;
-}
-
-.dashboard-stat__value {
-  margin-top: 10px;
-  font-size: 30px;
+.dashboard-panel__title {
+  font-size: 16px;
   font-weight: 700;
 }
 
-.dashboard-stat__note {
-  margin-top: 12px;
-  line-height: 1.7;
-  font-size: 13px;
+.dashboard-todo {
+  padding-left: 18px;
+  margin: 16px 0 0;
+  color: var(--text-second);
+  line-height: 2;
 }
 
-.dashboard-shortcuts {
+.shortcut-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 14px;
   margin-top: 18px;
 }
 
-.dashboard-shortcut {
+.shortcut-card {
   padding: 18px;
   border: 1px solid var(--border-line);
   border-radius: 12px;
@@ -166,24 +208,24 @@ const shortcutList = computed(() => {
   transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
-.dashboard-shortcut:hover {
+.shortcut-card:hover {
   transform: translateY(-2px);
   border-color: rgba(123, 44, 42, 0.35);
 }
 
-.dashboard-shortcut__title {
+.shortcut-card__title {
   font-size: 16px;
   font-weight: 700;
 }
 
-.dashboard-shortcut__path {
+.shortcut-card__path {
   margin-top: 8px;
   color: var(--text-second);
   font-size: 13px;
 }
 
 @media (max-width: 1080px) {
-  .dashboard-grid {
+  .dashboard-main {
     grid-template-columns: 1fr;
   }
 

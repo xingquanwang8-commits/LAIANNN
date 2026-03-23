@@ -3,7 +3,7 @@
     <AppSidebar :menus="authStore.menus" />
 
     <div class="layout-content">
-      <AppHeader @logout="handleLogout" />
+      <AppHeader @logout="handleLogout" @profile="handleProfile" />
 
       <main class="layout-main">
         <router-view />
@@ -24,6 +24,10 @@ const authStore = useAuthStore()
 async function handleLogout() {
   await authStore.logout()
   router.replace('/login')
+}
+
+function handleProfile() {
+  router.push('/profile')
 }
 </script>
 

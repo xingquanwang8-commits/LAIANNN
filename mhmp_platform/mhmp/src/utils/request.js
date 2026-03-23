@@ -12,7 +12,7 @@ function handleUnauthorized(message) {
   clearToken()
   if (!redirecting) {
     redirecting = true
-    ElMessage.error(message || '登录已过期，请重新登录')
+    ElMessage.error(message || '登录已失效，请重新登录')
     const currentHash = window.location.hash || '#/'
     const redirect = encodeURIComponent(currentHash.replace(/^#/, ''))
     window.location.hash = `/login?redirect=${redirect}`
@@ -55,7 +55,7 @@ request.interceptors.response.use(
     if (status === 401) {
       handleUnauthorized(error.response?.data?.msg)
     } else if (status === 403) {
-      ElMessage.error('没有访问权限')
+      ElMessage.error(error.response?.data?.msg || '没有访问权限')
     } else {
       ElMessage.error(error.response?.data?.msg || error.message || '网络请求失败')
     }

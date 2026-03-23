@@ -4,21 +4,22 @@
       <div class="login-brand__eyebrow">Museum Heritage Platform</div>
       <h1 class="login-brand__title">博物馆文物综合管理平台</h1>
       <p class="login-brand__desc">
-        面向馆藏信息、文物出入库与修复流程的数字化后台。界面保持庄重克制，流程清晰高效，适合毕业设计演示与真实联调。
+        面向馆藏信息、文物出入库、修复、盘点与系统管理的综合后台，
+        以稳定联调、简洁操作和答辩演示友好为目标。
       </p>
 
       <div class="login-feature-list">
         <div class="login-feature-item">
-          <span class="status-dot" style="color: var(--primary)">真实接口联调</span>
-          <p>已接认证、字典、文物管理与出库审批接口。</p>
+          <span class="status-dot" style="color: #fff7f4">真实接口联调</span>
+          <p>前后端均围绕现有数据库与权限菜单构建，登录后即可进入真实业务页面。</p>
         </div>
         <div class="login-feature-item">
-          <span class="status-dot" style="color: var(--success)">简洁后台体验</span>
-          <p>以清晰表单、稳重色彩和少噪音布局提升日常使用效率。</p>
+          <span class="status-dot" style="color: #fff7f4">庄重后台风格</span>
+          <p>统一采用沉稳暗红主题，交互结构清晰，适合长期办公与项目展示。</p>
         </div>
         <div class="login-feature-item">
-          <span class="status-dot" style="color: var(--warning)">毕业设计导向</span>
-          <p>优先保证可运行、可演示、可答辩，不做无必要的复杂设计。</p>
+          <span class="status-dot" style="color: #fff7f4">毕业设计导向</span>
+          <p>优先保证可运行、可演示、可答辩，不引入无关的复杂设计。</p>
         </div>
       </div>
     </div>
@@ -26,7 +27,7 @@
     <div class="login-panel login-panel--form page-card">
       <div class="login-form__head">
         <div class="login-form__title">账号登录</div>
-        <div class="login-form__hint">请使用已导入数据库中的账号密码进行登录</div>
+        <div class="login-form__hint">请输入数据库中已有账号密码，登录后将按角色返回菜单。</div>
       </div>
 
       <el-form
@@ -51,13 +52,7 @@
           />
         </el-form-item>
 
-        <el-button
-          class="login-submit"
-          type="primary"
-          size="large"
-          :loading="submitting"
-          @click="handleLogin"
-        >
+        <el-button class="login-submit" type="primary" size="large" :loading="submitting" @click="handleLogin">
           登录系统
         </el-button>
       </el-form>

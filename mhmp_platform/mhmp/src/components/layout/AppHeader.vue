@@ -3,7 +3,7 @@
     <div>
       <div class="header-title">{{ route.meta.title || '工作台' }}</div>
       <div class="header-breadcrumb text-secondary">
-        {{ breadcrumbText }}
+        {{ breadcrumbText || '博物馆文物综合管理平台' }}
       </div>
     </div>
 
@@ -16,6 +16,7 @@
         </div>
       </div>
 
+      <el-button text @click="$emit('profile')">个人中心</el-button>
       <el-button text @click="$emit('logout')">退出登录</el-button>
     </div>
   </header>
@@ -26,7 +27,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
-defineEmits(['logout'])
+defineEmits(['logout', 'profile'])
 
 const authStore = useAuthStore()
 const route = useRoute()
@@ -100,6 +101,7 @@ const breadcrumbText = computed(() => route.matched
   .header-actions {
     width: 100%;
     justify-content: space-between;
+    flex-wrap: wrap;
   }
 }
 </style>

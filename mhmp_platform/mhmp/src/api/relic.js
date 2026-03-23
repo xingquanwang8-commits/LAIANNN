@@ -37,3 +37,10 @@ export function updateRelicApi(id, data) {
     data
   })
 }
+
+export function deleteRelicApi(id) {
+  return request({
+    url: `/relic/${id}`,
+    method: 'delete'
+  })
+}

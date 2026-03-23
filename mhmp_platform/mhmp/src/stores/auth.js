@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import { ElMessage } from 'element-plus'
 import { getCurrentUserApi, getMenusApi, loginApi, logoutApi } from '@/api/auth'
-import { filterSupportedMenus } from '@/utils/menu'
 import { TOKEN_KEY, clearToken } from '@/utils/request'
 
 let initializePromise = null
@@ -59,7 +58,7 @@ export const useAuthStore = defineStore('auth', {
       initializePromise = Promise.all([getCurrentUserApi(), getMenusApi()])
         .then(([user, menus]) => {
           this.user = user
-          this.menus = filterSupportedMenus(menus || [])
+          this.menus = menus || []
           this.initialized = true
           return true
         })
@@ -78,7 +77,7 @@ export const useAuthStore = defineStore('auth', {
           await logoutApi()
         }
       } catch (error) {
-        // 后端会话不存在时前端仍应允许退出。
+        // Allow local logout even when the backend session is already invalid.
       } finally {
         this.clearSession()
       }

@@ -1,5 +1,6 @@
 package com.mhmp.controller;
 
+import com.mhmp.common.annotation.OperationLog;
 import com.mhmp.common.result.Result;
 import com.mhmp.common.security.JwtAuthenticationFilter;
 import com.mhmp.dto.LoginDTO;
@@ -28,11 +29,13 @@ public class AuthController {
     }
 
     @PostMapping("/login")
+    @OperationLog(module = "Auth", businessType = "LOGIN", description = "User login")
     public Result<LoginVO> login(@Valid @RequestBody LoginDTO loginDTO) {
         return Result.success(authService.login(loginDTO));
     }
 
     @PostMapping("/logout")
+    @OperationLog(module = "Auth", businessType = "LOGOUT", description = "User logout")
     public Result<Void> logout(HttpServletRequest request) {
         authService.logout(JwtAuthenticationFilter.resolveToken(request));
         return Result.success();

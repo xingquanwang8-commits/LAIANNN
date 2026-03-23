@@ -38,3 +38,11 @@ export function rejectOutboundApi(id, data) {
     data
   })
 }
+
+export function returnOutboundApi(id, data) {
+  return request({
+    url: `/outbound/return/${id}`,
+    method: 'post',
+    data
+  })
+}

@@ -16,6 +16,8 @@ public interface DictService {
 
     List<DictItemVO> listItemsByType(String dictTypeCode);
 
+    List<DictItemVO> listAllItemsByType(String dictTypeCode);
+
     PageResponse<DictTypeVO> pageTypes(DictTypePageQueryDTO queryDTO);
 
     Long createType(DictTypeSaveDTO saveDTO);

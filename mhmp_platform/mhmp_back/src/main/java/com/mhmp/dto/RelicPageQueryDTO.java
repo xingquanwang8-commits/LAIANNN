@@ -15,6 +15,7 @@ public class RelicPageQueryDTO {
     private String keyword;
     private String categoryCode;
     private String materialCode;
+    private String preservationStatusCode;
     private String currentStatus;
     private String storageLocationCode;
 }

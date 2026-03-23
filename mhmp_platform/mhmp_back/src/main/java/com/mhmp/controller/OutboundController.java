@@ -1,10 +1,12 @@
 package com.mhmp.controller;
 
+import com.mhmp.common.annotation.OperationLog;
 import com.mhmp.common.result.PageResponse;
 import com.mhmp.common.result.Result;
 import com.mhmp.dto.OutboundApproveDTO;
 import com.mhmp.dto.OutboundCreateDTO;
 import com.mhmp.dto.OutboundPageQueryDTO;
+import com.mhmp.dto.OutboundReturnDTO;
 import com.mhmp.service.OutboundService;
 import com.mhmp.vo.OutboundDetailVO;
 import com.mhmp.vo.OutboundListVO;
@@ -43,12 +45,14 @@ public class OutboundController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('inventory:outbound:submit')")
+    @OperationLog(module = "Outbound", businessType = "INSERT", description = "Create outbound application")
     public Result<Long> create(@Valid @RequestBody OutboundCreateDTO createDTO) {
-        return Result.success("提交成功", outboundService.create(createDTO));
+        return Result.success(outboundService.create(createDTO));
     }
 
     @PostMapping("/approve/{id}")
     @PreAuthorize("hasAuthority('inventory:outbound:approve')")
+    @OperationLog(module = "Outbound", businessType = "APPROVE", description = "Approve outbound application")
     public Result<Void> approve(@PathVariable Long id, @RequestBody(required = false) OutboundApproveDTO approveDTO) {
         outboundService.approve(id, approveDTO == null ? new OutboundApproveDTO() : approveDTO);
         return Result.success();
@@ -56,8 +60,17 @@ public class OutboundController {
 
     @PostMapping("/reject/{id}")
     @PreAuthorize("hasAuthority('inventory:outbound:reject')")
+    @OperationLog(module = "Outbound", businessType = "REJECT", description = "Reject outbound application")
     public Result<Void> reject(@PathVariable Long id, @RequestBody(required = false) OutboundApproveDTO approveDTO) {
         outboundService.reject(id, approveDTO == null ? new OutboundApproveDTO() : approveDTO);
+        return Result.success();
+    }
+
+    @PostMapping("/return/{id}")
+    @PreAuthorize("hasAnyAuthority('inventory:outbound:approve','inventory:outbound:submit')")
+    @OperationLog(module = "Outbound", businessType = "RETURN", description = "Register relic return")
+    public Result<Void> returnOrder(@PathVariable Long id, @RequestBody(required = false) OutboundReturnDTO returnDTO) {
+        outboundService.returnOrder(id, returnDTO == null ? new OutboundReturnDTO() : returnDTO);
         return Result.success();
     }
 }

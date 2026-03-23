@@ -3,7 +3,7 @@
     <section class="page-card page-card--section">
       <PageHeader
         :title="isEdit ? '编辑文物' : '新增文物'"
-        :description="isEdit ? '保持字段与后端 DTO 一致，直接保存到真实数据库。' : '新建文物时优先补齐基础档案字段，便于后续出入库与修复管理。'"
+        :description="isEdit ? '直接维护现有文物档案字段并保存到后端。' : '新建文物档案，便于后续出入库、修复和盘点管理。'"
       >
         <template #extra>
           <el-button @click="router.back()">返回</el-button>
@@ -12,12 +12,7 @@
     </section>
 
     <section class="page-card page-card--section">
-      <el-form
-        ref="formRef"
-        :model="form"
-        :rules="rules"
-        label-position="top"
-      >
+      <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
         <div class="page-grid relic-form-grid">
           <el-form-item label="文物编号" prop="relicNo">
             <el-input v-model="form.relicNo" placeholder="请输入文物编号" />
@@ -27,42 +22,22 @@
           </el-form-item>
           <el-form-item label="文物类别" prop="categoryCode">
             <el-select v-model="form.categoryCode" placeholder="请选择文物类别">
-              <el-option
-                v-for="item in categoryOptions"
-                :key="item.itemValue"
-                :label="item.itemLabel"
-                :value="item.itemValue"
-              />
+              <el-option v-for="item in categoryOptions" :key="item.itemValue" :label="item.itemLabel" :value="item.itemValue" />
             </el-select>
           </el-form-item>
           <el-form-item label="文物材质" prop="materialCode">
             <el-select v-model="form.materialCode" placeholder="请选择文物材质">
-              <el-option
-                v-for="item in materialOptions"
-                :key="item.itemValue"
-                :label="item.itemLabel"
-                :value="item.itemValue"
-              />
+              <el-option v-for="item in materialOptions" :key="item.itemValue" :label="item.itemLabel" :value="item.itemValue" />
             </el-select>
           </el-form-item>
           <el-form-item label="馆藏位置">
             <el-select v-model="form.storageLocationCode" placeholder="请选择馆藏位置" clearable>
-              <el-option
-                v-for="item in locationOptions"
-                :key="item.itemValue"
-                :label="item.itemLabel"
-                :value="item.itemValue"
-              />
+              <el-option v-for="item in locationOptions" :key="item.itemValue" :label="item.itemLabel" :value="item.itemValue" />
             </el-select>
           </el-form-item>
           <el-form-item label="当前状态" prop="currentStatus">
             <el-select v-model="form.currentStatus" placeholder="请选择当前状态">
-              <el-option
-                v-for="item in statusOptions"
-                :key="item.itemValue"
-                :label="item.itemLabel"
-                :value="item.itemValue"
-              />
+              <el-option v-for="item in statusOptions" :key="item.itemValue" :label="item.itemLabel" :value="item.itemValue" />
             </el-select>
           </el-form-item>
           <el-form-item label="保存状态">
@@ -76,7 +51,7 @@
             </el-select>
           </el-form-item>
           <el-form-item label="年代">
-            <el-input v-model="form.era" placeholder="如：商周时期 / 明代" />
+            <el-input v-model="form.era" placeholder="如：明代 / 商周时期" />
           </el-form-item>
           <el-form-item label="来源">
             <el-input v-model="form.source" placeholder="如：考古发掘 / 社会捐赠" />
@@ -93,16 +68,16 @@
         </div>
 
         <el-form-item label="保存条件">
-          <el-input v-model="form.storageCondition" type="textarea" :rows="2" placeholder="请输入保存条件" />
+          <el-input v-model="form.storageCondition" type="textarea" :rows="2" />
         </el-form-item>
         <el-form-item label="注意事项">
-          <el-input v-model="form.attentionNote" type="textarea" :rows="2" placeholder="请输入注意事项" />
+          <el-input v-model="form.attentionNote" type="textarea" :rows="2" />
         </el-form-item>
         <el-form-item label="文物描述">
-          <el-input v-model="form.description" type="textarea" :rows="4" placeholder="请输入文物描述" />
+          <el-input v-model="form.description" type="textarea" :rows="4" />
         </el-form-item>
         <el-form-item label="备注">
-          <el-input v-model="form.note" type="textarea" :rows="2" placeholder="请输入备注" />
+          <el-input v-model="form.note" type="textarea" :rows="2" />
         </el-form-item>
 
         <div class="relic-form__actions">
@@ -117,7 +92,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { createRelicApi, getRelicDetailApi, updateRelicApi } from '@/api/relic'
@@ -221,16 +196,14 @@ async function handleSubmit() {
   }
 }
 
-onMounted(async () => {
-  await dictStore.ensureMultipleItems([
-    'relic_category',
-    'relic_material',
-    'relic_status',
-    'storage_location',
-    'preservation_status'
-  ])
-  await loadDetail()
-})
+dictStore.ensureMultipleItems([
+  'relic_category',
+  'relic_material',
+  'relic_status',
+  'storage_location',
+  'preservation_status'
+])
+loadDetail()
 </script>
 
 <style scoped>

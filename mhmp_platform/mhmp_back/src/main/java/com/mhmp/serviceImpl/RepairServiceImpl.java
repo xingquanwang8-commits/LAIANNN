@@ -35,11 +35,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class RepairServiceImpl implements RepairService {
@@ -95,7 +97,11 @@ public class RepairServiceImpl implements RepairService {
         RepairTask task = getTaskOrThrow(id);
         RepairDetailVO vo = new RepairDetailVO();
         BeanUtils.copyProperties(task, vo);
-        Map<Long, String> userNameMap = loadUserNameMap(Set.of(task.getApplyUserId(), task.getApproveBy()));
+        Map<Long, String> userNameMap = loadUserNameMap(
+            Stream.of(task.getApplyUserId(), task.getApproveBy())
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet())
+        );
         vo.setApplyUserName(userNameMap.get(task.getApplyUserId()));
         vo.setApproveUserName(userNameMap.get(task.getApproveBy()));
         vo.setPlan(toPlanVO(repairPlanMapper.selectOne(
@@ -356,7 +362,13 @@ public class RepairServiceImpl implements RepairService {
     }
 
     private Map<Long, String> loadUserNameMap(Set<Long> userIds) {
-        return sysUserMapper.selectBatchIds(userIds.stream().filter(Objects::nonNull).toList())
+        List<Long> filteredUserIds = userIds == null
+            ? List.of()
+            : userIds.stream().filter(Objects::nonNull).distinct().toList();
+        if (filteredUserIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        return sysUserMapper.selectBatchIds(filteredUserIds)
             .stream()
             .collect(Collectors.toMap(SysUser::getId, this::resolveUserName));
     }

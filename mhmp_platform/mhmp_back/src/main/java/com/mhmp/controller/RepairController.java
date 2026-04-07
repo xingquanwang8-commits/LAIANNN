@@ -3,12 +3,14 @@ package com.mhmp.controller;
 import com.mhmp.common.annotation.OperationLog;
 import com.mhmp.common.result.PageResponse;
 import com.mhmp.common.result.Result;
+import com.mhmp.dto.RelicPageQueryDTO;
 import com.mhmp.dto.RepairAcceptanceDTO;
 import com.mhmp.dto.RepairApplyCreateDTO;
 import com.mhmp.dto.RepairApproveDTO;
 import com.mhmp.dto.RepairLogCreateDTO;
 import com.mhmp.dto.RepairPageQueryDTO;
 import com.mhmp.service.RepairService;
+import com.mhmp.vo.RelicListVO;
 import com.mhmp.vo.RepairDetailVO;
 import com.mhmp.vo.RepairTaskListVO;
 import jakarta.validation.Valid;
@@ -62,6 +64,24 @@ public class RepairController {
         return Result.success(repairService.historyPage(queryDTO));
     }
 
+    @GetMapping("/pending-relics/page")
+    @PreAuthorize("hasAuthority('repair:apply:view')")
+    public Result<PageResponse<RelicListVO>> pendingRelicPage(@Valid RelicPageQueryDTO queryDTO) {
+        return Result.success(repairService.pendingRelicPage(queryDTO));
+    }
+
+    @GetMapping("/my/page")
+    @PreAuthorize("hasAuthority('repair:process:view')")
+    public Result<PageResponse<RepairTaskListVO>> myPage(@Valid RepairPageQueryDTO queryDTO) {
+        return Result.success(repairService.myPage(queryDTO));
+    }
+
+    @GetMapping("/repaired/page")
+    @PreAuthorize("hasAuthority('repair:history:view')")
+    public Result<PageResponse<RepairTaskListVO>> repairedPage(@Valid RepairPageQueryDTO queryDTO) {
+        return Result.success(repairService.repairedPage(queryDTO));
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('repair:apply:view','repair:approve:view','repair:process:view','repair:acceptance:view','repair:history:view')")
     public Result<RepairDetailVO> detail(@PathVariable Long id) {
@@ -88,6 +108,14 @@ public class RepairController {
     @OperationLog(module = "Repair", businessType = "UPDATE", description = "Add repair log")
     public Result<Void> addLog(@PathVariable Long id, @Valid @RequestBody RepairLogCreateDTO createDTO) {
         repairService.addLog(id, createDTO);
+        return Result.success();
+    }
+
+    @PostMapping("/process/{id}/apply-acceptance")
+    @PreAuthorize("hasAuthority('repair:log:add')")
+    @OperationLog(module = "Repair", businessType = "UPDATE", description = "Apply repair acceptance")
+    public Result<Void> applyAcceptance(@PathVariable Long id) {
+        repairService.applyAcceptance(id);
         return Result.success();
     }
 

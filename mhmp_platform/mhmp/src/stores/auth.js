@@ -1,13 +1,13 @@
 import { defineStore } from 'pinia'
 import { ElMessage } from 'element-plus'
 import { getCurrentUserApi, getMenusApi, loginApi, logoutApi } from '@/api/auth'
-import { TOKEN_KEY, clearToken } from '@/utils/request'
+import { clearToken, getToken, setToken as persistToken } from '@/utils/request'
 
 let initializePromise = null
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    token: localStorage.getItem(TOKEN_KEY) || '',
+    token: getToken(),
     user: null,
     menus: [],
     initialized: false
@@ -20,7 +20,7 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     setToken(token) {
       this.token = token
-      localStorage.setItem(TOKEN_KEY, token)
+      persistToken(token)
     },
     clearSession() {
       this.token = ''

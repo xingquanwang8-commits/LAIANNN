@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mhmp.common.exception.BusinessException;
 import com.mhmp.common.result.PageResponse;
-import com.mhmp.common.util.OrderNoUtils;
+import com.mhmp.common.util.RelicBusinessRuleUtils;
 import com.mhmp.common.util.SecurityUtils;
 import com.mhmp.dto.OutboundApproveDTO;
 import com.mhmp.dto.OutboundCreateDTO;
@@ -16,6 +16,7 @@ import com.mhmp.entity.RelicOutboundOrder;
 import com.mhmp.mapper.RelicMapper;
 import com.mhmp.mapper.RelicOutboundDetailMapper;
 import com.mhmp.mapper.RelicOutboundOrderMapper;
+import com.mhmp.service.BusinessNoService;
 import com.mhmp.service.OutboundService;
 import com.mhmp.vo.OutboundDetailItemVO;
 import com.mhmp.vo.OutboundDetailVO;
@@ -27,6 +28,8 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,13 +38,16 @@ public class OutboundServiceImpl implements OutboundService {
     private final RelicOutboundOrderMapper relicOutboundOrderMapper;
     private final RelicOutboundDetailMapper relicOutboundDetailMapper;
     private final RelicMapper relicMapper;
+    private final BusinessNoService businessNoService;
 
     public OutboundServiceImpl(RelicOutboundOrderMapper relicOutboundOrderMapper,
                                RelicOutboundDetailMapper relicOutboundDetailMapper,
-                               RelicMapper relicMapper) {
+                               RelicMapper relicMapper,
+                               BusinessNoService businessNoService) {
         this.relicOutboundOrderMapper = relicOutboundOrderMapper;
         this.relicOutboundDetailMapper = relicOutboundDetailMapper;
         this.relicMapper = relicMapper;
+        this.businessNoService = businessNoService;
     }
 
     @Override
@@ -82,16 +88,12 @@ public class OutboundServiceImpl implements OutboundService {
         if (relicList.size() != relicIds.size()) {
             throw new BusinessException("存在无效的文物数据");
         }
-        List<Relic> invalidRelics = relicList.stream()
-            .filter(relic -> !"IN_STOCK".equals(relic.getCurrentStatus()))
-            .toList();
-        if (!invalidRelics.isEmpty()) {
-            String names = invalidRelics.stream().map(Relic::getName).collect(Collectors.joining("、"));
-            throw new BusinessException("以下文物当前不允许提交出库申请：" + names);
+        for (Relic relic : relicList) {
+            RelicBusinessRuleUtils.validateOutboundCreatable(relic);
         }
 
         RelicOutboundOrder order = new RelicOutboundOrder();
-        order.setOrderNo(OrderNoUtils.nextOrderNo("OUT"));
+        order.setOrderNo(businessNoService.nextOutboundOrderNo());
         order.setPurpose(createDTO.getPurpose());
         order.setDestination(createDTO.getDestination());
         order.setHandlerName(createDTO.getHandlerName());
@@ -127,7 +129,9 @@ public class OutboundServiceImpl implements OutboundService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void approve(Long id, OutboundApproveDTO approveDTO) {
-        RelicOutboundOrder order = getPendingOrder(id);
+        RelicOutboundOrder order = getOrderOrThrow(id);
+        RelicBusinessRuleUtils.validateOutboundApprovable(order, loadOrderRelics(id));
+
         Long currentUserId = SecurityUtils.getUserId();
         order.setApproveStatus("APPROVED");
         order.setApproveBy(currentUserId);
@@ -141,7 +145,9 @@ public class OutboundServiceImpl implements OutboundService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void reject(Long id, OutboundApproveDTO approveDTO) {
-        RelicOutboundOrder order = getPendingOrder(id);
+        RelicOutboundOrder order = getOrderOrThrow(id);
+        RelicBusinessRuleUtils.validateOutboundRejectable(order, loadOrderRelics(id));
+
         Long currentUserId = SecurityUtils.getUserId();
         order.setApproveStatus("REJECTED");
         order.setApproveBy(currentUserId);
@@ -156,9 +162,8 @@ public class OutboundServiceImpl implements OutboundService {
     @Transactional(rollbackFor = Exception.class)
     public void returnOrder(Long id, OutboundReturnDTO returnDTO) {
         RelicOutboundOrder order = getOrderOrThrow(id);
-        if (!"APPROVED".equals(order.getApproveStatus()) && !"RETURNED".equals(order.getApproveStatus())) {
-            throw new BusinessException("Only approved outbound orders can be returned");
-        }
+        RelicBusinessRuleUtils.validateOutboundReturnable(order, loadOrderRelics(id));
+
         Long currentUserId = SecurityUtils.getUserId();
         order.setApproveStatus("RETURNED");
         order.setReturnTime(returnDTO.getReturnTime() == null ? LocalDateTime.now() : returnDTO.getReturnTime());
@@ -178,29 +183,30 @@ public class OutboundServiceImpl implements OutboundService {
         return order;
     }
 
-    private RelicOutboundOrder getPendingOrder(Long id) {
-        RelicOutboundOrder order = getOrderOrThrow(id);
-        if (!"PENDING".equals(order.getApproveStatus())) {
-            throw new BusinessException("当前出库单不是待审批状态");
+    private List<Relic> loadOrderRelics(Long orderId) {
+        List<RelicOutboundDetail> details = listOrderDetails(orderId);
+        List<Long> relicIds = details.stream()
+            .map(RelicOutboundDetail::getRelicId)
+            .distinct()
+            .toList();
+        if (relicIds.isEmpty()) {
+            return List.of();
         }
-        return order;
+        Map<Long, Relic> relicMap = relicMapper.selectBatchIds(relicIds).stream()
+            .collect(Collectors.toMap(Relic::getId, Function.identity()));
+        return details.stream()
+            .map(detail -> relicMap.get(detail.getRelicId()))
+            .toList();
     }
 
     private List<OutboundDetailItemVO> listDetailItems(Long orderId) {
-        return relicOutboundDetailMapper.selectList(
-                Wrappers.<RelicOutboundDetail>lambdaQuery()
-                    .eq(RelicOutboundDetail::getOrderId, orderId)
-                    .orderByAsc(RelicOutboundDetail::getId)
-            ).stream()
+        return listOrderDetails(orderId).stream()
             .map(this::toDetailItemVO)
             .toList();
     }
 
     private void updateRelicStatus(Long orderId, String targetStatus, Long currentUserId) {
-        List<RelicOutboundDetail> details = relicOutboundDetailMapper.selectList(
-            Wrappers.<RelicOutboundDetail>lambdaQuery().eq(RelicOutboundDetail::getOrderId, orderId)
-        );
-        for (RelicOutboundDetail detail : details) {
+        for (RelicOutboundDetail detail : listOrderDetails(orderId)) {
             Relic relic = relicMapper.selectById(detail.getRelicId());
             if (relic != null) {
                 relic.setCurrentStatus(targetStatus);
@@ -208,6 +214,14 @@ public class OutboundServiceImpl implements OutboundService {
                 relicMapper.updateById(relic);
             }
         }
+    }
+
+    private List<RelicOutboundDetail> listOrderDetails(Long orderId) {
+        return relicOutboundDetailMapper.selectList(
+            Wrappers.<RelicOutboundDetail>lambdaQuery()
+                .eq(RelicOutboundDetail::getOrderId, orderId)
+                .orderByAsc(RelicOutboundDetail::getId)
+        );
     }
 
     private OutboundListVO toListVO(RelicOutboundOrder entity) {

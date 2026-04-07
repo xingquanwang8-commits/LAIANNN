@@ -10,4 +10,6 @@ public class RepairPageQueryDTO extends PageQueryDTO {
     private String keyword;
 
     private String taskStatus;
+
+    private String acceptanceStatus;
 }

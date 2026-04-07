@@ -1,7 +1,7 @@
 <template>
-  <RepairBoardView mode="history" />
+  <RepairFinishedView />
 </template>
 
 <script setup>
-import RepairBoardView from './RepairBoardView.vue'
+import RepairFinishedView from './RepairFinishedView.vue'
 </script>

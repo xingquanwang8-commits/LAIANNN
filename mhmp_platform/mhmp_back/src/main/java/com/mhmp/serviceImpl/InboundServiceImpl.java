@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mhmp.common.exception.BusinessException;
 import com.mhmp.common.result.PageResponse;
-import com.mhmp.common.util.OrderNoUtils;
+import com.mhmp.common.util.RelicBusinessRuleUtils;
 import com.mhmp.common.util.SecurityUtils;
 import com.mhmp.dto.InboundCreateDTO;
 import com.mhmp.dto.InboundPageQueryDTO;
@@ -14,6 +14,7 @@ import com.mhmp.entity.RelicInboundOrder;
 import com.mhmp.mapper.RelicInboundDetailMapper;
 import com.mhmp.mapper.RelicInboundOrderMapper;
 import com.mhmp.mapper.RelicMapper;
+import com.mhmp.service.BusinessNoService;
 import com.mhmp.service.InboundService;
 import com.mhmp.vo.InboundDetailItemVO;
 import com.mhmp.vo.InboundDetailVO;
@@ -31,13 +32,16 @@ public class InboundServiceImpl implements InboundService {
     private final RelicInboundOrderMapper relicInboundOrderMapper;
     private final RelicInboundDetailMapper relicInboundDetailMapper;
     private final RelicMapper relicMapper;
+    private final BusinessNoService businessNoService;
 
     public InboundServiceImpl(RelicInboundOrderMapper relicInboundOrderMapper,
                               RelicInboundDetailMapper relicInboundDetailMapper,
-                              RelicMapper relicMapper) {
+                              RelicMapper relicMapper,
+                              BusinessNoService businessNoService) {
         this.relicInboundOrderMapper = relicInboundOrderMapper;
         this.relicInboundDetailMapper = relicInboundDetailMapper;
         this.relicMapper = relicMapper;
+        this.businessNoService = businessNoService;
     }
 
     @Override
@@ -82,8 +86,8 @@ public class InboundServiceImpl implements InboundService {
         }
         Long currentUserId = SecurityUtils.getUserId();
         RelicInboundOrder order = new RelicInboundOrder();
-        order.setOrderNo(OrderNoUtils.nextOrderNo("IN"));
-        order.setBatchNo(createDTO.getBatchNo());
+        order.setOrderNo(businessNoService.nextInboundOrderNo());
+        order.setBatchNo(businessNoService.nextInboundBatchNo());
         order.setSource(createDTO.getSource());
         order.setHandlerName(createDTO.getHandlerName());
         order.setInboundTime(createDTO.getInboundTime());
@@ -93,6 +97,7 @@ public class InboundServiceImpl implements InboundService {
         order.setCreateBy(currentUserId);
         order.setUpdateBy(currentUserId);
         order.setDeleted(0);
+        RelicBusinessRuleUtils.validateInboundCompletable(order, relicList);
         relicInboundOrderMapper.insert(order);
 
         for (Relic relic : relicList) {

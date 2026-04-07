@@ -1,7 +1,7 @@
 <template>
-  <RepairBoardView mode="apply" />
+  <RepairPendingView />
 </template>
 
 <script setup>
-import RepairBoardView from './RepairBoardView.vue'
+import RepairPendingView from './RepairPendingView.vue'
 </script>

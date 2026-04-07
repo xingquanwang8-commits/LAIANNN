@@ -9,7 +9,10 @@
 
     <div class="header-actions">
       <div class="header-user">
-        <div class="header-user__avatar">{{ userInitial }}</div>
+        <div class="header-user__avatar">
+          <img v-if="authStore.user?.avatarUrl" :src="authStore.user.avatarUrl" alt="用户头像" class="header-user__avatar-image">
+          <span v-else>{{ userInitial }}</span>
+        </div>
         <div>
           <div class="header-user__name">{{ authStore.displayName }}</div>
           <div class="header-user__role text-secondary">{{ roleText }}</div>
@@ -81,6 +84,13 @@ const breadcrumbText = computed(() => route.matched
   background: rgba(123, 44, 42, 0.12);
   color: var(--primary);
   font-weight: 700;
+  overflow: hidden;
+}
+
+.header-user__avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .header-user__name {

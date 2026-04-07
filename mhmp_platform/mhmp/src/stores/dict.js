@@ -18,6 +18,9 @@ export const useDictStore = defineStore('dict', {
       if (this.itemsMap[dictTypeCode]) {
         return this.itemsMap[dictTypeCode]
       }
+      return this.refreshItems(dictTypeCode)
+    },
+    async refreshItems(dictTypeCode) {
       const items = await getDictItemsApi(dictTypeCode)
       this.itemsMap = {
         ...this.itemsMap,
@@ -27,6 +30,9 @@ export const useDictStore = defineStore('dict', {
     },
     async ensureMultipleItems(typeCodes = []) {
       await Promise.all(typeCodes.map((typeCode) => this.ensureItems(typeCode)))
+    },
+    async refreshMultipleItems(typeCodes = []) {
+      await Promise.all(typeCodes.map((typeCode) => this.refreshItems(typeCode)))
     }
   }
 })

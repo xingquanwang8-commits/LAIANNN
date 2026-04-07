@@ -28,4 +28,6 @@ public class RelicDetailVO {
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
     private List<RelicAttachmentVO> attachments;
+    private List<RelicPendingBusinessVO> pendingBusinesses;
+    private List<RelicBusinessTimelineVO> businessTimeline;
 }

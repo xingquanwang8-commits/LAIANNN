@@ -1,30 +1,27 @@
 <template>
   <div class="page-shell">
-    <section class="page-card page-card--section">
-      <PageHeader title="字典管理" description="维护字典类型与字典项，并支持文本批量导入。">
-        <template #extra>
-          <el-button type="primary" @click="openTypeDialog()">新增字典类型</el-button>
-        </template>
-      </PageHeader>
-    </section>
-
     <section class="page-grid dict-grid">
       <article class="page-card page-card--section">
         <div class="panel-title">字典类型</div>
-        <el-form :inline="true" :model="typeQuery">
-          <el-form-item label="关键词">
-            <el-input v-model="typeQuery.keyword" placeholder="名称 / 编码" clearable @keyup.enter="loadTypes" />
-          </el-form-item>
-          <el-form-item label="状态">
-            <el-select v-model="typeQuery.status" clearable placeholder="全部状态">
-              <el-option label="启用" value="ENABLED" />
-              <el-option label="停用" value="DISABLED" />
-            </el-select>
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" @click="loadTypes">查询</el-button>
-          </el-form-item>
-        </el-form>
+        <div class="query-toolbar">
+          <el-form :inline="true" :model="typeQuery" class="query-form query-form--single-line">
+            <el-form-item label="关键词" class="query-form__keyword">
+              <el-input v-model="typeQuery.keyword" placeholder="名称 / 编码" clearable @keyup.enter="loadTypes" />
+            </el-form-item>
+            <el-form-item label="状态">
+              <el-select v-model="typeQuery.status" clearable placeholder="全部状态">
+                <el-option label="启用" value="ENABLED" />
+                <el-option label="停用" value="DISABLED" />
+              </el-select>
+            </el-form-item>
+            <el-form-item class="query-form__actions">
+              <el-button type="primary" @click="loadTypes">查询</el-button>
+            </el-form-item>
+          </el-form>
+          <div class="query-toolbar__actions">
+            <el-button type="primary" @click="openTypeDialog()">新增字典类型</el-button>
+          </div>
+        </div>
         <el-table :data="typePage.records" v-loading="loadingTypes" highlight-current-row @current-change="handleTypeChange">
           <el-table-column prop="dictName" label="字典名称" min-width="130" />
           <el-table-column prop="dictTypeCode" label="编码" min-width="140" />
@@ -152,7 +149,6 @@ import {
   updateDictItemApi,
   updateDictTypeApi
 } from '@/api/system'
-import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 
 const loadingTypes = ref(false)

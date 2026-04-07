@@ -1,22 +1,8 @@
 <template>
   <div class="page-shell">
     <section class="page-card page-card--section">
-      <PageHeader title="文物列表" description="支持按编号、名称、类别、状态、保存状态与库位筛选文物档案。">
-        <template #extra>
-          <el-button
-            v-if="authStore.hasPermission('relic:add')"
-            type="primary"
-            @click="router.push('/relic/create')"
-          >
-            新增文物
-          </el-button>
-        </template>
-      </PageHeader>
-    </section>
-
-    <section class="page-card page-card--section">
-      <el-form :inline="true" :model="queryForm" class="relic-filter">
-        <el-form-item label="关键词">
+      <el-form :inline="true" :model="queryForm" class="query-form query-form--single-line">
+        <el-form-item label="关键词" class="query-form__keyword">
           <el-input v-model="queryForm.keyword" placeholder="文物编号 / 名称" clearable @keyup.enter="handleSearch" />
         </el-form-item>
         <el-form-item label="类别">
@@ -29,7 +15,7 @@
             <el-option v-for="item in materialOptions" :key="item.itemValue" :label="item.itemLabel" :value="item.itemValue" />
           </el-select>
         </el-form-item>
-        <el-form-item label="状态">
+        <el-form-item label="当前状态">
           <el-select v-model="queryForm.currentStatus" clearable placeholder="全部状态">
             <el-option v-for="item in statusOptions" :key="item.itemValue" :label="item.itemLabel" :value="item.itemValue" />
           </el-select>
@@ -44,12 +30,12 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="位置">
-          <el-select v-model="queryForm.storageLocationCode" clearable placeholder="全部位置">
+        <el-form-item label="库位">
+          <el-select v-model="queryForm.storageLocationCode" clearable placeholder="全部库位">
             <el-option v-for="item in locationOptions" :key="item.itemValue" :label="item.itemLabel" :value="item.itemValue" />
           </el-select>
         </el-form-item>
-        <el-form-item>
+        <el-form-item class="query-form__actions">
           <el-button type="primary" @click="handleSearch">查询</el-button>
           <el-button @click="handleReset">重置</el-button>
         </el-form-item>
@@ -72,7 +58,7 @@
         <el-table-column label="材质" min-width="110">
           <template #default="{ row }">{{ resolveDictLabel(materialOptions, row.materialCode) }}</template>
         </el-table-column>
-        <el-table-column label="馆藏位置" min-width="120">
+        <el-table-column label="藏品库位" min-width="120">
           <template #default="{ row }">{{ resolveDictLabel(locationOptions, row.storageLocationCode) }}</template>
         </el-table-column>
         <el-table-column label="保存状态" min-width="120">
@@ -86,7 +72,7 @@
         <el-table-column label="更新时间" min-width="150">
           <template #default="{ row }">{{ formatDateTime(row.updateTime) }}</template>
         </el-table-column>
-        <el-table-column label="操作" fixed="right" width="220">
+        <el-table-column label="操作" fixed="right" width="180">
           <template #default="{ row }">
             <el-button text type="primary" @click="router.push(`/relic/detail/${row.id}`)">详情</el-button>
             <el-button v-if="authStore.hasPermission('relic:edit')" text @click="router.push(`/relic/edit/${row.id}`)">编辑</el-button>
@@ -122,7 +108,6 @@ import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { deleteRelicApi, getRelicPageApi } from '@/api/relic'
-import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useDictStore } from '@/stores/dict'
@@ -216,9 +201,29 @@ loadRelics()
 </script>
 
 <style scoped>
-.relic-filter {
-  display: flex;
-  flex-wrap: wrap;
+.query-form--single-line {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.query-form--single-line .el-form-item {
+  margin-bottom: 0;
+  flex-shrink: 0;
+}
+
+.query-form--single-line .el-input,
+.query-form--single-line .el-select {
+  width: 138px;
+}
+
+.query-form__keyword .el-input {
+  width: 180px;
+}
+
+.query-form--single-line .query-form__actions {
+  margin-left: auto;
+  padding-left: 8px;
 }
 
 .relic-image__empty {
@@ -233,5 +238,21 @@ loadRelics()
   display: flex;
   justify-content: flex-end;
   margin-top: 18px;
+}
+
+@media (max-width: 960px) {
+  .query-form--single-line {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+
+  .query-form--single-line .el-form-item {
+    margin-bottom: 12px;
+  }
+
+  .query-form--single-line .query-form__actions {
+    margin-left: 0;
+    padding-left: 0;
+  }
 }
 </style>

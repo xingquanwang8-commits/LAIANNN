@@ -1,30 +1,26 @@
 <template>
   <div class="page-shell">
     <section class="page-card page-card--section">
-      <PageHeader title="入库登记" description="选择现有文物生成入库单，并查看入库明细记录。">
-        <template #extra>
-          <el-button v-if="authStore.hasPermission('inventory:inbound:add')" type="primary" @click="openCreate">
-            新增入库单
-          </el-button>
-        </template>
-      </PageHeader>
-    </section>
+      <div class="query-toolbar">
+        <el-form :inline="true" :model="queryForm" class="query-form query-form--single-line">
+          <el-form-item label="关键词" class="query-form__keyword">
+            <el-input v-model="queryForm.keyword" placeholder="单号 / 批次 / 来源" clearable @keyup.enter="handleSearch" />
+          </el-form-item>
+          <el-form-item label="状态">
+            <el-select v-model="queryForm.status" clearable placeholder="全部状态">
+              <el-option label="已完成" value="COMPLETED" />
+            </el-select>
+          </el-form-item>
+          <el-form-item class="query-form__actions">
+            <el-button type="primary" @click="handleSearch">查询</el-button>
+            <el-button @click="handleReset">重置</el-button>
+          </el-form-item>
+        </el-form>
 
-    <section class="page-card page-card--section">
-      <el-form :inline="true" :model="queryForm">
-        <el-form-item label="关键词">
-          <el-input v-model="queryForm.keyword" placeholder="单号 / 批次 / 来源" clearable @keyup.enter="handleSearch" />
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="queryForm.status" clearable placeholder="全部状态">
-            <el-option label="已完成" value="COMPLETED" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
-      </el-form>
+        <div v-if="authStore.hasPermission('inventory:inbound:add')" class="query-toolbar__actions">
+          <el-button type="primary" @click="openCreate">新建文物入库</el-button>
+        </div>
+      </div>
     </section>
 
     <section class="page-card page-card--section">
@@ -62,12 +58,12 @@
       </div>
     </section>
 
-    <el-dialog v-model="dialogVisible" title="新增入库单" width="680px">
+    <el-dialog v-model="dialogVisible" title="文物入库" width="680px">
       <el-form ref="formRef" :model="formData" :rules="rules" label-width="96px">
         <el-row :gutter="14">
           <el-col :span="12">
-            <el-form-item label="批次号" prop="batchNo">
-              <el-input v-model="formData.batchNo" />
+            <el-form-item label="入库批次">
+              <el-input model-value="保存后自动生成" disabled />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -102,6 +98,26 @@
               </el-select>
             </el-form-item>
           </el-col>
+          <el-col v-if="inboundSelection.totalCount" :span="24">
+            <div
+              class="business-check"
+              :class="inboundSelection.allPassed ? 'business-check--pass' : 'business-check--warn'"
+            >
+              <div class="business-check__header">
+                <div class="business-check__title">{{ inboundSelectionTitle }}</div>
+              </div>
+              <div class="business-check__summary">{{ inboundSelectionSummary }}</div>
+              <ul v-if="inboundSelection.invalidItems.length" class="business-check__list">
+                <li
+                  v-for="item in inboundSelection.invalidItems.slice(0, 3)"
+                  :key="`${item.identity}-${item.message}`"
+                  class="business-check__item"
+                >
+                  {{ item.identity }}：{{ item.message }}
+                </li>
+              </ul>
+            </div>
+          </el-col>
           <el-col :span="24">
             <el-form-item label="备注">
               <el-input v-model="formData.remark" type="textarea" :rows="3" />
@@ -115,7 +131,7 @@
       </template>
     </el-dialog>
 
-    <el-drawer v-model="drawerVisible" title="入库单详情" size="46%">
+    <el-drawer v-model="drawerVisible" title="文物入库详情" size="46%">
       <el-descriptions :column="1" border>
         <el-descriptions-item label="入库单号">{{ detail.orderNo || '--' }}</el-descriptions-item>
         <el-descriptions-item label="批次号">{{ detail.batchNo || '--' }}</el-descriptions-item>
@@ -136,16 +152,22 @@
 </template>
 
 <script setup>
-import { nextTick, reactive, ref } from 'vue'
+import { computed, nextTick, reactive, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { createInboundApi, getInboundDetailApi, getInboundPageApi } from '@/api/inbound'
-import { getRelicPageApi } from '@/api/relic'
-import PageHeader from '@/components/common/PageHeader.vue'
+import { getRelicDetailApi, getRelicPageApi } from '@/api/relic'
 import StatusTag from '@/components/common/StatusTag.vue'
 import { useAuthStore } from '@/stores/auth'
 import { formatDateTime } from '@/utils/format'
+import {
+  analyzeRelicSelection,
+  checkInboundRelicEligibility,
+  pickRelicBusinessFields
+} from '@/utils/relicBusinessRules'
 
 const authStore = useAuthStore()
+const route = useRoute()
 
 const loading = ref(false)
 const saving = ref(false)
@@ -169,7 +191,6 @@ const queryForm = reactive({
 })
 
 const formData = reactive({
-  batchNo: '',
   source: '',
   handlerName: '',
   inboundTime: '',
@@ -178,16 +199,40 @@ const formData = reactive({
 })
 
 const rules = {
-  batchNo: [{ required: true, message: '请输入批次号', trigger: 'blur' }],
   source: [{ required: true, message: '请输入来源', trigger: 'blur' }],
   handlerName: [{ required: true, message: '请输入经手人', trigger: 'blur' }],
   inboundTime: [{ required: true, message: '请选择入库时间', trigger: 'change' }],
   relicIds: [{ required: true, type: 'array', message: '请选择文物', trigger: 'change' }]
 }
 
+const selectedRelics = computed(() =>
+  formData.relicIds
+    .map((id) => relicOptions.value.find((item) => String(item.id) === String(id)))
+    .filter(Boolean)
+)
+
+const inboundSelection = computed(() =>
+  analyzeRelicSelection(selectedRelics.value, checkInboundRelicEligibility)
+)
+
+const inboundSelectionTitle = computed(() => (
+  inboundSelection.value.allPassed
+    ? '\u5165\u5e93\u524d\u7f6e\u6821\u9a8c\u5df2\u901a\u8fc7'
+    : '\u5165\u5e93\u524d\u7f6e\u6821\u9a8c\u672a\u901a\u8fc7'
+))
+
+const inboundSelectionSummary = computed(() => {
+  if (!inboundSelection.value.totalCount) {
+    return ''
+  }
+  if (inboundSelection.value.allPassed) {
+    return `\u5df2\u9009 ${inboundSelection.value.totalCount} \u4ef6\u6587\u7269\uff0c\u5747\u7b26\u5408\u5165\u5e93\u53d1\u8d77\u6761\u4ef6\uff0c\u53ef\u76f4\u63a5\u63d0\u4ea4\u5165\u5e93\u7533\u8bf7\u3002`
+  }
+  return `\u5df2\u9009 ${inboundSelection.value.totalCount} \u4ef6\u6587\u7269\uff0c\u5176\u4e2d ${inboundSelection.value.invalidItems.length} \u4ef6\u4e0d\u7b26\u5408\u5165\u5e93\u6761\u4ef6\uff0c\u8bf7\u5148\u5904\u7406\u72b6\u6001\u518d\u63d0\u4ea4\u3002`
+})
+
 function resetForm() {
   Object.assign(formData, {
-    batchNo: '',
     source: '',
     handlerName: '',
     inboundTime: '',
@@ -196,13 +241,22 @@ function resetForm() {
   })
 }
 
+function appendRelicOption(relic) {
+  const option = pickRelicBusinessFields(relic)
+  if (!relicOptions.value.some((item) => String(item.id) === String(option.id))) {
+    relicOptions.value = [option, ...relicOptions.value]
+  }
+  return option
+}
+
 async function loadRelicOptions() {
   const page = await getRelicPageApi({
     pageNum: 1,
-    pageSize: 200,
-    currentStatus: 'IN_STOCK'
+    pageSize: 200
   })
-  relicOptions.value = page.records || []
+  relicOptions.value = (page.records || [])
+    .map((item) => pickRelicBusinessFields(item))
+    .filter((item) => checkInboundRelicEligibility(item).passed)
 }
 
 async function loadOrders() {
@@ -214,15 +268,51 @@ async function loadOrders() {
   }
 }
 
-function openCreate() {
+async function ensureQuickRelicOption(relicId) {
+  if (!relicId) {
+    return null
+  }
+  const currentOption = relicOptions.value.find((item) => String(item.id) === String(relicId))
+  if (currentOption) {
+    return currentOption
+  }
+  const relicDetail = await getRelicDetailApi(relicId).catch(() => null)
+  if (!relicDetail) {
+    return null
+  }
+  return appendRelicOption(relicDetail)
+}
+
+async function openCreate(prefill = {}) {
   resetForm()
+  await loadRelicOptions()
+  const quickRelic = await ensureQuickRelicOption(prefill.relicId)
+  if (prefill.relicId) {
+    if (!quickRelic) {
+      ElMessage.warning('\u672a\u627e\u5230\u5f53\u524d\u6587\u7269\u6863\u6848\uff0c\u8bf7\u5237\u65b0\u540e\u91cd\u8bd5')
+      return
+    }
+    const checkResult = checkInboundRelicEligibility(quickRelic)
+    if (!checkResult.passed) {
+      ElMessage.warning(checkResult.message)
+      return
+    }
+  }
   dialogVisible.value = true
-  nextTick(() => formRef.value?.clearValidate())
-  loadRelicOptions()
+  if (prefill.relicId) {
+    formData.relicIds = [Number(prefill.relicId)]
+    formData.remark = '由文物详情快捷发起'
+  }
+  await nextTick()
+  formRef.value?.clearValidate()
 }
 
 async function handleSave() {
   await formRef.value.validate()
+  if (!inboundSelection.value.allPassed) {
+    ElMessage.warning(inboundSelection.value.invalidItems[0]?.message || '\u5f53\u524d\u9009\u4e2d\u6587\u7269\u4e0d\u7b26\u5408\u5165\u5e93\u6761\u4ef6')
+    return
+  }
   saving.value = true
   try {
     await createInboundApi(formData)
@@ -264,6 +354,24 @@ function handleSizeChange(pageSize) {
   queryForm.pageNum = 1
   loadOrders()
 }
+
+async function handleQuickCreateFromRoute() {
+  if (route.query.quickCreate !== '1' || !route.query.relicId) {
+    return
+  }
+  if (dialogVisible.value && formData.relicIds.includes(Number(route.query.relicId))) {
+    return
+  }
+  await openCreate({ relicId: route.query.relicId })
+}
+
+watch(
+  () => route.fullPath,
+  () => {
+    handleQuickCreateFromRoute()
+  },
+  { immediate: true }
+)
 
 loadOrders()
 </script>

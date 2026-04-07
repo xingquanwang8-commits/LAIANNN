@@ -4,8 +4,10 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mhmp.common.exception.BusinessException;
 import com.mhmp.common.result.PageResponse;
-import com.mhmp.common.util.OrderNoUtils;
+import com.mhmp.common.util.RelicBusinessRuleUtils;
 import com.mhmp.common.util.SecurityUtils;
+import com.mhmp.dto.AttachmentSaveDTO;
+import com.mhmp.dto.RelicPageQueryDTO;
 import com.mhmp.dto.RepairAcceptanceDTO;
 import com.mhmp.dto.RepairApplyCreateDTO;
 import com.mhmp.dto.RepairApproveDTO;
@@ -16,16 +18,22 @@ import com.mhmp.entity.RepairLog;
 import com.mhmp.entity.RepairPlan;
 import com.mhmp.entity.RepairTask;
 import com.mhmp.entity.Relic;
+import com.mhmp.entity.RelicAttachment;
 import com.mhmp.entity.SysUser;
 import com.mhmp.mapper.RepairAcceptanceMapper;
 import com.mhmp.mapper.RepairLogMapper;
 import com.mhmp.mapper.RepairPlanMapper;
 import com.mhmp.mapper.RepairTaskMapper;
+import com.mhmp.mapper.RelicAttachmentMapper;
 import com.mhmp.mapper.RelicMapper;
 import com.mhmp.mapper.SysUserMapper;
+import com.mhmp.service.BusinessNoService;
 import com.mhmp.service.RepairService;
+import com.mhmp.vo.RelicAttachmentVO;
+import com.mhmp.vo.RelicListVO;
 import com.mhmp.vo.RepairAcceptanceVO;
 import com.mhmp.vo.RepairDetailVO;
+import com.mhmp.vo.RepairHistoryTaskVO;
 import com.mhmp.vo.RepairLogVO;
 import com.mhmp.vo.RepairPlanVO;
 import com.mhmp.vo.RepairTaskListVO;
@@ -46,50 +54,109 @@ import java.util.stream.Stream;
 @Service
 public class RepairServiceImpl implements RepairService {
 
+    private static final List<String> ACTIVE_TASK_STATUSES = List.of("APPLIED", "APPROVED", "IN_PROGRESS", "COMPLETED");
+    private static final List<String> APPROVE_TASK_STATUSES = List.of("APPLIED", "APPROVED", "REJECTED");
+    private static final List<String> PROCESS_TASK_STATUSES = List.of("APPROVED", "IN_PROGRESS", "COMPLETED");
+    private static final List<String> REPAIRED_TASK_STATUSES = List.of("ACCEPTED");
+    private static final List<String> PENDING_REPAIR_STATUS_CODES = RelicBusinessRuleUtils.REPAIRABLE_PRESERVATION_CODES;
+    private static final List<String> IMAGE_SUFFIXES = List.of("png", "jpg", "jpeg", "gif", "webp", "bmp");
+
     private final RepairTaskMapper repairTaskMapper;
     private final RepairPlanMapper repairPlanMapper;
     private final RepairLogMapper repairLogMapper;
     private final RepairAcceptanceMapper repairAcceptanceMapper;
     private final RelicMapper relicMapper;
+    private final RelicAttachmentMapper relicAttachmentMapper;
     private final SysUserMapper sysUserMapper;
+    private final BusinessNoService businessNoService;
 
     public RepairServiceImpl(RepairTaskMapper repairTaskMapper,
                              RepairPlanMapper repairPlanMapper,
                              RepairLogMapper repairLogMapper,
                              RepairAcceptanceMapper repairAcceptanceMapper,
                              RelicMapper relicMapper,
-                             SysUserMapper sysUserMapper) {
+                             RelicAttachmentMapper relicAttachmentMapper,
+                             SysUserMapper sysUserMapper,
+                             BusinessNoService businessNoService) {
         this.repairTaskMapper = repairTaskMapper;
         this.repairPlanMapper = repairPlanMapper;
         this.repairLogMapper = repairLogMapper;
         this.repairAcceptanceMapper = repairAcceptanceMapper;
         this.relicMapper = relicMapper;
+        this.relicAttachmentMapper = relicAttachmentMapper;
         this.sysUserMapper = sysUserMapper;
+        this.businessNoService = businessNoService;
     }
 
     @Override
     public PageResponse<RepairTaskListVO> applyPage(RepairPageQueryDTO queryDTO) {
-        return pageByStatuses(queryDTO, null);
+        return pageByStatuses(queryDTO, null, null, null);
     }
 
     @Override
     public PageResponse<RepairTaskListVO> approvePage(RepairPageQueryDTO queryDTO) {
-        return pageByStatuses(queryDTO, List.of("APPLIED", "APPROVED", "REJECTED"));
+        return pageByStatuses(queryDTO, APPROVE_TASK_STATUSES, null, null);
     }
 
     @Override
     public PageResponse<RepairTaskListVO> processPage(RepairPageQueryDTO queryDTO) {
-        return pageByStatuses(queryDTO, List.of("APPROVED", "IN_PROGRESS", "COMPLETED"));
+        return pageByStatuses(queryDTO, PROCESS_TASK_STATUSES, null, null);
     }
 
     @Override
     public PageResponse<RepairTaskListVO> acceptancePage(RepairPageQueryDTO queryDTO) {
-        return pageByStatuses(queryDTO, List.of("COMPLETED", "ACCEPTED"));
+        return pageAcceptanceTasks(queryDTO);
     }
 
     @Override
     public PageResponse<RepairTaskListVO> historyPage(RepairPageQueryDTO queryDTO) {
-        return pageByStatuses(queryDTO, null);
+        return repairedPage(queryDTO);
+    }
+
+    @Override
+    public PageResponse<RelicListVO> pendingRelicPage(RelicPageQueryDTO queryDTO) {
+        Page<Relic> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
+        List<Long> activeRepairRelicIds = repairTaskMapper.selectList(
+                Wrappers.<RepairTask>lambdaQuery()
+                    .in(RepairTask::getTaskStatus, ACTIVE_TASK_STATUSES)
+                    .select(RepairTask::getRelicId)
+            ).stream()
+            .map(RepairTask::getRelicId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+
+        List<String> targetPreservationStatuses = StringUtils.hasText(queryDTO.getPreservationStatusCode())
+            ? List.of(queryDTO.getPreservationStatusCode())
+            : PENDING_REPAIR_STATUS_CODES;
+
+        Page<Relic> resultPage = relicMapper.selectPage(page,
+            Wrappers.<Relic>lambdaQuery()
+                .and(StringUtils.hasText(queryDTO.getKeyword()),
+                    wrapper -> wrapper.like(Relic::getRelicNo, queryDTO.getKeyword())
+                        .or()
+                        .like(Relic::getName, queryDTO.getKeyword()))
+                .eq(StringUtils.hasText(queryDTO.getCategoryCode()), Relic::getCategoryCode, queryDTO.getCategoryCode())
+                .eq(StringUtils.hasText(queryDTO.getMaterialCode()), Relic::getMaterialCode, queryDTO.getMaterialCode())
+                .eq(StringUtils.hasText(queryDTO.getStorageLocationCode()), Relic::getStorageLocationCode, queryDTO.getStorageLocationCode())
+                .eq(Relic::getCurrentStatus, "IN_STOCK")
+                .in(Relic::getPreservationStatusCode, targetPreservationStatuses)
+                .notIn(!activeRepairRelicIds.isEmpty(), Relic::getId, activeRepairRelicIds)
+                .orderByDesc(Relic::getUpdateTime)
+                .orderByDesc(Relic::getId)
+        );
+        return PageResponse.of(resultPage, resultPage.getRecords().stream().map(this::toRelicListVO).toList());
+    }
+
+    @Override
+    public PageResponse<RepairTaskListVO> myPage(RepairPageQueryDTO queryDTO) {
+        return pageMyTasks(queryDTO, SecurityUtils.getUserId());
+    }
+
+    @Override
+    public PageResponse<RepairTaskListVO> repairedPage(RepairPageQueryDTO queryDTO) {
+        return pageByStatuses(queryDTO, REPAIRED_TASK_STATUSES,
+            List.of(RelicBusinessRuleUtils.REPAIR_ACCEPTANCE_STATUS_SUCCESS), null);
     }
 
     @Override
@@ -97,6 +164,7 @@ public class RepairServiceImpl implements RepairService {
         RepairTask task = getTaskOrThrow(id);
         RepairDetailVO vo = new RepairDetailVO();
         BeanUtils.copyProperties(task, vo);
+
         Map<Long, String> userNameMap = loadUserNameMap(
             Stream.of(task.getApplyUserId(), task.getApproveBy())
                 .filter(Objects::nonNull)
@@ -105,16 +173,38 @@ public class RepairServiceImpl implements RepairService {
         vo.setApplyUserName(userNameMap.get(task.getApplyUserId()));
         vo.setApproveUserName(userNameMap.get(task.getApproveBy()));
         vo.setPlan(toPlanVO(repairPlanMapper.selectOne(
-            Wrappers.<RepairPlan>lambdaQuery().eq(RepairPlan::getRepairTaskId, id).last("LIMIT 1")
+            Wrappers.<RepairPlan>lambdaQuery()
+                .eq(RepairPlan::getRepairTaskId, id)
+                .last("LIMIT 1")
         )));
         vo.setLogs(repairLogMapper.selectList(
-                Wrappers.<RepairLog>lambdaQuery().eq(RepairLog::getRepairTaskId, id).orderByDesc(RepairLog::getLogTime)
+                Wrappers.<RepairLog>lambdaQuery()
+                    .eq(RepairLog::getRepairTaskId, id)
+                    .orderByDesc(RepairLog::getLogTime)
             ).stream()
             .map(this::toLogVO)
             .toList());
         vo.setAcceptance(toAcceptanceVO(repairAcceptanceMapper.selectOne(
-            Wrappers.<RepairAcceptance>lambdaQuery().eq(RepairAcceptance::getRepairTaskId, id).last("LIMIT 1")
+            Wrappers.<RepairAcceptance>lambdaQuery()
+                .eq(RepairAcceptance::getRepairTaskId, id)
+                .last("LIMIT 1")
         )));
+        vo.setHistoryTasks(repairTaskMapper.selectList(
+                Wrappers.<RepairTask>lambdaQuery()
+                    .eq(RepairTask::getRelicId, task.getRelicId())
+                    .orderByDesc(RepairTask::getApplyTime)
+                    .orderByDesc(RepairTask::getId)
+            ).stream()
+            .map(this::toHistoryTaskVO)
+            .toList());
+        vo.setAttachments(relicAttachmentMapper.selectList(
+                Wrappers.<RelicAttachment>lambdaQuery()
+                    .eq(RelicAttachment::getRelicId, task.getRelicId())
+                    .likeRight(RelicAttachment::getAttachmentType, "REPAIR_")
+                    .orderByAsc(RelicAttachment::getId)
+            ).stream()
+            .map(this::toAttachmentVO)
+            .toList());
         return vo;
     }
 
@@ -125,18 +215,23 @@ public class RepairServiceImpl implements RepairService {
         if (relic == null) {
             throw new BusinessException("Relic does not exist");
         }
-        if (!"IN_STOCK".equals(relic.getCurrentStatus())) {
-            throw new BusinessException("Only in-stock relics can initiate repair");
-        }
+        long activeTaskCount = repairTaskMapper.selectCount(
+            Wrappers.<RepairTask>lambdaQuery()
+                .eq(RepairTask::getRelicId, relic.getId())
+                .in(RepairTask::getTaskStatus, ACTIVE_TASK_STATUSES)
+        );
+        RelicBusinessRuleUtils.validateRepairCreatable(relic, activeTaskCount > 0);
+
         Long currentUserId = SecurityUtils.getUserId();
         RepairTask task = new RepairTask();
-        task.setTaskNo(OrderNoUtils.nextOrderNo("REP"));
+        task.setTaskNo(businessNoService.nextRepairTaskNo());
         task.setRelicId(relic.getId());
         task.setRelicNo(relic.getRelicNo());
         task.setRelicName(relic.getName());
         task.setApplyUserId(currentUserId);
         task.setApplyReason(createDTO.getApplyReason());
         task.setTaskStatus("APPLIED");
+        task.setAcceptanceStatus(RelicBusinessRuleUtils.REPAIR_ACCEPTANCE_STATUS_UNACCEPTED);
         task.setApplyTime(LocalDateTime.now());
         task.setRemark(createDTO.getRemark());
         task.setCreateBy(currentUserId);
@@ -150,24 +245,24 @@ public class RepairServiceImpl implements RepairService {
     @Transactional(rollbackFor = Exception.class)
     public void approve(Long id, RepairApproveDTO approveDTO) {
         RepairTask task = getTaskOrThrow(id);
-        if (!"APPLIED".equals(task.getTaskStatus())) {
-            throw new BusinessException("Only applied tasks can be reviewed");
-        }
+        Relic relic = relicMapper.selectById(task.getRelicId());
+        RelicBusinessRuleUtils.validateRepairReviewable(
+            task,
+            relic,
+            approveDTO.getApproveResult()
+        );
+
         Long currentUserId = SecurityUtils.getUserId();
         task.setApproveBy(currentUserId);
         task.setApproveTime(LocalDateTime.now());
         task.setApproveRemark(approveDTO.getApproveRemark());
         task.setUpdateBy(currentUserId);
         if ("APPROVED".equals(approveDTO.getApproveResult())) {
-            if (!StringUtils.hasText(approveDTO.getPlanTitle()) || !StringUtils.hasText(approveDTO.getPlanContent())) {
-                throw new BusinessException("Approved repair tasks must provide a repair plan");
-            }
             task.setTaskStatus("APPROVED");
-            saveOrUpdatePlan(task, approveDTO, currentUserId);
-        } else if ("REJECTED".equals(approveDTO.getApproveResult())) {
-            task.setTaskStatus("REJECTED");
+            task.setAcceptanceStatus(RelicBusinessRuleUtils.REPAIR_ACCEPTANCE_STATUS_UNACCEPTED);
         } else {
-            throw new BusinessException("Unsupported approve result");
+            task.setTaskStatus("REJECTED");
+            task.setAcceptanceStatus(RelicBusinessRuleUtils.REPAIR_ACCEPTANCE_STATUS_UNACCEPTED);
         }
         repairTaskMapper.updateById(task);
     }
@@ -176,13 +271,13 @@ public class RepairServiceImpl implements RepairService {
     @Transactional(rollbackFor = Exception.class)
     public void addLog(Long id, RepairLogCreateDTO createDTO) {
         RepairTask task = getTaskOrThrow(id);
-        if (!List.of("APPROVED", "IN_PROGRESS", "COMPLETED").contains(task.getTaskStatus())) {
-            throw new BusinessException("Current task status does not allow adding repair logs");
-        }
+        Relic relic = relicMapper.selectById(task.getRelicId());
+        RelicBusinessRuleUtils.validateRepairLogAddable(task, relic, createDTO.getProgressStatus());
+
         Long currentUserId = SecurityUtils.getUserId();
         RepairLog log = new RepairLog();
         log.setRepairTaskId(id);
-        log.setLogNo(OrderNoUtils.nextOrderNo("LOG"));
+        log.setLogNo(businessNoService.nextRepairLogNo());
         log.setStepName(createDTO.getStepName());
         log.setOperationContent(createDTO.getOperationContent());
         log.setMaterialsUsed(createDTO.getMaterialsUsed());
@@ -194,11 +289,14 @@ public class RepairServiceImpl implements RepairService {
         log.setUpdateBy(currentUserId);
         log.setDeleted(0);
         repairLogMapper.insert(log);
+        saveRepairAttachments(task, createDTO.getAttachments(), currentUserId, createDTO.getStepName(), createDTO.getRemark());
 
-        Relic relic = relicMapper.selectById(task.getRelicId());
         if (relic != null) {
             relic.setCurrentStatus("IN_REPAIR");
-            relic.setPreservationStatusCode("UNDER_REPAIR");
+            if (!StringUtils.hasText(relic.getPreservationStatusCode())
+                || List.of("COMPLETE", "BASIC_COMPLETE").contains(relic.getPreservationStatusCode())) {
+                relic.setPreservationStatusCode("PHYSICAL_DAMAGE");
+            }
             relic.setUpdateBy(currentUserId);
             relicMapper.updateById(relic);
         }
@@ -207,9 +305,13 @@ public class RepairServiceImpl implements RepairService {
         task.setUpdateBy(currentUserId);
         if ("COMPLETED".equals(createDTO.getProgressStatus())) {
             task.setTaskStatus("COMPLETED");
+            task.setAcceptanceStatus(RelicBusinessRuleUtils.REPAIR_ACCEPTANCE_STATUS_UNACCEPTED);
             task.setEndTime(createDTO.getLogTime());
         } else {
             task.setTaskStatus("IN_PROGRESS");
+            if (!StringUtils.hasText(task.getAcceptanceStatus())) {
+                task.setAcceptanceStatus(RelicBusinessRuleUtils.REPAIR_ACCEPTANCE_STATUS_UNACCEPTED);
+            }
             task.setEndTime(null);
         }
         repairTaskMapper.updateById(task);
@@ -217,19 +319,41 @@ public class RepairServiceImpl implements RepairService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public void applyAcceptance(Long id) {
+        RepairTask task = getTaskOrThrow(id);
+        Relic relic = relicMapper.selectById(task.getRelicId());
+        RelicBusinessRuleUtils.validateRepairAcceptanceAppliable(task, relic);
+
+        Long currentUserId = SecurityUtils.getUserId();
+        task.setAcceptanceStatus(RelicBusinessRuleUtils.REPAIR_ACCEPTANCE_STATUS_WAITING);
+        task.setUpdateBy(currentUserId);
+        repairTaskMapper.updateById(task);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public void accept(Long id, RepairAcceptanceDTO acceptanceDTO) {
         RepairTask task = getTaskOrThrow(id);
-        if (!List.of("COMPLETED", "ACCEPTED").contains(task.getTaskStatus())) {
-            throw new BusinessException("Only completed repair tasks can be accepted");
-        }
+        Relic relic = relicMapper.selectById(task.getRelicId());
+        RelicBusinessRuleUtils.validateRepairAcceptable(
+            task,
+            relic,
+            acceptanceDTO.getAcceptanceResult(),
+            acceptanceDTO.getAcceptanceRemark(),
+            acceptanceDTO.getPreservationStatusCode(),
+            acceptanceDTO.getStorageLocationCode()
+        );
+
         Long currentUserId = SecurityUtils.getUserId();
         RepairAcceptance entity = repairAcceptanceMapper.selectOne(
-            Wrappers.<RepairAcceptance>lambdaQuery().eq(RepairAcceptance::getRepairTaskId, id).last("LIMIT 1")
+            Wrappers.<RepairAcceptance>lambdaQuery()
+                .eq(RepairAcceptance::getRepairTaskId, id)
+                .last("LIMIT 1")
         );
         if (entity == null) {
             entity = new RepairAcceptance();
             entity.setRepairTaskId(id);
-            entity.setAcceptanceNo(OrderNoUtils.nextOrderNo("ACC"));
+            entity.setAcceptanceNo(businessNoService.nextRepairAcceptanceNo());
             entity.setCreateBy(currentUserId);
             entity.setDeleted(0);
         }
@@ -245,9 +369,9 @@ public class RepairServiceImpl implements RepairService {
             repairAcceptanceMapper.updateById(entity);
         }
 
-        Relic relic = relicMapper.selectById(task.getRelicId());
         if ("PASS".equals(acceptanceDTO.getAcceptanceResult())) {
             task.setTaskStatus("ACCEPTED");
+            task.setAcceptanceStatus(RelicBusinessRuleUtils.REPAIR_ACCEPTANCE_STATUS_SUCCESS);
             if (relic != null) {
                 relic.setCurrentStatus("IN_STOCK");
                 if (StringUtils.hasText(acceptanceDTO.getPreservationStatusCode())) {
@@ -260,7 +384,9 @@ public class RepairServiceImpl implements RepairService {
                 relicMapper.updateById(relic);
             }
         } else {
-            task.setTaskStatus("COMPLETED");
+            task.setTaskStatus("IN_PROGRESS");
+            task.setAcceptanceStatus(RelicBusinessRuleUtils.REPAIR_ACCEPTANCE_STATUS_REJECTED);
+            task.setEndTime(null);
             if (relic != null) {
                 relic.setCurrentStatus("IN_REPAIR");
                 relic.setUpdateBy(currentUserId);
@@ -271,18 +397,15 @@ public class RepairServiceImpl implements RepairService {
         repairTaskMapper.updateById(task);
     }
 
-    private PageResponse<RepairTaskListVO> pageByStatuses(RepairPageQueryDTO queryDTO, List<String> fixedStatuses) {
+    private PageResponse<RepairTaskListVO> pageByStatuses(RepairPageQueryDTO queryDTO,
+                                                          List<String> fixedStatuses,
+                                                          List<String> fixedAcceptanceStatuses,
+                                                          Long applyUserId) {
         Page<RepairTask> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
-        Page<RepairTask> resultPage = repairTaskMapper.selectPage(page,
-            Wrappers.<RepairTask>lambdaQuery()
-                .and(StringUtils.hasText(queryDTO.getKeyword()),
-                    wrapper -> wrapper.like(RepairTask::getTaskNo, queryDTO.getKeyword())
-                        .or().like(RepairTask::getRelicNo, queryDTO.getKeyword())
-                        .or().like(RepairTask::getRelicName, queryDTO.getKeyword()))
-                .eq(StringUtils.hasText(queryDTO.getTaskStatus()), RepairTask::getTaskStatus, queryDTO.getTaskStatus())
-                .in(fixedStatuses != null && !fixedStatuses.isEmpty(), RepairTask::getTaskStatus, fixedStatuses)
-                .orderByDesc(RepairTask::getApplyTime)
-                .orderByDesc(RepairTask::getId)
+        Page<RepairTask> resultPage = repairTaskMapper.selectPage(page, buildBaseTaskQuery(queryDTO, applyUserId)
+            .in(fixedStatuses != null && !fixedStatuses.isEmpty(), RepairTask::getTaskStatus, fixedStatuses)
+            .in(fixedAcceptanceStatuses != null && !fixedAcceptanceStatuses.isEmpty(),
+                RepairTask::getAcceptanceStatus, fixedAcceptanceStatuses)
         );
         Map<Long, String> userNameMap = loadUserNameMap(
             resultPage.getRecords().stream().map(RepairTask::getApplyUserId).collect(Collectors.toSet())
@@ -293,41 +416,68 @@ public class RepairServiceImpl implements RepairService {
         return PageResponse.of(resultPage, records);
     }
 
+    private PageResponse<RepairTaskListVO> pageMyTasks(RepairPageQueryDTO queryDTO, Long applyUserId) {
+        Page<RepairTask> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
+        Page<RepairTask> resultPage = repairTaskMapper.selectPage(page, buildBaseTaskQuery(queryDTO, applyUserId)
+            .and(wrapper -> wrapper
+                .in(RepairTask::getTaskStatus, List.of("APPROVED", "IN_PROGRESS"))
+                .or(condition -> condition
+                    .eq(RepairTask::getTaskStatus, "COMPLETED")
+                    .eq(RepairTask::getAcceptanceStatus, RelicBusinessRuleUtils.REPAIR_ACCEPTANCE_STATUS_UNACCEPTED)))
+        );
+        Map<Long, String> userNameMap = loadUserNameMap(
+            resultPage.getRecords().stream().map(RepairTask::getApplyUserId).collect(Collectors.toSet())
+        );
+        List<RepairTaskListVO> records = resultPage.getRecords().stream()
+            .map(task -> toListVO(task, userNameMap.get(task.getApplyUserId())))
+            .toList();
+        return PageResponse.of(resultPage, records);
+    }
+
+    private PageResponse<RepairTaskListVO> pageAcceptanceTasks(RepairPageQueryDTO queryDTO) {
+        Page<RepairTask> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
+        Page<RepairTask> resultPage = repairTaskMapper.selectPage(page, buildBaseTaskQuery(queryDTO, null)
+            .and(wrapper -> wrapper
+                .eq(RepairTask::getTaskStatus, "COMPLETED")
+                .eq(RepairTask::getAcceptanceStatus, RelicBusinessRuleUtils.REPAIR_ACCEPTANCE_STATUS_WAITING)
+                .or(condition -> condition
+                    .eq(RepairTask::getTaskStatus, "ACCEPTED")
+                    .eq(RepairTask::getAcceptanceStatus, RelicBusinessRuleUtils.REPAIR_ACCEPTANCE_STATUS_SUCCESS)))
+        );
+        Map<Long, String> userNameMap = loadUserNameMap(
+            resultPage.getRecords().stream().map(RepairTask::getApplyUserId).collect(Collectors.toSet())
+        );
+        List<RepairTaskListVO> records = resultPage.getRecords().stream()
+            .map(task -> toListVO(task, userNameMap.get(task.getApplyUserId())))
+            .toList();
+        return PageResponse.of(resultPage, records);
+    }
+
+    private com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<RepairTask> buildBaseTaskQuery(
+        RepairPageQueryDTO queryDTO,
+        Long applyUserId
+    ) {
+        return Wrappers.<RepairTask>lambdaQuery()
+            .and(StringUtils.hasText(queryDTO.getKeyword()),
+                wrapper -> wrapper.like(RepairTask::getTaskNo, queryDTO.getKeyword())
+                    .or()
+                    .like(RepairTask::getRelicNo, queryDTO.getKeyword())
+                    .or()
+                    .like(RepairTask::getRelicName, queryDTO.getKeyword()))
+            .eq(StringUtils.hasText(queryDTO.getTaskStatus()), RepairTask::getTaskStatus, queryDTO.getTaskStatus())
+            .eq(StringUtils.hasText(queryDTO.getAcceptanceStatus()),
+                RepairTask::getAcceptanceStatus, queryDTO.getAcceptanceStatus())
+            .eq(applyUserId != null, RepairTask::getApplyUserId, applyUserId)
+            .orderByDesc(RepairTask::getApplyTime)
+            .orderByDesc(RepairTask::getId);
+    }
+
     private RepairTask getTaskOrThrow(Long id) {
         RepairTask task = repairTaskMapper.selectById(id);
         if (task == null) {
             throw new BusinessException("Repair task does not exist");
         }
         return task;
-    }
-
-    private void saveOrUpdatePlan(RepairTask task, RepairApproveDTO approveDTO, Long currentUserId) {
-        RepairPlan plan = repairPlanMapper.selectOne(
-            Wrappers.<RepairPlan>lambdaQuery().eq(RepairPlan::getRepairTaskId, task.getId()).last("LIMIT 1")
-        );
-        if (plan == null) {
-            plan = new RepairPlan();
-            plan.setRepairTaskId(task.getId());
-            plan.setPlanNo(OrderNoUtils.nextOrderNo("PLAN"));
-            plan.setCreateBy(currentUserId);
-            plan.setDeleted(0);
-        }
-        SysUser applyUser = sysUserMapper.selectById(task.getApplyUserId());
-        plan.setPlanTitle(approveDTO.getPlanTitle());
-        plan.setPlanContent(approveDTO.getPlanContent());
-        plan.setMaterials(approveDTO.getMaterials());
-        plan.setRiskNote(approveDTO.getRiskNote());
-        plan.setPlanStatus("APPROVED");
-        plan.setSubmitterName(resolveUserName(applyUser));
-        plan.setReviewerName(resolveUserName(sysUserMapper.selectById(currentUserId)));
-        plan.setReviewTime(LocalDateTime.now());
-        plan.setReviewRemark(approveDTO.getApproveRemark());
-        plan.setUpdateBy(currentUserId);
-        if (plan.getId() == null) {
-            repairPlanMapper.insert(plan);
-        } else {
-            repairPlanMapper.updateById(plan);
-        }
     }
 
     private RepairTaskListVO toListVO(RepairTask task, String applyUserName) {
@@ -352,11 +502,29 @@ public class RepairServiceImpl implements RepairService {
         return vo;
     }
 
+    private RepairHistoryTaskVO toHistoryTaskVO(RepairTask entity) {
+        RepairHistoryTaskVO vo = new RepairHistoryTaskVO();
+        BeanUtils.copyProperties(entity, vo);
+        return vo;
+    }
+
     private RepairAcceptanceVO toAcceptanceVO(RepairAcceptance entity) {
         if (entity == null) {
             return null;
         }
         RepairAcceptanceVO vo = new RepairAcceptanceVO();
+        BeanUtils.copyProperties(entity, vo);
+        return vo;
+    }
+
+    private RelicAttachmentVO toAttachmentVO(RelicAttachment entity) {
+        RelicAttachmentVO vo = new RelicAttachmentVO();
+        BeanUtils.copyProperties(entity, vo);
+        return vo;
+    }
+
+    private RelicListVO toRelicListVO(Relic entity) {
+        RelicListVO vo = new RelicListVO();
         BeanUtils.copyProperties(entity, vo);
         return vo;
     }
@@ -384,5 +552,59 @@ public class RepairServiceImpl implements RepairService {
             return user.getNickName();
         }
         return user.getUsername();
+    }
+
+    private void saveRepairAttachments(RepairTask task,
+                                       List<AttachmentSaveDTO> attachments,
+                                       Long currentUserId,
+                                       String stepName,
+                                       String logRemark) {
+        if (task == null || task.getRelicId() == null || attachments == null || attachments.isEmpty()) {
+            return;
+        }
+        for (AttachmentSaveDTO attachment : attachments) {
+            if (attachment == null || !StringUtils.hasText(attachment.getFileUrl())) {
+                continue;
+            }
+            RelicAttachment entity = new RelicAttachment();
+            entity.setRelicId(task.getRelicId());
+            entity.setAttachmentType(resolveRepairAttachmentType(attachment));
+            entity.setFileName(attachment.getFileName());
+            entity.setFileUrl(attachment.getFileUrl());
+            entity.setFileSize(attachment.getFileSize());
+            entity.setFileSuffix(attachment.getFileSuffix());
+            entity.setRemark(buildRepairAttachmentRemark(task.getId(), stepName, attachment.getRemark(), logRemark));
+            entity.setCreateBy(currentUserId);
+            entity.setUpdateBy(currentUserId);
+            entity.setDeleted(0);
+            relicAttachmentMapper.insert(entity);
+        }
+    }
+
+    private String resolveRepairAttachmentType(AttachmentSaveDTO attachment) {
+        if (attachment == null) {
+            return "REPAIR_FILE";
+        }
+        if (StringUtils.hasText(attachment.getAttachmentType()) && attachment.getAttachmentType().startsWith("REPAIR_")) {
+            return attachment.getAttachmentType();
+        }
+
+        String suffix = attachment.getFileSuffix();
+        if (!StringUtils.hasText(suffix) && StringUtils.hasText(attachment.getFileName())) {
+            int index = attachment.getFileName().lastIndexOf('.');
+            suffix = index >= 0 ? attachment.getFileName().substring(index + 1) : "";
+        }
+        return IMAGE_SUFFIXES.contains(suffix == null ? "" : suffix.toLowerCase()) ? "REPAIR_IMAGE" : "REPAIR_FILE";
+    }
+
+    private String buildRepairAttachmentRemark(Long taskId,
+                                               String stepName,
+                                               String attachmentRemark,
+                                               String logRemark) {
+        String resolvedStepName = StringUtils.hasText(stepName) ? stepName : "Unnamed step";
+        String resolvedRemark = StringUtils.hasText(attachmentRemark)
+            ? attachmentRemark
+            : (StringUtils.hasText(logRemark) ? logRemark : "No remark");
+        return String.format("repairTaskId=%s;step=%s;remark=%s", taskId, resolvedStepName, resolvedRemark);
     }
 }

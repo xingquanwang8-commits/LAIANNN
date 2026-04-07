@@ -1,36 +1,31 @@
 <template>
   <div class="page-shell">
     <section class="page-card page-card--section">
-      <PageHeader title="用户管理" description="支持用户分页、状态维护、角色分配与基本资料编辑。">
-        <template #extra>
-          <el-button v-if="authStore.hasPermission('sys:user:add')" type="primary" @click="openCreate">
-            新增用户
-          </el-button>
-        </template>
-      </PageHeader>
-    </section>
-
-    <section class="page-card page-card--section">
-      <el-form :inline="true" :model="queryForm">
-        <el-form-item label="关键词">
-          <el-input v-model="queryForm.keyword" placeholder="用户名 / 姓名 / 电话" clearable @keyup.enter="handleSearch" />
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="queryForm.status" clearable placeholder="全部状态">
-            <el-option label="启用" value="ENABLED" />
-            <el-option label="停用" value="DISABLED" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="角色">
-          <el-select v-model="queryForm.roleId" clearable placeholder="全部角色">
-            <el-option v-for="role in roleOptions" :key="role.id" :label="role.roleName" :value="role.id" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
-      </el-form>
+      <div class="query-toolbar">
+        <el-form :inline="true" :model="queryForm" class="query-form query-form--single-line">
+          <el-form-item label="关键词" class="query-form__keyword">
+            <el-input v-model="queryForm.keyword" placeholder="用户名 / 姓名 / 电话" clearable @keyup.enter="handleSearch" />
+          </el-form-item>
+          <el-form-item label="状态">
+            <el-select v-model="queryForm.status" clearable placeholder="全部状态">
+              <el-option label="启用" value="ENABLED" />
+              <el-option label="停用" value="DISABLED" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="角色">
+            <el-select v-model="queryForm.roleId" clearable placeholder="全部角色">
+              <el-option v-for="role in roleOptions" :key="role.id" :label="role.roleName" :value="role.id" />
+            </el-select>
+          </el-form-item>
+          <el-form-item class="query-form__actions">
+            <el-button type="primary" @click="handleSearch">查询</el-button>
+            <el-button @click="handleReset">重置</el-button>
+          </el-form-item>
+        </el-form>
+        <div v-if="authStore.hasPermission('sys:user:add')" class="query-toolbar__actions">
+          <el-button type="primary" @click="openCreate">新增用户</el-button>
+        </div>
+      </div>
     </section>
 
     <section class="page-card page-card--section">
@@ -84,16 +79,33 @@
     </section>
 
     <el-dialog v-model="dialogVisible" :title="editingId ? '编辑用户' : '新增用户'" width="680px">
-      <el-form ref="formRef" :model="formData" :rules="rules" label-width="92px">
+      <el-form ref="formRef" :model="formData" :rules="rules" label-width="92px" autocomplete="off">
+        <div class="autofill-guard" aria-hidden="true">
+          <input type="text" tabindex="-1" autocomplete="username" />
+          <input type="password" tabindex="-1" autocomplete="current-password" />
+        </div>
         <el-row :gutter="14">
           <el-col :span="12">
             <el-form-item label="用户名" prop="username">
-              <el-input v-model="formData.username" :disabled="Boolean(editingId)" />
+              <el-input
+                v-model="formData.username"
+                :disabled="Boolean(editingId)"
+                name="system-user-username"
+                autocomplete="off"
+                spellcheck="false"
+              />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item :label="editingId ? '重置密码' : '初始密码'">
-              <el-input v-model="formData.password" type="password" show-password :placeholder="editingId ? '不填则不修改' : '默认 123456'" />
+              <el-input
+                v-model="formData.password"
+                type="password"
+                show-password
+                name="system-user-password"
+                autocomplete="new-password"
+                :placeholder="editingId ? '不填则不修改' : '默认 123456'"
+              />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -172,7 +184,6 @@ import {
   updateUserApi,
   updateUserStatusApi
 } from '@/api/system'
-import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import { useAuthStore } from '@/stores/auth'
 import { formatDateTime } from '@/utils/format'
@@ -343,6 +354,22 @@ loadUsers()
 </script>
 
 <style scoped>
+.autofill-guard {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.autofill-guard input {
+  width: 0;
+  height: 0;
+  padding: 0;
+  border: 0;
+}
+
 .table-footer {
   display: flex;
   justify-content: flex-end;

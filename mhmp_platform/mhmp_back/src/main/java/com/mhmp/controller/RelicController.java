@@ -3,8 +3,12 @@ package com.mhmp.controller;
 import com.mhmp.common.annotation.OperationLog;
 import com.mhmp.common.result.PageResponse;
 import com.mhmp.common.result.Result;
+import com.mhmp.dto.RelicBatchTransferDTO;
+import com.mhmp.dto.RelicCategoryCreateDTO;
+import com.mhmp.dto.RelicMaterialCreateDTO;
 import com.mhmp.dto.RelicPageQueryDTO;
 import com.mhmp.dto.RelicSaveDTO;
+import com.mhmp.dto.RelicTransferDTO;
 import com.mhmp.service.RelicService;
 import com.mhmp.vo.RelicAttachmentVO;
 import com.mhmp.vo.RelicDetailVO;
@@ -64,6 +68,36 @@ public class RelicController {
     @OperationLog(module = "Relic", businessType = "UPDATE", description = "Update relic")
     public Result<Void> update(@PathVariable Long id, @Valid @RequestBody RelicSaveDTO saveDTO) {
         relicService.update(id, saveDTO);
+        return Result.success();
+    }
+
+    @PostMapping("/categories")
+    @PreAuthorize("hasAnyAuthority('relic:add','relic:edit')")
+    @OperationLog(module = "Relic", businessType = "INSERT", description = "Create relic category")
+    public Result<String> createCategory(@Valid @RequestBody RelicCategoryCreateDTO createDTO) {
+        return Result.success(relicService.createCategory(createDTO.getCategoryName()));
+    }
+
+    @PostMapping("/materials")
+    @PreAuthorize("hasAnyAuthority('relic:add','relic:edit')")
+    @OperationLog(module = "Relic", businessType = "INSERT", description = "Create relic material")
+    public Result<String> createMaterial(@Valid @RequestBody RelicMaterialCreateDTO createDTO) {
+        return Result.success(relicService.createMaterial(createDTO.getMaterialName()));
+    }
+
+    @PostMapping("/{id}/transfer")
+    @PreAuthorize("hasAuthority('relic:edit')")
+    @OperationLog(module = "Relic", businessType = "UPDATE", description = "Transfer relic location")
+    public Result<Void> transfer(@PathVariable Long id, @Valid @RequestBody RelicTransferDTO transferDTO) {
+        relicService.transfer(id, transferDTO);
+        return Result.success();
+    }
+
+    @PostMapping("/transfer/batch")
+    @PreAuthorize("hasAuthority('relic:edit')")
+    @OperationLog(module = "Relic", businessType = "UPDATE", description = "Batch transfer relic location")
+    public Result<Void> batchTransfer(@Valid @RequestBody RelicBatchTransferDTO transferDTO) {
+        relicService.batchTransfer(transferDTO);
         return Result.success();
     }
 

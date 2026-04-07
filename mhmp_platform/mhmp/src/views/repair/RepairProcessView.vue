@@ -1,7 +1,7 @@
 <template>
-  <RepairBoardView mode="process" />
+  <RepairMyView />
 </template>
 
 <script setup>
-import RepairBoardView from './RepairBoardView.vue'
+import RepairMyView from './RepairMyView.vue'
 </script>

@@ -1,31 +1,29 @@
 <template>
   <div class="page-shell">
     <section class="page-card page-card--section">
-      <PageHeader title="操作日志" description="查询各模块新增、修改、审批和登录登出等关键操作记录。" />
-    </section>
-
-    <section class="page-card page-card--section">
-      <el-form :inline="true" :model="queryForm">
-        <el-form-item label="用户名">
-          <el-input v-model="queryForm.username" clearable />
-        </el-form-item>
-        <el-form-item label="模块">
-          <el-input v-model="queryForm.moduleName" clearable />
-        </el-form-item>
-        <el-form-item label="业务类型">
-          <el-input v-model="queryForm.businessType" clearable />
-        </el-form-item>
-        <el-form-item label="结果">
-          <el-select v-model="queryForm.operationStatus" clearable placeholder="全部结果">
-            <el-option label="成功" value="SUCCESS" />
-            <el-option label="失败" value="FAIL" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
-      </el-form>
+      <div class="query-toolbar">
+        <el-form :inline="true" :model="queryForm" class="query-form query-form--single-line">
+          <el-form-item label="用户名" class="query-form__keyword">
+            <el-input v-model="queryForm.username" clearable />
+          </el-form-item>
+          <el-form-item label="模块">
+            <el-input v-model="queryForm.moduleName" clearable />
+          </el-form-item>
+          <el-form-item label="业务类型">
+            <el-input v-model="queryForm.businessType" clearable />
+          </el-form-item>
+          <el-form-item label="结果">
+            <el-select v-model="queryForm.operationStatus" clearable placeholder="全部结果">
+              <el-option label="成功" value="SUCCESS" />
+              <el-option label="失败" value="FAIL" />
+            </el-select>
+          </el-form-item>
+          <el-form-item class="query-form__actions">
+            <el-button type="primary" @click="handleSearch">查询</el-button>
+            <el-button @click="handleReset">重置</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
     </section>
 
     <section class="page-card page-card--section">
@@ -92,7 +90,6 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { getLogDetailApi, getLogPageApi } from '@/api/system'
-import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import { formatDateTime } from '@/utils/format'
 

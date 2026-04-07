@@ -38,6 +38,38 @@ export function updateRelicApi(id, data) {
   })
 }
 
+export function createRelicCategoryApi(data) {
+  return request({
+    url: '/relic/categories',
+    method: 'post',
+    data
+  })
+}
+
+export function createRelicMaterialApi(data) {
+  return request({
+    url: '/relic/materials',
+    method: 'post',
+    data
+  })
+}
+
+export function transferRelicApi(id, data) {
+  return request({
+    url: `/relic/${id}/transfer`,
+    method: 'post',
+    data
+  })
+}
+
+export function batchTransferRelicApi(data) {
+  return request({
+    url: '/relic/transfer/batch',
+    method: 'post',
+    data
+  })
+}
+
 export function deleteRelicApi(id) {
   return request({
     url: `/relic/${id}`,

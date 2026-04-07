@@ -14,7 +14,7 @@
         class="sidebar-menu"
         router
       >
-        <template v-for="menu in menus" :key="menu.id">
+        <template v-for="menu in orderedMenus" :key="menu.id">
           <el-sub-menu v-if="menu.children?.length" :index="menu.path || String(menu.id)">
             <template #title>
               <el-icon><component :is="resolveMenuIcon(menu.icon)" /></el-icon>
@@ -45,7 +45,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { resolveMenuIcon } from '@/constants/icons'
 
-defineProps({
+const props = defineProps({
   menus: {
     type: Array,
     default: () => []
@@ -54,6 +54,24 @@ defineProps({
 
 const route = useRoute()
 const activePath = computed(() => route.path)
+const orderedMenus = computed(() => {
+  const menus = [...(props.menus || [])]
+  return menus.sort((left, right) => {
+    const leftIsProfile = normalizePath(left.path) === '/profile'
+    const rightIsProfile = normalizePath(right.path) === '/profile'
+    if (leftIsProfile === rightIsProfile) {
+      return 0
+    }
+    return leftIsProfile ? 1 : -1
+  })
+})
+
+function normalizePath(path) {
+  if (!path) {
+    return ''
+  }
+  return path.startsWith('/') ? path : `/${path}`
+}
 </script>
 
 <style scoped>

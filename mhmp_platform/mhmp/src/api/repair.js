@@ -40,6 +40,30 @@ export function getRepairHistoryPageApi(params) {
   })
 }
 
+export function getPendingRepairRelicPageApi(params) {
+  return request({
+    url: '/repair/pending-relics/page',
+    method: 'get',
+    params
+  })
+}
+
+export function getMyRepairPageApi(params) {
+  return request({
+    url: '/repair/my/page',
+    method: 'get',
+    params
+  })
+}
+
+export function getRepairedRepairPageApi(params) {
+  return request({
+    url: '/repair/repaired/page',
+    method: 'get',
+    params
+  })
+}
+
 export function getRepairDetailApi(id) {
   return request({
     url: `/repair/${id}`,
@@ -68,6 +92,13 @@ export function addRepairLogApi(id, data) {
     url: `/repair/process/${id}/log`,
     method: 'post',
     data
+  })
+}
+
+export function applyRepairAcceptanceApi(id) {
+  return request({
+    url: `/repair/process/${id}/apply-acceptance`,
+    method: 'post'
   })
 }
 

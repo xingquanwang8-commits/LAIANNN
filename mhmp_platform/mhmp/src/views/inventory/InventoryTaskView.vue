@@ -1,35 +1,33 @@
 <template>
   <div class="page-shell">
     <section class="page-card page-card--section">
-      <PageHeader title="盘点任务" description="按库位创建盘点任务，录入实盘数量并提交盘点结果。">
-        <template #extra>
-          <el-button type="primary" @click="dialogVisible = true">新增任务</el-button>
-        </template>
-      </PageHeader>
-    </section>
+      <div class="query-toolbar">
+        <el-form :inline="true" :model="queryForm" class="query-form query-form--single-line">
+          <el-form-item label="关键词" class="query-form__keyword">
+            <el-input v-model="queryForm.keyword" placeholder="任务编号 / 名称" clearable @keyup.enter="handleSearch" />
+          </el-form-item>
+          <el-form-item label="库位">
+            <el-select v-model="queryForm.locationCode" clearable placeholder="全部库位">
+              <el-option v-for="item in locationOptions" :key="item.itemValue" :label="item.itemLabel" :value="item.itemValue" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="状态">
+            <el-select v-model="queryForm.taskStatus" clearable placeholder="全部状态">
+              <el-option label="未开始" value="CREATED" />
+              <el-option label="进行中" value="IN_PROGRESS" />
+              <el-option label="已完成" value="COMPLETED" />
+            </el-select>
+          </el-form-item>
+          <el-form-item class="query-form__actions">
+            <el-button type="primary" @click="handleSearch">查询</el-button>
+            <el-button @click="handleReset">重置</el-button>
+          </el-form-item>
+        </el-form>
 
-    <section class="page-card page-card--section">
-      <el-form :inline="true" :model="queryForm">
-        <el-form-item label="关键词">
-          <el-input v-model="queryForm.keyword" placeholder="任务编号 / 名称" clearable @keyup.enter="handleSearch" />
-        </el-form-item>
-        <el-form-item label="库位">
-          <el-select v-model="queryForm.locationCode" clearable placeholder="全部库位">
-            <el-option v-for="item in locationOptions" :key="item.itemValue" :label="item.itemLabel" :value="item.itemValue" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="queryForm.taskStatus" clearable placeholder="全部状态">
-            <el-option label="未开始" value="CREATED" />
-            <el-option label="进行中" value="IN_PROGRESS" />
-            <el-option label="已完成" value="COMPLETED" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
-      </el-form>
+        <div class="query-toolbar__actions">
+          <el-button type="primary" @click="openCreate">新增任务</el-button>
+        </div>
+      </div>
     </section>
 
     <section class="page-card page-card--section">
@@ -75,10 +73,33 @@
         <el-form-item label="任务名称" prop="taskName">
           <el-input v-model="formData.taskName" />
         </el-form-item>
+        <el-form-item label="任务编号">
+          <el-input model-value="保存后自动生成" disabled />
+        </el-form-item>
         <el-form-item label="库位" prop="locationCode">
           <el-select v-model="formData.locationCode" placeholder="请选择库位">
             <el-option v-for="item in locationOptions" :key="item.itemValue" :label="item.itemLabel" :value="item.itemValue" />
           </el-select>
+        </el-form-item>
+        <el-form-item v-if="inventoryCheckVisible" label="业务校验">
+          <div
+            class="business-check inventory-check"
+            :class="inventoryCheckPassed ? 'business-check--pass' : 'business-check--warn'"
+          >
+            <div class="business-check__header">
+              <div class="business-check__title">{{ inventoryCheckTitle }}</div>
+            </div>
+            <div class="business-check__summary">{{ inventoryCheckSummary }}</div>
+            <ul v-if="inventoryCheckDetails.length" class="business-check__list">
+              <li
+                v-for="item in inventoryCheckDetails"
+                :key="item"
+                class="business-check__item"
+              >
+                {{ item }}
+              </li>
+            </ul>
+          </div>
         </el-form-item>
         <el-form-item label="开始时间" prop="startTime">
           <el-date-picker v-model="formData.startTime" type="datetime" value-format="YYYY-MM-DDTHH:mm:ss" />
@@ -161,7 +182,8 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref } from 'vue'
+import { computed, nextTick, reactive, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {
   createInventoryTaskApi,
@@ -170,12 +192,17 @@ import {
   submitInventoryTaskApi,
   updateInventoryTaskDetailApi
 } from '@/api/inventory'
-import PageHeader from '@/components/common/PageHeader.vue'
+import { getRelicDetailApi, getRelicPageApi } from '@/api/relic'
 import StatusTag from '@/components/common/StatusTag.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useDictStore } from '@/stores/dict'
 import { formatDateTime, resolveDictLabel } from '@/utils/format'
+import {
+  checkInventoryRelicEligibility,
+  pickRelicBusinessFields
+} from '@/utils/relicBusinessRules'
 
+const route = useRoute()
 const authStore = useAuthStore()
 const dictStore = useDictStore()
 
@@ -185,6 +212,12 @@ const dialogVisible = ref(false)
 const drawerVisible = ref(false)
 const formRef = ref()
 const detail = ref({})
+const inventoryCheckLoading = ref(false)
+const inventoryLocationStats = ref({
+  eligibleCount: 0,
+  previewRelics: [],
+  activeTaskNames: []
+})
 const pageData = ref({
   total: 0,
   pageNum: 1,
@@ -197,7 +230,7 @@ const queryForm = reactive({
   pageSize: 10,
   keyword: '',
   locationCode: '',
-  taskStatus: ''
+  taskStatus: typeof route.query.taskStatus === 'string' ? route.query.taskStatus : ''
 })
 
 const formData = reactive({
@@ -229,6 +262,104 @@ const resultLabelMap = {
 }
 
 const locationOptions = computed(() => dictStore.itemsMap.storage_location || [])
+const inventoryCheckVisible = computed(() => dialogVisible.value && Boolean(formData.locationCode))
+const inventoryCheckPassed = computed(() =>
+  Boolean(formData.locationCode)
+  && !inventoryCheckLoading.value
+  && inventoryLocationStats.value.eligibleCount > 0
+  && inventoryLocationStats.value.activeTaskNames.length === 0
+)
+const inventoryCheckTitle = computed(() => (
+  inventoryCheckPassed.value
+    ? '盘点发起前置校验已通过'
+    : '盘点发起前置校验未通过'
+))
+const inventoryCheckSummary = computed(() => {
+  if (!formData.locationCode) {
+    return ''
+  }
+  if (inventoryCheckLoading.value) {
+    return '正在核对当前库位的在库文物和未完成盘点任务，请稍候。'
+  }
+  if (inventoryCheckPassed.value) {
+    return `当前库位共有 ${inventoryLocationStats.value.eligibleCount} 件在库文物可纳入盘点，且没有未完成盘点任务，可直接创建。`
+  }
+  if (inventoryLocationStats.value.activeTaskNames.length) {
+    return '当前库位已存在未完成盘点任务，请先完成或结束现有任务后再重复发起。'
+  }
+  return '当前库位暂无可纳入盘点的在库文物，请检查文物状态或重新选择库位。'
+})
+const inventoryCheckDetails = computed(() => {
+  if (!formData.locationCode || inventoryCheckLoading.value) {
+    return []
+  }
+  const details = []
+  const locationLabel = resolveDictLabel(locationOptions.value, formData.locationCode) || formData.locationCode
+  details.push(`盘点库位：${locationLabel}`)
+  details.push(`在库文物：${inventoryLocationStats.value.eligibleCount} 件`)
+  if (inventoryLocationStats.value.previewRelics.length) {
+    details.push(`示例文物：${inventoryLocationStats.value.previewRelics.join('、')}`)
+  }
+  if (inventoryLocationStats.value.activeTaskNames.length) {
+    details.push(`未完成任务：${inventoryLocationStats.value.activeTaskNames.join('、')}`)
+  }
+  return details
+})
+
+function resetForm() {
+  Object.assign(formData, {
+    taskName: '',
+    locationCode: '',
+    startTime: '',
+    principalName: '',
+    remark: ''
+  })
+}
+
+async function loadInventoryLocationStats(locationCode) {
+  if (!locationCode) {
+    inventoryLocationStats.value = {
+      eligibleCount: 0,
+      previewRelics: [],
+      activeTaskNames: []
+    }
+    return
+  }
+  inventoryCheckLoading.value = true
+  try {
+    const [relicPage, createdTasks, progressTasks] = await Promise.all([
+      getRelicPageApi({
+        pageNum: 1,
+        pageSize: 5,
+        storageLocationCode: locationCode,
+        currentStatus: 'IN_STOCK'
+      }),
+      getInventoryTaskPageApi({
+        pageNum: 1,
+        pageSize: 5,
+        locationCode,
+        taskStatus: 'CREATED'
+      }),
+      getInventoryTaskPageApi({
+        pageNum: 1,
+        pageSize: 5,
+        locationCode,
+        taskStatus: 'IN_PROGRESS'
+      })
+    ])
+    const activeTaskNames = [
+      ...(createdTasks.records || []).map((item) => item.taskName || item.taskNo),
+      ...(progressTasks.records || []).map((item) => item.taskName || item.taskNo)
+    ]
+    inventoryLocationStats.value = {
+      eligibleCount: relicPage.total || 0,
+      previewRelics: (relicPage.records || []).slice(0, 3).map((item) => item.name || item.relicNo),
+      activeTaskNames
+    }
+  } finally {
+    inventoryCheckLoading.value = false
+  }
+}
 
 async function loadTasks() {
   loading.value = true
@@ -244,8 +375,38 @@ async function openDetail(id) {
   drawerVisible.value = true
 }
 
+function suggestTaskName(locationCode) {
+  const locationLabel = resolveDictLabel(locationOptions.value, locationCode) || '当前库位'
+  return `${locationLabel}盘点任务`
+}
+
+async function openCreate(prefill = {}) {
+  resetForm()
+  if (prefill.locationCode) {
+    formData.locationCode = prefill.locationCode
+  }
+  if (prefill.locationCode) {
+    formData.taskName = suggestTaskName(prefill.locationCode)
+  }
+  if (prefill.quickCreate) {
+    formData.remark = '由文物详情快捷发起，建议优先核对当前文物及同库位藏品'
+  }
+  dialogVisible.value = true
+  await loadInventoryLocationStats(formData.locationCode)
+  await nextTick()
+  formRef.value?.clearValidate()
+}
+
 async function handleSave() {
   await formRef.value.validate()
+  if (inventoryCheckLoading.value) {
+    ElMessage.warning('正在核对当前库位业务状态，请稍候后再提交')
+    return
+  }
+  if (!inventoryCheckPassed.value) {
+    ElMessage.warning(inventoryCheckSummary.value || '当前库位不符合发起盘点任务的条件')
+    return
+  }
   saving.value = true
   try {
     await createInventoryTaskApi(formData)
@@ -300,11 +461,58 @@ function handleSizeChange(pageSize) {
   loadTasks()
 }
 
+async function handleQuickCreateFromRoute() {
+  if (route.query.quickCreate !== '1' || !route.query.relicId) {
+    return
+  }
+  if (dialogVisible.value && formData.locationCode === route.query.locationCode) {
+    return
+  }
+
+  const detail = await getRelicDetailApi(route.query.relicId).catch(() => null)
+  if (!detail) {
+    ElMessage.warning('未找到当前文物档案，请刷新后重试')
+    return
+  }
+  const checkResult = checkInventoryRelicEligibility(pickRelicBusinessFields(detail))
+  if (!checkResult.passed) {
+    ElMessage.warning(checkResult.message)
+    return
+  }
+  await openCreate({
+    quickCreate: true,
+    locationCode: detail.storageLocationCode
+  })
+}
+
 dictStore.ensureItems('storage_location')
+watch(
+  () => formData.locationCode,
+  (value) => {
+    if (!dialogVisible.value) {
+      return
+    }
+    if (value && !formData.taskName) {
+      formData.taskName = suggestTaskName(value)
+    }
+    loadInventoryLocationStats(value)
+  }
+)
+watch(
+  () => route.fullPath,
+  () => {
+    handleQuickCreateFromRoute()
+  },
+  { immediate: true }
+)
 loadTasks()
 </script>
 
 <style scoped>
+.inventory-check {
+  width: 100%;
+}
+
 .table-footer {
   display: flex;
   justify-content: flex-end;

@@ -12,6 +12,7 @@ public class RepairTaskListVO {
     private String relicNo;
     private String relicName;
     private String taskStatus;
+    private String acceptanceStatus;
     private String applyUserName;
     private LocalDateTime applyTime;
     private LocalDateTime approveTime;

@@ -92,6 +92,16 @@ export const APP_ROUTE_DEFINITIONS = [
     }
   },
   {
+    path: 'relic/transfer',
+    name: 'relic-transfer',
+    component: () => import('@/views/relic/RelicTransferView.vue'),
+    meta: {
+      title: '馆内转存',
+      requiresAuth: true,
+      permission: 'relic:edit'
+    }
+  },
+  {
     path: 'relic/edit/:id',
     name: 'relic-edit',
     component: () => import('@/views/relic/RelicFormView.vue'),
@@ -106,7 +116,7 @@ export const APP_ROUTE_DEFINITIONS = [
     name: 'inventory-inbound',
     component: () => import('@/views/inventory/InboundView.vue'),
     meta: {
-      title: '入库登记',
+      title: '文物入库',
       requiresAuth: true,
       permission: 'inventory:inbound:view'
     }
@@ -116,7 +126,7 @@ export const APP_ROUTE_DEFINITIONS = [
     name: 'inventory-outbound-apply',
     component: () => import('@/views/outbound/OutboundApplyView.vue'),
     meta: {
-      title: '出库申请',
+      title: '文物出库',
       requiresAuth: true,
       permission: 'inventory:outbound:apply:view'
     }
@@ -156,7 +166,7 @@ export const APP_ROUTE_DEFINITIONS = [
     name: 'repair-apply',
     component: () => import('@/views/repair/RepairApplyView.vue'),
     meta: {
-      title: '修复申请',
+      title: '待修复文物',
       requiresAuth: true,
       permission: 'repair:apply:view'
     }
@@ -176,7 +186,7 @@ export const APP_ROUTE_DEFINITIONS = [
     name: 'repair-process',
     component: () => import('@/views/repair/RepairProcessView.vue'),
     meta: {
-      title: '修复过程',
+      title: '我的修复',
       requiresAuth: true,
       permission: 'repair:process:view'
     }
@@ -196,7 +206,7 @@ export const APP_ROUTE_DEFINITIONS = [
     name: 'repair-history',
     component: () => import('@/views/repair/RepairHistoryView.vue'),
     meta: {
-      title: '修复历史',
+      title: '已修复',
       requiresAuth: true,
       permission: 'repair:history:view'
     }

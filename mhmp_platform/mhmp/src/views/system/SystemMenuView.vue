@@ -1,16 +1,11 @@
 <template>
   <div class="page-shell">
     <section class="page-card page-card--section">
-      <PageHeader title="菜单管理" description="维护平台菜单树、路由路径、权限标识和显示状态。">
-        <template #extra>
-          <el-button v-if="authStore.hasPermission('sys:menu:add')" type="primary" @click="openCreate()">
-            新增菜单
-          </el-button>
-        </template>
-      </PageHeader>
-    </section>
-
-    <section class="page-card page-card--section">
+      <div class="query-toolbar query-toolbar--actions-only">
+        <div v-if="authStore.hasPermission('sys:menu:add')" class="query-toolbar__actions">
+          <el-button type="primary" @click="openCreate()">新增菜单</el-button>
+        </div>
+      </div>
       <el-table
         :data="menuTree"
         row-key="id"
@@ -145,7 +140,6 @@ import { computed, nextTick, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ICON_OPTIONS } from '@/constants/icons'
 import { createMenuApi, deleteMenuApi, getMenuDetailApi, getMenuTreeApi, updateMenuApi } from '@/api/system'
-import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import { useAuthStore } from '@/stores/auth'
 import { buildTreeSelectOptions } from '@/utils/format'

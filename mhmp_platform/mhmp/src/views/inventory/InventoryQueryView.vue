@@ -1,9 +1,5 @@
 <template>
   <div class="page-shell">
-    <section class="page-card page-card--section">
-      <PageHeader title="库存查询" description="从库存总览和明细列表两个维度查看当前在库文物情况。" />
-    </section>
-
     <section class="page-grid summary-grid">
       <article class="page-card page-card--section summary-card">
         <div class="summary-card__label">文物总量</div>
@@ -24,8 +20,8 @@
     </section>
 
     <section class="page-card page-card--section">
-      <el-form :inline="true" :model="queryForm">
-        <el-form-item label="关键词">
+      <el-form :inline="true" :model="queryForm" class="query-form query-form--single-line">
+        <el-form-item label="关键词" class="query-form__keyword">
           <el-input v-model="queryForm.keyword" placeholder="文物编号 / 名称" clearable @keyup.enter="handleSearch" />
         </el-form-item>
         <el-form-item label="类别">
@@ -53,7 +49,7 @@
             <el-option v-for="item in preservationOptions" :key="item.itemValue" :label="item.itemLabel" :value="item.itemValue" />
           </el-select>
         </el-form-item>
-        <el-form-item>
+        <el-form-item class="query-form__actions">
           <el-button type="primary" @click="handleSearch">查询</el-button>
           <el-button @click="handleReset">重置</el-button>
         </el-form-item>
@@ -104,7 +100,6 @@
 <script setup>
 import { computed, reactive, ref } from 'vue'
 import { getInventoryQueryPageApi, getInventorySummaryApi } from '@/api/inventory'
-import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import { useDictStore } from '@/stores/dict'
 import { formatDateTime, resolveDictLabel } from '@/utils/format'

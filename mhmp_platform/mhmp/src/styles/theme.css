@@ -6,6 +6,7 @@
 
   --bg-page: #F6F7F9;
   --bg-card: #FFFFFF;
+  --bg-soft: #F8F4EF;
   --text-main: #2D2A2A;
   --text-second: #6B7280;
   --border-line: #E2E1E3;
@@ -52,8 +53,15 @@ body {
 }
 
 a {
-  color: inherit;
+  color: var(--primary);
   text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: #9B423E;
+  text-decoration: underline;
 }
 
 .app-page {
@@ -104,6 +112,141 @@ a {
   color: var(--text-second);
 }
 
+.query-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.query-toolbar--actions-only {
+  justify-content: flex-end;
+}
+
+.query-toolbar__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.query-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 0;
+  flex: 1;
+}
+
+.query-form .el-form-item {
+  margin-bottom: 12px;
+}
+
+.query-form .el-input,
+.query-form .el-select,
+.query-form .el-date-editor {
+  width: 220px;
+}
+
+.query-form .el-select__wrapper,
+.query-form .el-input__wrapper {
+  min-height: 40px;
+}
+
+.query-form .el-select .el-select__selected-item {
+  color: var(--text-main);
+}
+
+.query-form__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.query-form--single-line {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.query-form--single-line .el-form-item {
+  margin-bottom: 0;
+  flex-shrink: 0;
+}
+
+.query-form--single-line .el-input,
+.query-form--single-line .el-select,
+.query-form--single-line .el-date-editor {
+  width: 138px;
+}
+
+.query-form--single-line .query-form__keyword .el-input,
+.query-form--single-line .query-form__keyword .el-select,
+.query-form--single-line .query-form__keyword .el-date-editor {
+  width: 180px;
+}
+
+.query-form--single-line .query-form__keyword.query-form__keyword--wide .el-input,
+.query-form--single-line .query-form__keyword.query-form__keyword--wide .el-select,
+.query-form--single-line .query-form__keyword.query-form__keyword--wide .el-date-editor {
+  width: 280px;
+}
+
+.query-form--single-line .query-form__actions {
+  margin-left: auto;
+  padding-left: 8px;
+  flex-shrink: 0;
+}
+
+.business-check {
+  padding: 14px 16px;
+  border: 1px solid var(--border-line);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fff, #faf8f6);
+}
+
+.business-check--pass {
+  border-color: rgba(60, 142, 91, 0.22);
+  background: linear-gradient(180deg, rgba(60, 142, 91, 0.06), rgba(255, 255, 255, 0.96));
+}
+
+.business-check--warn {
+  border-color: rgba(204, 136, 34, 0.22);
+  background: linear-gradient(180deg, rgba(204, 136, 34, 0.07), rgba(255, 255, 255, 0.96));
+}
+
+.business-check__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.business-check__title {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.business-check__summary {
+  margin-top: 8px;
+  color: var(--text-second);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.business-check__list {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: var(--text-main);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.business-check__item + .business-check__item {
+  margin-top: 4px;
+}
+
 .status-dot {
   display: inline-flex;
   align-items: center;
@@ -135,6 +278,17 @@ a {
   padding: 32px 0;
 }
 
+.el-table th.el-table__cell > .cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.el-table td.el-table__cell > .cell {
+  text-align: center;
+}
+
 .el-card {
   border-radius: var(--radius);
   border-color: var(--border-line);
@@ -164,5 +318,30 @@ a {
 
   .page-title {
     font-size: 20px;
+  }
+
+  .query-form .el-input,
+  .query-form .el-select,
+  .query-form .el-date-editor {
+    width: 100%;
+  }
+
+  .query-form--single-line {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+
+  .query-form--single-line .el-form-item {
+    margin-bottom: 12px;
+  }
+
+  .query-form--single-line .query-form__actions {
+    margin-left: 0;
+    padding-left: 0;
+  }
+
+  .business-check__header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

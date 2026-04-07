@@ -17,6 +17,7 @@ public class RepairDetailVO {
     private String applyUserName;
     private String applyReason;
     private String taskStatus;
+    private String acceptanceStatus;
     private LocalDateTime applyTime;
     private Long approveBy;
     private String approveUserName;
@@ -28,4 +29,6 @@ public class RepairDetailVO {
     private RepairPlanVO plan;
     private List<RepairLogVO> logs;
     private RepairAcceptanceVO acceptance;
+    private List<RepairHistoryTaskVO> historyTasks;
+    private List<RelicAttachmentVO> attachments;
 }

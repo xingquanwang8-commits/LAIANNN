@@ -20,6 +20,10 @@ spring:
     time-zone: Asia/Shanghai
     date-format: yyyy-MM-dd HH:mm:ss
     default-property-inclusion: non_null
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 50MB
 
 mybatis-plus:
   configuration:
@@ -36,3 +40,5 @@ mhmp:
     expire-seconds: ${JWT_EXPIRE_SECONDS:86400}
     issuer: mhmp-back
     redis-prefix: ${JWT_REDIS_PREFIX:mhmp:token:}
+  file:
+    base-path: ${UPLOAD_BASE_PATH:uploads}

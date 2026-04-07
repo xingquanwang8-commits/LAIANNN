@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mhmp.common.exception.BusinessException;
 import com.mhmp.common.result.PageResponse;
-import com.mhmp.common.util.OrderNoUtils;
+import com.mhmp.common.util.RelicBusinessRuleUtils;
 import com.mhmp.common.util.SecurityUtils;
 import com.mhmp.dto.InventoryQueryPageDTO;
 import com.mhmp.dto.InventoryTaskCreateDTO;
@@ -16,6 +16,7 @@ import com.mhmp.entity.Relic;
 import com.mhmp.mapper.InventoryTaskDetailMapper;
 import com.mhmp.mapper.InventoryTaskMapper;
 import com.mhmp.mapper.RelicMapper;
+import com.mhmp.service.BusinessNoService;
 import com.mhmp.service.InventoryService;
 import com.mhmp.vo.InventorySummaryVO;
 import com.mhmp.vo.InventoryTaskDetailVO;
@@ -36,13 +37,16 @@ public class InventoryServiceImpl implements InventoryService {
     private final RelicMapper relicMapper;
     private final InventoryTaskMapper inventoryTaskMapper;
     private final InventoryTaskDetailMapper inventoryTaskDetailMapper;
+    private final BusinessNoService businessNoService;
 
     public InventoryServiceImpl(RelicMapper relicMapper,
                                 InventoryTaskMapper inventoryTaskMapper,
-                                InventoryTaskDetailMapper inventoryTaskDetailMapper) {
+                                InventoryTaskDetailMapper inventoryTaskDetailMapper,
+                                BusinessNoService businessNoService) {
         this.relicMapper = relicMapper;
         this.inventoryTaskMapper = inventoryTaskMapper;
         this.inventoryTaskDetailMapper = inventoryTaskDetailMapper;
+        this.businessNoService = businessNoService;
     }
 
     @Override
@@ -116,12 +120,15 @@ public class InventoryServiceImpl implements InventoryService {
                 .eq(Relic::getCurrentStatus, "IN_STOCK")
                 .orderByAsc(Relic::getId)
         );
-        if (relics.isEmpty()) {
-            throw new BusinessException("No in-stock relics found at the selected location");
-        }
+        boolean hasActiveTask = inventoryTaskMapper.selectCount(
+            Wrappers.<InventoryTask>lambdaQuery()
+                .eq(InventoryTask::getLocationCode, createDTO.getLocationCode())
+                .in(InventoryTask::getTaskStatus, RelicBusinessRuleUtils.ACTIVE_INVENTORY_TASK_STATUSES)
+        ) > 0;
+        RelicBusinessRuleUtils.validateInventoryTaskCreatable(createDTO.getLocationCode(), relics, hasActiveTask);
         Long currentUserId = SecurityUtils.getUserId();
         InventoryTask task = new InventoryTask();
-        task.setTaskNo(OrderNoUtils.nextOrderNo("INV"));
+        task.setTaskNo(businessNoService.nextInventoryTaskNo());
         task.setTaskName(createDTO.getTaskName());
         task.setLocationCode(createDTO.getLocationCode());
         task.setTaskStatus("CREATED");
@@ -153,13 +160,8 @@ public class InventoryServiceImpl implements InventoryService {
     @Transactional(rollbackFor = Exception.class)
     public void updateTaskDetail(Long taskId, Long detailId, InventoryTaskDetailUpdateDTO updateDTO) {
         InventoryTask task = getTaskOrThrow(taskId);
-        if ("COMPLETED".equals(task.getTaskStatus())) {
-            throw new BusinessException("Completed inventory tasks cannot be edited");
-        }
         InventoryTaskDetail detail = inventoryTaskDetailMapper.selectById(detailId);
-        if (detail == null || !taskId.equals(detail.getTaskId())) {
-            throw new BusinessException("Inventory task detail does not exist");
-        }
+        RelicBusinessRuleUtils.validateInventoryTaskDetailUpdatable(task, detail, taskId, updateDTO.getActualQuantity());
         detail.setActualQuantity(updateDTO.getActualQuantity());
         detail.setDiffRemark(updateDTO.getDiffRemark());
         if (updateDTO.getActualQuantity() == null) {
@@ -184,16 +186,10 @@ public class InventoryServiceImpl implements InventoryService {
     @Transactional(rollbackFor = Exception.class)
     public void submitTask(Long taskId) {
         InventoryTask task = getTaskOrThrow(taskId);
-        if ("COMPLETED".equals(task.getTaskStatus())) {
-            throw new BusinessException("Task has already been submitted");
-        }
         List<InventoryTaskDetail> details = inventoryTaskDetailMapper.selectList(
             Wrappers.<InventoryTaskDetail>lambdaQuery().eq(InventoryTaskDetail::getTaskId, taskId)
         );
-        boolean hasPending = details.stream().anyMatch(detail -> "PENDING".equals(detail.getResultStatus()));
-        if (hasPending) {
-            throw new BusinessException("There are still unsubmitted inventory detail records");
-        }
+        RelicBusinessRuleUtils.validateInventoryTaskSubmittable(task, details);
         Long currentUserId = SecurityUtils.getUserId();
         for (InventoryTaskDetail detail : details) {
             if ("CHECKED".equals(detail.getResultStatus())) {

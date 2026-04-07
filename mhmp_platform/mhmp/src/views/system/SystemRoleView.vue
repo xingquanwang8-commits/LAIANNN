@@ -1,29 +1,26 @@
 <template>
   <div class="page-shell">
     <section class="page-card page-card--section">
-      <PageHeader title="角色管理" description="维护角色信息，并为角色分配可访问的菜单与按钮权限。">
-        <template #extra>
+      <div class="query-toolbar">
+        <el-form :inline="true" :model="queryForm" class="query-form query-form--single-line">
+          <el-form-item label="关键词" class="query-form__keyword">
+            <el-input v-model="queryForm.keyword" placeholder="角色名称 / 编码" clearable @keyup.enter="handleSearch" />
+          </el-form-item>
+          <el-form-item label="状态">
+            <el-select v-model="queryForm.status" clearable placeholder="全部状态">
+              <el-option label="启用" value="ENABLED" />
+              <el-option label="停用" value="DISABLED" />
+            </el-select>
+          </el-form-item>
+          <el-form-item class="query-form__actions">
+            <el-button type="primary" @click="handleSearch">查询</el-button>
+            <el-button @click="handleReset">重置</el-button>
+          </el-form-item>
+        </el-form>
+        <div class="query-toolbar__actions">
           <el-button type="primary" @click="openCreate">新增角色</el-button>
-        </template>
-      </PageHeader>
-    </section>
-
-    <section class="page-card page-card--section">
-      <el-form :inline="true" :model="queryForm">
-        <el-form-item label="关键词">
-          <el-input v-model="queryForm.keyword" placeholder="角色名称 / 编码" clearable @keyup.enter="handleSearch" />
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="queryForm.status" clearable placeholder="全部状态">
-            <el-option label="启用" value="ENABLED" />
-            <el-option label="停用" value="DISABLED" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
-      </el-form>
+        </div>
+      </div>
     </section>
 
     <section class="page-card page-card--section">
@@ -123,7 +120,6 @@ import {
   updateRoleApi,
   updateRoleStatusApi
 } from '@/api/system'
-import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import { useAuthStore } from '@/stores/auth'
 

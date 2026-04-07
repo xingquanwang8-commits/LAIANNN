@@ -1,3 +1,5 @@
+const SHORTCUT_EXCLUDED_PATHS = new Set(['/dashboard', '/profile'])
+
 export function getFirstAccessiblePath(menus = []) {
   for (const menu of menus) {
     if (menu.path && (!menu.children || menu.children.length === 0)) {
@@ -17,6 +19,6 @@ export function flattenMenus(menus = []) {
 
 export function collectShortcutMenus(menus = [], limit = 8) {
   return flattenMenus(menus)
-    .filter((menu) => menu.path && (!menu.children || menu.children.length === 0))
+    .filter((menu) => menu.path && !SHORTCUT_EXCLUDED_PATHS.has(menu.path) && (!menu.children || menu.children.length === 0))
     .slice(0, limit)
 }

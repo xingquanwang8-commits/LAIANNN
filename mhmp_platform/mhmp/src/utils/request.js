@@ -4,7 +4,17 @@ import { ElMessage } from 'element-plus'
 const TOKEN_KEY = 'mhmp_token'
 let redirecting = false
 
+function getToken() {
+  return sessionStorage.getItem(TOKEN_KEY) || ''
+}
+
+function setToken(token) {
+  sessionStorage.setItem(TOKEN_KEY, token)
+  localStorage.removeItem(TOKEN_KEY)
+}
+
 function clearToken() {
+  sessionStorage.removeItem(TOKEN_KEY)
   localStorage.removeItem(TOKEN_KEY)
 }
 
@@ -28,7 +38,7 @@ const request = axios.create({
 })
 
 request.interceptors.request.use((config) => {
-  const token = localStorage.getItem(TOKEN_KEY)
+  const token = getToken()
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -63,5 +73,5 @@ request.interceptors.response.use(
   }
 )
 
-export { TOKEN_KEY, clearToken }
+export { TOKEN_KEY, clearToken, getToken, setToken }
 export default request

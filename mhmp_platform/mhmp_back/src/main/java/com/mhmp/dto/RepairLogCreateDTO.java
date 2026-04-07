@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 public class RepairLogCreateDTO {
@@ -27,4 +29,6 @@ public class RepairLogCreateDTO {
     private String progressStatus;
 
     private String remark;
+
+    private List<AttachmentSaveDTO> attachments = new ArrayList<>();
 }

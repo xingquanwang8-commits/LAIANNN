@@ -38,6 +38,9 @@ public class RepairTask extends BaseEntity {
     @TableField("task_status")
     private String taskStatus;
 
+    @TableField("acceptance_status")
+    private String acceptanceStatus;
+
     @TableField("apply_time")
     private LocalDateTime applyTime;
 

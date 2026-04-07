@@ -1,8 +1,10 @@
 package com.mhmp.service;
 
 import com.mhmp.common.result.PageResponse;
+import com.mhmp.dto.RelicBatchTransferDTO;
 import com.mhmp.dto.RelicPageQueryDTO;
 import com.mhmp.dto.RelicSaveDTO;
+import com.mhmp.dto.RelicTransferDTO;
 import com.mhmp.vo.RelicAttachmentVO;
 import com.mhmp.vo.RelicDetailVO;
 import com.mhmp.vo.RelicListVO;
@@ -18,6 +20,14 @@ public interface RelicService {
     Long create(RelicSaveDTO saveDTO);
 
     void update(Long id, RelicSaveDTO saveDTO);
+
+    String createCategory(String categoryName);
+
+    String createMaterial(String materialName);
+
+    void transfer(Long id, RelicTransferDTO transferDTO);
+
+    void batchTransfer(RelicBatchTransferDTO transferDTO);
 
     void delete(Long id);
 

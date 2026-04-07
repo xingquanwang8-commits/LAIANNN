@@ -59,7 +59,7 @@ public class InventoryController {
     }
 
     @PostMapping("/tasks")
-    @PreAuthorize("hasAuthority('inventory:task:view')")
+    @PreAuthorize("hasAuthority('inventory:task:add')")
     @OperationLog(module = "Inventory Task", businessType = "INSERT", description = "Create inventory task")
     public Result<Long> createTask(@Valid @RequestBody InventoryTaskCreateDTO createDTO) {
         return Result.success(inventoryService.createTask(createDTO));

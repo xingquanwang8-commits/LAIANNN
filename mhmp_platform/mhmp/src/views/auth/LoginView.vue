@@ -1,25 +1,32 @@
 <template>
   <div class="login-page">
     <div class="login-panel login-panel--brand">
-      <div class="login-brand__eyebrow">Museum Heritage Platform</div>
-      <h1 class="login-brand__title">博物馆文物综合管理平台</h1>
+      <div class="login-brand__masthead">
+        <div class="login-brand__logo">
+          <img :src="APP_LOGO_PUBLIC_PATH" alt="MHMP Logo" class="login-brand__logo-image">
+        </div>
+        <div class="login-brand__masthead-content">
+          <div class="login-brand__eyebrow">{{ APP_BRAND_LINE }}</div>
+          <h1 class="login-brand__title">博物馆文物综合管理平台</h1>
+        </div>
+      </div>
       <p class="login-brand__desc">
-        面向馆藏信息、文物出入库、修复、盘点与系统管理的综合后台，
-        以稳定联调、简洁操作和答辩演示友好为目标。
+        围绕馆藏建档、出入库流转、盘点核查、修复验收与系统权限配置构建，
+        适用于博物馆日常业务登记、流程审批与档案追溯。
       </p>
 
       <div class="login-feature-list">
         <div class="login-feature-item">
-          <span class="status-dot" style="color: #fff7f4">真实接口联调</span>
-          <p>前后端均围绕现有数据库与权限菜单构建，登录后即可进入真实业务页面。</p>
+          <span class="status-dot" style="color: #fff7f4">统一档案台账</span>
+          <p>围绕文物主档、附件资料与业务时间线形成统一数据视图，便于查询、复核和追溯。</p>
         </div>
         <div class="login-feature-item">
-          <span class="status-dot" style="color: #fff7f4">庄重后台风格</span>
-          <p>统一采用沉稳暗红主题，交互结构清晰，适合长期办公与项目展示。</p>
+          <span class="status-dot" style="color: #fff7f4">流程闭环管理</span>
+          <p>支持入库、出库、馆内转存、盘点、修复与验收等关键环节的连续流转与状态追踪。</p>
         </div>
         <div class="login-feature-item">
-          <span class="status-dot" style="color: #fff7f4">毕业设计导向</span>
-          <p>优先保证可运行、可演示、可答辩，不引入无关的复杂设计。</p>
+          <span class="status-dot" style="color: #fff7f4">角色权限联动</span>
+          <p>登录后按当前账号自动加载菜单与操作权限，兼顾管理员、审批人员和业务办理人员。</p>
         </div>
       </div>
     </div>
@@ -27,7 +34,7 @@
     <div class="login-panel login-panel--form page-card">
       <div class="login-form__head">
         <div class="login-form__title">账号登录</div>
-        <div class="login-form__hint">请输入数据库中已有账号密码，登录后将按角色返回菜单。</div>
+        <div class="login-form__hint">请输入已分配系统账号，登录后将自动加载当前角色可访问的菜单与业务入口。</div>
       </div>
 
       <el-form
@@ -59,7 +66,7 @@
 
       <el-alert
         class="login-alert"
-        title="如果登录后菜单较少，说明当前账号权限较低，这是正常的角色权限控制效果。"
+        title="如果登录后可见菜单较少，说明当前账号权限范围较小，属于系统正常的角色授权结果。"
         type="info"
         :closable="false"
       />
@@ -72,6 +79,7 @@ import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
+import { APP_BRAND_LINE, APP_LOGO_PUBLIC_PATH } from '@/constants/menu'
 import { getFirstAccessiblePath } from '@/utils/menu'
 
 const router = useRouter()
@@ -127,9 +135,12 @@ async function handleLogin() {
   overflow: hidden;
   padding: 42px;
   background:
-    linear-gradient(160deg, rgba(123, 44, 42, 0.92), rgba(91, 28, 27, 0.96)),
+    radial-gradient(circle at top right, rgba(227, 188, 120, 0.16), transparent 28%),
+    radial-gradient(circle at bottom left, rgba(255, 255, 255, 0.08), transparent 24%),
+    linear-gradient(160deg, rgba(123, 44, 42, 0.94), rgba(91, 28, 27, 0.98)),
     var(--primary);
   color: #fff7f4;
+  box-shadow: 0 24px 48px rgba(73, 24, 23, 0.24);
 }
 
 .login-panel--brand::before,
@@ -157,17 +168,46 @@ async function handleLogin() {
 .login-brand__eyebrow {
   display: inline-flex;
   padding: 6px 12px;
-  margin-bottom: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 239, 219, 0.24);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 247, 244, 0.12);
+  color: rgba(255, 247, 244, 0.92);
   font-size: 12px;
   letter-spacing: 0.08em;
 }
 
+.login-brand__masthead {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.login-brand__logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  padding: 10px;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 239, 219, 0.18);
+  background: linear-gradient(180deg, rgba(255, 247, 244, 0.18), rgba(255, 247, 244, 0.08));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.login-brand__logo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.login-brand__masthead-content {
+  min-width: 0;
+}
+
 .login-brand__title {
   max-width: 520px;
-  margin: 0;
+  margin: 12px 0 0;
   font-size: 42px;
   line-height: 1.15;
 }
@@ -187,10 +227,11 @@ async function handleLogin() {
 
 .login-feature-item {
   padding: 18px 20px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(6px);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
 }
 
 .login-feature-item p {
@@ -204,6 +245,9 @@ async function handleLogin() {
   flex-direction: column;
   justify-content: center;
   padding: 36px 32px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 244, 238, 0.96)),
+    #fff;
 }
 
 .login-form__head {
@@ -237,6 +281,11 @@ async function handleLogin() {
 
   .login-panel {
     min-height: auto;
+  }
+
+  .login-brand__masthead {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 </style>

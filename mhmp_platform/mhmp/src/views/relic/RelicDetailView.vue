@@ -5,12 +5,43 @@
         <div class="cockpit-grid">
           <div class="cockpit-main">
             <div class="cockpit-media">
-              <img v-if="detail.imageUrl" :src="detail.imageUrl" alt="文物主图" class="cockpit-media__image">
-              <div v-else class="cockpit-media__placeholder">暂无文物主图</div>
+              <el-popover
+                v-if="detail.imageUrl"
+                placement="right-start"
+                trigger="hover"
+                :width="340"
+                popper-class="artifact-preview-popover"
+              >
+                <template #reference>
+                  <div class="artifact-preview-frame artifact-preview-frame--hero artifact-preview-frame--interactive">
+                    <img
+                      :src="detail.imageUrl"
+                      alt="文物主图"
+                      class="artifact-preview-frame__image artifact-preview-frame__image--contain"
+                    >
+                    <div class="artifact-preview-frame__badge artifact-preview-frame__badge--hero">查看大图</div>
+                  </div>
+                </template>
+
+                <div class="artifact-preview-panel">
+                  <img
+                    :src="detail.imageUrl"
+                    :alt="detail.name || '文物主图预览'"
+                    class="artifact-preview-panel__image artifact-preview-panel__image--hero"
+                  >
+                  <div class="artifact-preview-panel__name">{{ detail.name || '文物主图' }}</div>
+                  <div class="artifact-preview-panel__meta">编号：{{ detail.relicNo || '--' }}</div>
+                  <div class="artifact-preview-panel__meta">最近更新：{{ formatDateTime(detail.updateTime) }}</div>
+                </div>
+              </el-popover>
+
+              <div v-else class="artifact-preview-frame artifact-preview-frame--hero">
+                <div class="artifact-preview-frame__empty">暂无文物主图</div>
+              </div>
             </div>
 
             <div class="cockpit-content">
-              <div class="cockpit-eyebrow">文物业务驾驶舱</div>
+              <div class="cockpit-eyebrow">MHMP 文物业务档案</div>
               <div class="cockpit-title-row">
                 <div>
                   <h1 class="cockpit-title">{{ detail.name || '文物详情' }}</h1>
@@ -33,7 +64,7 @@
                 <span class="cockpit-tag">保护级别：{{ detail.protectionLevel || '--' }}</span>
               </div>
 
-              <p class="cockpit-desc">{{ detail.description || '暂无文物描述，建议补充该文物的业务背景与档案说明。' }}</p>
+              <p class="cockpit-desc">{{ detail.description || '暂无文物说明，建议补充该文物的馆藏背景、保存特征和业务管理要求。' }}</p>
 
               <div v-if="launchActions.length" class="launch-panel">
                 <div class="launch-panel__title">一键发起业务</div>
@@ -83,7 +114,7 @@
               <div class="section-header">
                 <div>
                   <div class="section-header__title">当前待办</div>
-                  <div class="section-header__desc">可直接在详情页完成审批、归还和验收等关键动作。</div>
+                  <div class="section-header__desc">可直接在详情页完成审批、归还登记和修复验收等关键动作。</div>
                 </div>
               </div>
 
@@ -117,7 +148,7 @@
                       驳回申请
                     </el-button>
                     <el-button
-                      v-if="item.businessType === 'OUTBOUND_RETURN' && authStore.hasPermission('inventory:outbound:approve')"
+                      v-if="item.businessType === 'OUTBOUND_RETURN' && authStore.hasPermission(['inventory:outbound:approve', 'inventory:outbound:submit'])"
                       type="primary"
                       @click="handleReturnOutbound(item.relatedId)"
                     >
@@ -134,7 +165,7 @@
                   </div>
                 </article>
               </div>
-              <el-empty v-else class="empty-block" description="当前没有待办业务" />
+              <el-empty v-else class="empty-block" description="当前暂无待办业务。" />
             </div>
           </div>
         </div>
@@ -145,7 +176,7 @@
           <div class="section-header">
             <div>
               <div class="section-header__title">档案信息</div>
-              <div class="section-header__desc">集中查看文物基础档案、保存信息和鉴定资料。</div>
+              <div class="section-header__desc">集中查看文物基础档案、保存信息、鉴定资料与管理要点。</div>
             </div>
           </div>
 
@@ -188,26 +219,70 @@
           <div class="section-header">
             <div>
               <div class="section-header__title">附件资料</div>
-              <div class="section-header__desc">展示该文物归档的图片、报告和业务附件。</div>
+              <div class="section-header__desc">按影像资料与文档资料分层展示该文物归档附件，便于答辩演示、日常查阅与交接复核。</div>
             </div>
           </div>
 
-          <el-table v-if="detail.attachments?.length" :data="detail.attachments">
-            <el-table-column label="附件类型" min-width="140">
-              <template #default="{ row }">{{ resolveAttachmentTypeLabel(row.attachmentType) }}</template>
-            </el-table-column>
-            <el-table-column prop="fileName" label="文件名称" min-width="220" />
-            <el-table-column label="文件大小" min-width="120">
-              <template #default="{ row }">{{ formatFileSize(row.fileSize) }}</template>
-            </el-table-column>
-            <el-table-column prop="remark" label="备注" min-width="180" show-overflow-tooltip />
-            <el-table-column label="操作" width="120">
-              <template #default="{ row }">
-                <a :href="row.fileUrl" target="_blank" rel="noreferrer">打开文件</a>
-              </template>
-            </el-table-column>
-          </el-table>
-          <el-empty v-else class="empty-block" description="暂无附件资料" />
+          <div v-if="galleryMediaItems.length || documentAttachmentItems.length || detail.appraisalReportUrl" class="detail-stack">
+            <section class="media-gallery">
+              <div class="media-gallery__header">
+                <div>
+                  <div class="media-gallery__title">影像图库</div>
+                  <div class="media-gallery__desc">集中展示主图、文物影像和修复过程图片，点击缩略图可查看大图预览。</div>
+                </div>
+                <span class="overview-chip">共 {{ galleryMediaItems.length }} 张</span>
+              </div>
+
+              <div v-if="galleryMediaItems.length" class="media-gallery__grid">
+                <article v-for="(item, index) in galleryMediaItems" :key="`${item.fileUrl}-${index}`" class="media-gallery__card">
+                  <el-image
+                    :src="item.fileUrl"
+                    :preview-src-list="galleryPreviewList"
+                    :initial-index="index"
+                    fit="cover"
+                    class="media-gallery__image"
+                    preview-teleported
+                  />
+                  <div class="media-gallery__content">
+                    <div class="media-gallery__name">{{ item.fileName }}</div>
+                    <div class="media-gallery__meta">
+                      <span>{{ item.typeLabel }}</span>
+                      <span v-if="item.fileSizeText !== '--'">{{ item.fileSizeText }}</span>
+                    </div>
+                    <div class="media-gallery__remark">{{ item.remark || '可点击查看原图。' }}</div>
+                  </div>
+                </article>
+              </div>
+              <el-empty v-else class="empty-block" description="当前暂无影像资料。" />
+            </section>
+
+            <section class="info-section">
+              <div class="info-section__header">
+                <div>
+                  <h3 class="info-section__title">文档资料</h3>
+                  <p class="info-section__desc">保留鉴定报告与业务附件索引，便于下载、打印和交接复核。</p>
+                </div>
+              </div>
+
+              <el-table v-if="documentAttachmentItems.length" :data="documentAttachmentItems">
+                <el-table-column label="附件类型" min-width="140">
+                  <template #default="{ row }">{{ row.typeLabel }}</template>
+                </el-table-column>
+                <el-table-column prop="fileName" label="文件名称" min-width="220" />
+                <el-table-column label="文件大小" min-width="120">
+                  <template #default="{ row }">{{ row.fileSizeText }}</template>
+                </el-table-column>
+                <el-table-column prop="remark" label="备注" min-width="180" show-overflow-tooltip />
+                <el-table-column label="操作" class-name="table-action-column" width="120">
+                  <template #default="{ row }">
+                    <a :href="row.fileUrl" target="_blank" rel="noreferrer">打开文件</a>
+                  </template>
+                </el-table-column>
+              </el-table>
+              <el-empty v-else class="empty-block" description="当前暂无文档资料。" />
+            </section>
+          </div>
+          <el-empty v-else class="empty-block" description="当前暂无附件资料。" />
         </article>
       </section>
 
@@ -215,7 +290,7 @@
         <div class="section-header">
           <div>
             <div class="section-header__title">业务时间线</div>
-            <div class="section-header__desc">汇总文物入库、出库、馆内转存、盘点、修复与验收全过程。</div>
+            <div class="section-header__desc">汇总文物入库、出库、馆内转存、盘点、修复与验收全过程，便于追踪生命周期记录。</div>
           </div>
         </div>
 
@@ -235,7 +310,7 @@
             </div>
           </el-timeline-item>
         </el-timeline>
-        <el-empty v-else class="empty-block" description="暂无业务记录" />
+        <el-empty v-else class="empty-block" description="当前暂无业务记录。" />
       </section>
     </template>
 
@@ -313,6 +388,7 @@ const businessStatusLabelMap = {
 
 const attachmentTypeLabelMap = {
   IMAGE: '主图',
+  RELIC_IMAGE: '文物影像',
   APPRAISAL_REPORT: '鉴定报告',
   DOCUMENT: '业务附件',
   REPAIR_IMAGE: '修复过程图片',
@@ -351,6 +427,78 @@ const cockpitMetrics = computed(() => {
       value: `${detail.value.attachments?.length || 0} 份`
     }
   ]
+})
+
+const imageAttachmentTypes = new Set(['IMAGE', 'RELIC_IMAGE', 'REPAIR_IMAGE'])
+
+const galleryMediaItems = computed(() => {
+  if (!detail.value) {
+    return []
+  }
+
+  const items = []
+  const usedUrls = new Set()
+
+  if (detail.value.imageUrl) {
+    items.push({
+      fileUrl: detail.value.imageUrl,
+      fileName: detail.value.name ? `${detail.value.name} 主图` : '文物主图',
+      fileSizeText: '--',
+      remark: '当前文物主图，用于列表封面与详情展示。',
+      typeLabel: '主图'
+    })
+    usedUrls.add(detail.value.imageUrl)
+  }
+
+  (detail.value.attachments || []).forEach((item) => {
+    if (!item?.fileUrl || !imageAttachmentTypes.has(item.attachmentType) || usedUrls.has(item.fileUrl)) {
+      return
+    }
+    usedUrls.add(item.fileUrl)
+    items.push({
+      fileUrl: item.fileUrl,
+      fileName: item.fileName || resolveAttachmentTypeLabel(item.attachmentType),
+      fileSizeText: formatFileSize(item.fileSize),
+      remark: item.remark || '文物影像资料',
+      typeLabel: resolveAttachmentTypeLabel(item.attachmentType)
+    })
+  })
+
+  return items
+})
+
+const galleryPreviewList = computed(() => galleryMediaItems.value.map((item) => item.fileUrl))
+
+const documentAttachmentItems = computed(() => {
+  if (!detail.value) {
+    return []
+  }
+
+  const items = []
+
+  if (detail.value.appraisalReportUrl) {
+    items.push({
+      attachmentType: 'APPRAISAL_REPORT',
+      fileName: '鉴定报告',
+      fileUrl: detail.value.appraisalReportUrl,
+      fileSizeText: '--',
+      remark: '文物鉴定报告',
+      typeLabel: '鉴定报告'
+    })
+  }
+
+  (detail.value.attachments || []).forEach((item) => {
+    if (!item?.fileUrl || imageAttachmentTypes.has(item.attachmentType)) {
+      return
+    }
+    items.push({
+      ...item,
+      fileSizeText: formatFileSize(item.fileSize),
+      typeLabel: resolveAttachmentTypeLabel(item.attachmentType)
+    })
+  })
+
+  return items
 })
 
 function createLaunchAction(config) {
@@ -392,7 +540,7 @@ const launchActions = computed(() => {
       title: '发起文物出库',
       check: checkOutboundRelicEligibility(relic),
       successText: '\u51fa\u5e93\u6761\u4ef6\u6821\u9a8c\u901a\u8fc7\uff0c\u6b63\u5728\u8fdb\u5165\u51fa\u5e93\u8868\u5355',
-      visible: authStore.hasPermission('inventory:outbound:apply:view'),
+      visible: authStore.hasPermission('inventory:outbound:submit'),
       route: {
         path: '/inventory/outbound/apply',
         query: {
@@ -420,7 +568,7 @@ const launchActions = computed(() => {
       title: '发起文物盘点',
       check: checkInventoryRelicEligibility(relic),
       successText: '盘点发起条件校验通过，正在进入盘点任务表单',
-      visible: authStore.hasPermission('inventory:task:view'),
+      visible: authStore.hasPermission('inventory:task:add'),
       route: {
         path: '/inventory/task',
         query: {
@@ -456,7 +604,7 @@ const ledgerPayload = computed(() => {
 
   return {
     title: `${detail.value.name || '文物'}业务台账`,
-    subtitle: '用于展示文物档案信息、待办业务和完整业务时间线，便于业务复盘与答辩演示。',
+    subtitle: '用于汇总文物档案信息、在办事项与完整业务时间线，便于馆内复核、交接审阅与业务追踪。',
     relicNo: detail.value.relicNo,
     relicName: detail.value.name,
     generatedAt: formatDateTime(new Date()),
@@ -682,23 +830,8 @@ loadDetail()
 
 .cockpit-media {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
   min-height: 250px;
-  border: 1px solid var(--border-line);
-  border-radius: 18px;
-  background: linear-gradient(180deg, #faf8f6, #f2f4f7);
-}
-
-.cockpit-media__image {
-  width: 100%;
-  max-height: 250px;
-  object-fit: contain;
-  border-radius: 18px;
-}
-
-.cockpit-media__placeholder {
-  color: var(--text-second);
 }
 
 .cockpit-content {
@@ -948,6 +1081,87 @@ loadDetail()
   margin-top: 14px;
 }
 
+.media-gallery {
+  padding: 18px;
+  border: 1px solid var(--border-line);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top right, rgba(184, 138, 68, 0.08), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 243, 236, 0.94));
+}
+
+.media-gallery__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.media-gallery__title {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.media-gallery__desc {
+  margin-top: 8px;
+  color: var(--text-second);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.media-gallery__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.media-gallery__card {
+  display: flex;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid rgba(123, 44, 42, 0.08);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(249, 244, 238, 0.94));
+}
+
+.media-gallery__image {
+  width: 112px;
+  height: 112px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(123, 44, 42, 0.08);
+  background: linear-gradient(180deg, #faf8f6, #f2f4f7);
+}
+
+.media-gallery__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.media-gallery__name {
+  font-size: 15px;
+  font-weight: 700;
+  word-break: break-all;
+}
+
+.media-gallery__meta {
+  display: flex;
+  gap: 8px 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  color: var(--text-second);
+  font-size: 12px;
+}
+
+.media-gallery__remark {
+  margin-top: 10px;
+  color: var(--text-main);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
 .detail-body-grid {
   grid-template-columns: 1.2fr 0.9fr;
 }
@@ -991,6 +1205,10 @@ loadDetail()
     grid-template-columns: 1fr 1fr;
   }
 
+  .media-gallery__grid {
+    grid-template-columns: 1fr;
+  }
+
   .launch-grid {
     grid-template-columns: 1fr;
   }
@@ -999,6 +1217,8 @@ loadDetail()
 @media (max-width: 720px) {
   .cockpit-title-row,
   .pending-card__header,
+  .media-gallery__header,
+  .media-gallery__card,
   .timeline-card__header {
     flex-direction: column;
     align-items: flex-start;

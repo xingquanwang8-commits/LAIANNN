@@ -1,40 +1,69 @@
 <template>
-  <el-dialog v-model="dialogVisible" :title="dialogTitle" width="620px" @closed="handleClosed">
-    <div class="dialog-hint">
-      {{ isRejectMode ? '请填写驳回原因，任务会退回“我的修复”。' : '确认验收时需填写保存状态和返库位置。' }}
-    </div>
+  <el-dialog v-model="dialogVisible" :title="dialogTitle" width="660px" @closed="handleClosed">
+    <div class="detail-stack">
+      <div class="overview-panel overview-panel--compact dialog-overview">
+        <div class="overview-panel__top">
+          <div>
+            <div class="overview-panel__eyebrow">MHMP Acceptance Review</div>
+            <h3 class="overview-panel__title dialog-overview__title">{{ dialogTitle }}</h3>
+            <p class="overview-panel__desc">{{ dialogDesc }}</p>
+          </div>
+          <div class="overview-panel__meta">
+            <span class="overview-chip">任务 {{ props.taskId || '--' }}</span>
+            <span class="overview-chip overview-chip--accent">{{ isRejectMode ? '当前动作：驳回' : '当前动作：确认验收' }}</span>
+          </div>
+        </div>
+      </div>
 
-    <el-form ref="formRef" :model="formData" :rules="rules" label-width="108px">
-      <el-form-item label="验收时间" prop="acceptanceTime">
-        <el-date-picker v-model="formData.acceptanceTime" type="datetime" value-format="YYYY-MM-DDTHH:mm:ss" />
-      </el-form-item>
-      <el-form-item v-if="!isRejectMode" label="保存状态">
-        <el-select v-model="formData.preservationStatusCode" clearable placeholder="请选择">
-          <el-option
-            v-for="item in preservationOptions"
-            :key="item.itemValue"
-            :label="item.itemLabel"
-            :value="item.itemValue"
+      <div class="soft-note" :class="isRejectMode ? '' : 'soft-note--accent'">
+        <div class="soft-note__title">{{ isRejectMode ? '驳回说明' : '验收填写要求' }}</div>
+        <div class="soft-note__desc">
+          {{ isRejectMode ? '驳回时必须填写原因，任务会退回修复过程页继续处理。' : '确认验收时需要填写验收时间，并补全返库位置和修复后的保存状态。' }}
+        </div>
+      </div>
+
+      <el-form ref="formRef" :model="formData" :rules="rules" label-width="108px">
+        <el-form-item label="验收时间" prop="acceptanceTime">
+          <el-date-picker v-model="formData.acceptanceTime" type="datetime" value-format="YYYY-MM-DDTHH:mm:ss" />
+        </el-form-item>
+        <el-form-item v-if="!isRejectMode" label="保存状态">
+          <el-select v-model="formData.preservationStatusCode" clearable placeholder="请选择修复后的保存状态">
+            <el-option
+              v-for="item in preservationOptions"
+              :key="item.itemValue"
+              :label="item.itemLabel"
+              :value="item.itemValue"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item v-if="!isRejectMode" label="返库位置">
+          <el-select v-model="formData.storageLocationCode" clearable placeholder="请选择返库位置">
+            <el-option
+              v-for="item in locationOptions"
+              :key="item.itemValue"
+              :label="item.itemLabel"
+              :value="item.itemValue"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item :label="isRejectMode ? '驳回原因' : '验收意见'">
+          <el-input
+            v-model="formData.acceptanceRemark"
+            type="textarea"
+            :rows="3"
+            :placeholder="isRejectMode ? '请填写驳回原因' : '可填写验收意见，留空则直接通过'"
           />
-        </el-select>
-      </el-form-item>
-      <el-form-item v-if="!isRejectMode" label="返库位置">
-        <el-select v-model="formData.storageLocationCode" clearable placeholder="请选择">
-          <el-option
-            v-for="item in locationOptions"
-            :key="item.itemValue"
-            :label="item.itemLabel"
-            :value="item.itemValue"
+        </el-form-item>
+        <el-form-item label="后续建议">
+          <el-input
+            v-model="formData.followUpSuggestion"
+            type="textarea"
+            :rows="3"
+            placeholder="可填写返库后的保管建议、后续观察建议等"
           />
-        </el-select>
-      </el-form-item>
-      <el-form-item :label="isRejectMode ? '驳回原因' : '验收意见'">
-        <el-input v-model="formData.acceptanceRemark" type="textarea" :rows="3" />
-      </el-form-item>
-      <el-form-item label="后续建议">
-        <el-input v-model="formData.followUpSuggestion" type="textarea" :rows="3" />
-      </el-form-item>
-    </el-form>
+        </el-form-item>
+      </el-form>
+    </div>
 
     <template #footer>
       <el-button @click="dialogVisible = false">取消</el-button>
@@ -105,6 +134,11 @@ const dialogVisible = computed({
 
 const dialogTitle = computed(() => (actionMode.value === 'REJECTED' ? '驳回验收' : '确认验收'))
 const isRejectMode = computed(() => actionMode.value === 'REJECTED')
+const dialogDesc = computed(() => (
+  isRejectMode.value
+    ? '填写驳回原因后，当前任务会退回修复过程页继续补充处理记录或调整修复结果。'
+    : '确认验收后，系统会记录验收时间、返库位置和修复后的保存状态，并将任务归档。'
+))
 
 const formData = reactive({
   acceptanceTime: '',
@@ -156,7 +190,7 @@ async function handleSubmit(action) {
   const acceptanceRemark = formData.acceptanceRemark?.trim() || ''
   if (action === 'PASS') {
     if (!formData.preservationStatusCode || !formData.storageLocationCode) {
-      ElMessage.warning('确认验收时请选择保存状态和返库位置')
+      ElMessage.warning('确认验收时请填写保存状态和返库位置')
       return
     }
   } else if (!acceptanceRemark) {
@@ -205,12 +239,7 @@ dictStore.ensureMultipleItems(['storage_location', 'preservation_status'])
 </script>
 
 <style scoped>
-.dialog-hint {
-  margin-bottom: 16px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: var(--bg-soft);
-  color: var(--text-second);
-  line-height: 1.6;
+.dialog-overview__title {
+  font-size: 22px;
 }
 </style>

@@ -16,6 +16,7 @@ D:\Vue_Workspace\mhmp_platform\mhmp_back\src\main\java\com\mhmp\config\DemoDataI
 D:\Vue_Workspace\mhmp_platform\mhmp_back\src\main\java\com\mhmp\config\FileStorageProperties.java
 D:\Vue_Workspace\mhmp_platform\mhmp_back\src\main\java\com\mhmp\config\LegacyBusinessNoInitializer.java
 D:\Vue_Workspace\mhmp_platform\mhmp_back\src\main\java\com\mhmp\config\MybatisPlusConfig.java
+D:\Vue_Workspace\mhmp_platform\mhmp_back\src\main\java\com\mhmp\config\PermissionMetadataInitializer.java
 D:\Vue_Workspace\mhmp_platform\mhmp_back\src\main\java\com\mhmp\config\SecurityConfig.java
 D:\Vue_Workspace\mhmp_platform\mhmp_back\src\main\java\com\mhmp\config\WebMvcConfig.java
 D:\Vue_Workspace\mhmp_platform\mhmp_back\src\main\java\com\mhmp\controller\AuthController.java

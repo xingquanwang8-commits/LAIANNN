@@ -1,0 +1,61 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="mhmpBronze" x1="32" y1="24" x2="220" y2="232" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#9C4A34" />
+      <stop offset="0.52" stop-color="#7B2C2A" />
+      <stop offset="1" stop-color="#5E211F" />
+    </linearGradient>
+    <linearGradient id="mhmpBronzeSoft" x1="56" y1="46" x2="190" y2="198" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#B56745" />
+      <stop offset="1" stop-color="#7B2C2A" />
+    </linearGradient>
+    <filter id="mhmpShadow" x="16" y="12" width="224" height="232" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#5E211F" flood-opacity="0.18" />
+    </filter>
+  </defs>
+
+  <rect width="256" height="256" rx="40" fill="white" fill-opacity="0.01" />
+
+  <g filter="url(#mhmpShadow)">
+    <rect x="28" y="24" width="200" height="208" rx="26" stroke="url(#mhmpBronze)" stroke-width="16" />
+    <rect x="42" y="38" width="172" height="180" rx="18" stroke="white" stroke-opacity="0.35" stroke-width="3" />
+  </g>
+
+  <g stroke="url(#mhmpBronze)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M76 58H180" />
+    <path d="M128 58V92" />
+    <path d="M60 164H92" />
+    <path d="M164 164H196" />
+    <path d="M58 188H102" />
+    <path d="M154 188H198" />
+    <path d="M128 168V220" />
+    <path d="M76 156V188" />
+    <path d="M180 156V188" />
+    <path d="M108 188H148" />
+    <circle cx="76" cy="58" r="4.5" fill="url(#mhmpBronze)" />
+    <circle cx="128" cy="58" r="7" fill="url(#mhmpBronze)" />
+    <circle cx="180" cy="58" r="4.5" fill="url(#mhmpBronze)" />
+    <circle cx="128" cy="92" r="4.5" fill="url(#mhmpBronze)" />
+    <circle cx="60" cy="164" r="7" fill="url(#mhmpBronze)" />
+    <circle cx="196" cy="164" r="7" fill="url(#mhmpBronze)" />
+    <circle cx="58" cy="188" r="7" fill="url(#mhmpBronze)" />
+    <circle cx="198" cy="188" r="7" fill="url(#mhmpBronze)" />
+  </g>
+
+  <g fill="url(#mhmpBronzeSoft)" stroke="url(#mhmpBronze)" stroke-width="4" stroke-linejoin="round">
+    <path d="M63 72C78 82 95 84 107 88C115 90 119 99 120 112C108 106 95 104 80 104L63 72Z" />
+    <path d="M193 72C178 82 161 84 149 88C141 90 137 99 136 112C148 106 161 104 176 104L193 72Z" />
+    <path d="M58 114L93 120C103 122 109 126 114 136L99 162H83L76 140L60 138L58 114Z" />
+    <path d="M198 114L163 120C153 122 147 126 142 136L157 162H173L180 140L196 138L198 114Z" />
+    <path d="M112 140L128 158L144 140L154 170H102L112 140Z" />
+    <path d="M108 170H148L154 192H102L108 170Z" />
+    <path d="M120 112C122 118 124 124 128 132C132 124 134 118 136 112" />
+  </g>
+
+  <g fill="white" fill-opacity="0.92">
+    <path d="M88 86H103L96 98H90L88 86Z" />
+    <path d="M168 86H153L160 98H166L168 86Z" />
+    <path d="M90 128H108L105 142H95L90 128Z" />
+    <path d="M166 128H148L151 142H161L166 128Z" />
+  </g>
+</svg>

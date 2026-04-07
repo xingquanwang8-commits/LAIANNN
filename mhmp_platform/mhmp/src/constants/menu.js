@@ -1,4 +1,11 @@
 export const APP_TITLE = '博物馆文物综合管理平台'
+export const APP_SHORT_NAME = 'MHMP'
+export const APP_ENGLISH_NAME = 'Museum Heritage Management Platform'
+export const APP_BRAND_LINE = `${APP_SHORT_NAME} · ${APP_ENGLISH_NAME}`
+export const APP_TITLE_PRIMARY = '博物馆文物'
+export const APP_TITLE_SECONDARY = '综合管理平台'
+export const APP_SIDEBAR_ENGLISH_LINE = APP_ENGLISH_NAME
+export const APP_LOGO_PUBLIC_PATH = `${process.env.BASE_URL}mhmp-logo-square.svg`
 
 export const APP_ROUTE_DEFINITIONS = [
   {
@@ -216,7 +223,7 @@ export const APP_ROUTE_DEFINITIONS = [
     name: 'profile',
     component: () => import('@/views/profile/ProfileView.vue'),
     meta: {
-      title: '个人中心',
+      title: '个人档案',
       requiresAuth: true,
       permission: 'profile:view'
     }

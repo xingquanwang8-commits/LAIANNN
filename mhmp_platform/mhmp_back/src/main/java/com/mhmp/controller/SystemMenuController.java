@@ -50,7 +50,7 @@ public class SystemMenuController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('sys:menu:add')")
+    @PreAuthorize("hasAuthority('sys:menu:edit')")
     @OperationLog(module = "菜单管理", businessType = "UPDATE", description = "编辑菜单")
     public Result<Void> update(@PathVariable Long id, @Valid @RequestBody MenuSaveDTO saveDTO) {
         systemMenuService.update(id, saveDTO);
@@ -58,7 +58,7 @@ public class SystemMenuController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('sys:menu:add')")
+    @PreAuthorize("hasAuthority('sys:menu:delete')")
     @OperationLog(module = "菜单管理", businessType = "DELETE", description = "删除菜单")
     public Result<Void> delete(@PathVariable Long id) {
         systemMenuService.delete(id);

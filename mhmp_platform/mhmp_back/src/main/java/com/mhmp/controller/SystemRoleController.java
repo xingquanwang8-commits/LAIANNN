@@ -54,14 +54,14 @@ public class SystemRoleController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('sys:role:view')")
+    @PreAuthorize("hasAuthority('sys:role:add')")
     @OperationLog(module = "角色管理", businessType = "INSERT", description = "新增角色")
     public Result<Long> create(@Valid @RequestBody RoleSaveDTO saveDTO) {
         return Result.success("新增成功", systemRoleService.create(saveDTO));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('sys:role:view')")
+    @PreAuthorize("hasAuthority('sys:role:edit')")
     @OperationLog(module = "角色管理", businessType = "UPDATE", description = "编辑角色")
     public Result<Void> update(@PathVariable Long id, @Valid @RequestBody RoleSaveDTO saveDTO) {
         systemRoleService.update(id, saveDTO);
@@ -69,7 +69,7 @@ public class SystemRoleController {
     }
 
     @PutMapping("/{id}/status")
-    @PreAuthorize("hasAuthority('sys:role:view')")
+    @PreAuthorize("hasAuthority('sys:role:status')")
     @OperationLog(module = "角色管理", businessType = "UPDATE", description = "修改角色状态")
     public Result<Void> updateStatus(@PathVariable Long id, @Valid @RequestBody RoleStatusDTO statusDTO) {
         systemRoleService.updateStatus(id, statusDTO.getStatus());
@@ -85,7 +85,7 @@ public class SystemRoleController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('sys:role:view')")
+    @PreAuthorize("hasAuthority('sys:role:delete')")
     @OperationLog(module = "角色管理", businessType = "DELETE", description = "删除角色")
     public Result<Void> delete(@PathVariable Long id) {
         systemRoleService.delete(id);

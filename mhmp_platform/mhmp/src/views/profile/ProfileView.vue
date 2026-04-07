@@ -8,36 +8,36 @@
         </div>
 
         <div class="profile-hero__info">
-          <div class="profile-hero__eyebrow">当前账号</div>
+          <div class="profile-hero__eyebrow">MHMP Personal Profile</div>
           <h2 class="profile-hero__title">{{ profile.realName || profile.nickName || profile.username || '--' }}</h2>
           <p class="profile-hero__desc">
-            {{ profile.roles?.join(' / ') || '未分配角色' }}，可在此维护基础资料和个人头像，用于页面展示与答辩演示。
+            当前平台身份：{{ profile.roles?.join(' / ') || '未分配角色' }}。可在此维护个人档案与头像，平台会同步用于业务经办、审批留痕、操作日志和页面展示。
           </p>
         </div>
       </div>
 
       <div class="profile-hero__actions">
-        <el-upload :show-file-list="false" :http-request="handleAvatarUpload">
+        <el-upload :show-file-list="false" accept="image/*" :http-request="handleAvatarUpload">
           <el-button :loading="uploadingAvatar">上传头像</el-button>
         </el-upload>
-        <el-button type="primary" @click="openEditDialog">编辑资料</el-button>
+        <el-button type="primary" @click="openEditDialog">编辑档案</el-button>
       </div>
     </section>
 
     <section class="page-grid profile-grid">
       <article class="page-card page-card--section profile-panel">
-        <div class="profile-panel__title">账号信息</div>
+        <div class="profile-panel__title">账号身份信息</div>
         <div class="profile-meta">
           <div class="profile-meta__item">
-            <span class="profile-meta__label">用户名</span>
+            <span class="profile-meta__label">平台账号</span>
             <span>{{ profile.username || '--' }}</span>
           </div>
           <div class="profile-meta__item">
-            <span class="profile-meta__label">角色</span>
+            <span class="profile-meta__label">角色身份</span>
             <span>{{ profile.roles?.join(' / ') || '--' }}</span>
           </div>
           <div class="profile-meta__item">
-            <span class="profile-meta__label">昵称</span>
+            <span class="profile-meta__label">显示名</span>
             <span>{{ profile.nickName || '--' }}</span>
           </div>
           <div class="profile-meta__item">
@@ -48,7 +48,7 @@
       </article>
 
       <article class="page-card page-card--section profile-panel">
-        <div class="profile-panel__title">联系资料</div>
+        <div class="profile-panel__title">联系方式与补充说明</div>
         <div class="profile-meta">
           <div class="profile-meta__item">
             <span class="profile-meta__label">电话</span>
@@ -63,27 +63,27 @@
             <span>{{ genderLabelMap[profile.gender] || '--' }}</span>
           </div>
           <div class="profile-meta__item profile-meta__item--column">
-            <span class="profile-meta__label">备注</span>
-            <span>{{ profile.remark || '暂无备注' }}</span>
+            <span class="profile-meta__label">补充说明</span>
+            <span>{{ profile.remark || '暂无补充说明' }}</span>
           </div>
         </div>
       </article>
     </section>
 
-    <el-dialog v-model="dialogVisible" title="编辑个人资料" width="520px">
+    <el-dialog v-model="dialogVisible" title="编辑个人档案" width="520px">
       <el-form ref="profileFormRef" :model="profileForm" :rules="profileRules" label-width="88px">
-        <el-form-item label="头像">
+        <el-form-item label="账号头像">
           <div class="dialog-avatar">
             <div class="dialog-avatar__preview">
               <img v-if="profileForm.avatarUrl" :src="profileForm.avatarUrl" alt="头像预览" class="dialog-avatar__image">
               <span v-else>{{ userInitial }}</span>
             </div>
-            <el-upload :show-file-list="false" :http-request="handleAvatarUpload">
+            <el-upload :show-file-list="false" accept="image/*" :http-request="handleAvatarUpload">
               <el-button :loading="uploadingAvatar">重新上传</el-button>
             </el-upload>
           </div>
         </el-form-item>
-        <el-form-item label="昵称" prop="nickName">
+        <el-form-item label="显示名" prop="nickName">
           <el-input v-model="profileForm.nickName" />
         </el-form-item>
         <el-form-item label="姓名" prop="realName">
@@ -108,7 +108,7 @@
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="handleSaveProfile">保存资料</el-button>
+        <el-button type="primary" :loading="saving" @click="handleSaveProfile">保存档案</el-button>
       </template>
     </el-dialog>
   </div>
@@ -146,7 +146,7 @@ const genderLabelMap = {
 }
 
 const profileRules = {
-  nickName: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
+  nickName: [{ required: true, message: '请输入显示名', trigger: 'blur' }],
   realName: [{ required: true, message: '请输入姓名', trigger: 'blur' }]
 }
 
@@ -191,7 +191,7 @@ async function handleAvatarUpload(option) {
     })
     await loadProfile()
     await authStore.initializeSession(true)
-    ElMessage.success('头像上传成功')
+    ElMessage.success('账号头像已更新')
   } finally {
     uploadingAvatar.value = false
   }
@@ -202,7 +202,7 @@ async function handleSaveProfile() {
   saving.value = true
   try {
     await updateProfileApi(profileForm)
-    ElMessage.success('资料已更新')
+    ElMessage.success('个人档案已更新')
     dialogVisible.value = false
     await loadProfile()
     await authStore.initializeSession(true)

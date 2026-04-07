@@ -213,7 +213,7 @@ function buildLedgerHtml(ledger) {
           <header class="ledger-header">
             <div>
               <h1 class="ledger-title">${escapeHtml(ledger.title || '文物业务台账')}</h1>
-              <div class="ledger-subtitle">${escapeHtml(ledger.subtitle || '用于展示文物档案信息、待办业务和完整业务时间线，便于业务复盘与答辩演示。')}</div>
+              <div class="ledger-subtitle">${escapeHtml(ledger.subtitle || '用于汇总文物档案信息、在办事项与完整业务时间线，便于馆内复核、交接审阅与业务追踪。')}</div>
             </div>
             <div class="ledger-meta">
               <div>文物编号：${escapeHtml(ledger.relicNo || '--')}</div>

@@ -1,26 +1,45 @@
 <template>
   <div class="page-shell">
-    <section class="page-grid dashboard-summary">
-      <article
-        v-for="item in summaryCards"
-        :key="item.label"
-        class="page-card page-card--section summary-card"
-      >
-        <div class="summary-card__label">{{ item.label }}</div>
-        <div class="summary-card__value">{{ item.value }}</div>
-        <div class="summary-card__note">{{ item.note }}</div>
-      </article>
+    <section class="page-card page-card--section">
+      <div class="overview-panel dashboard-hero">
+        <div class="overview-panel__top">
+          <div>
+            <div class="overview-panel__eyebrow">{{ APP_SHORT_NAME }} Operations Hub</div>
+            <h1 class="overview-panel__title">{{ APP_TITLE }}</h1>
+            <p class="overview-panel__desc">
+              面向馆藏建档、库位流转、盘点核验、修复闭环与系统授权的统一业务工作台，支持日常办理、状态总览和关键事项优先处置。
+            </p>
+          </div>
+          <div class="overview-panel__meta">
+            <span class="overview-chip">馆藏文物 {{ summary.totalRelicCount || 0 }} 件</span>
+            <span class="overview-chip overview-chip--accent">待处理事项 {{ activeTodoCount }} 项</span>
+          </div>
+        </div>
+
+        <div class="dashboard-focus-grid">
+          <article
+            v-for="item in heroFocusCards"
+            :key="item.title"
+            class="dashboard-focus-card"
+          >
+            <div class="dashboard-focus-card__title">{{ item.title }}</div>
+            <div class="dashboard-focus-card__desc">{{ item.description }}</div>
+          </article>
+        </div>
+
+      </div>
     </section>
 
     <section class="page-grid dashboard-main">
       <article class="page-card page-card--section dashboard-chart-card">
-        <div class="section-head">
-          <div>
-            <div class="section-head__title">馆藏状态占比</div>
-            <div class="section-head__desc">按数据库中当前文物状态实时汇总，页面刷新后自动更新百分比。</div>
-          </div>
-          <el-button @click="loadSummary">刷新数据</el-button>
-        </div>
+        <PageHeader
+          title="馆藏状态分析"
+          description="按当前文物状态实时汇总馆藏分布，用于日常监管、业务研判和异常趋势跟踪。"
+        >
+          <template #extra>
+            <el-button @click="loadSummary">刷新数据</el-button>
+          </template>
+        </PageHeader>
 
         <div class="chart-layout">
           <div class="status-pie" :style="pieStyle">
@@ -43,17 +62,19 @@
             </div>
           </div>
 
-          <el-empty v-else description="暂无馆藏状态数据" />
+          <el-empty v-else description="当前暂无馆藏状态数据，请稍后刷新后重试。" />
         </div>
       </article>
 
       <article class="page-card page-card--section dashboard-panel">
-        <div class="section-head">
-          <div>
-            <div class="section-head__title">业务待办</div>
-          </div>
-          <el-button type="primary" @click="router.push(primaryTodoRoute)">优先处理待办</el-button>
-        </div>
+        <PageHeader
+          title="待处理事项"
+          description="聚合当前账号可办理的关键业务，优先推进审批、归还登记、验收和盘点闭环。"
+        >
+          <template #extra>
+            <el-button type="primary" @click="router.push(primaryTodoRoute)">优先处理</el-button>
+          </template>
+        </PageHeader>
 
         <div v-if="todoCards.length" class="todo-grid">
           <button
@@ -74,27 +95,29 @@
             </div>
           </button>
         </div>
-        <el-empty v-else description="当前账号暂无可处理待办" />
+        <el-empty v-else description="当前账号暂无待处理事项。" />
       </article>
     </section>
 
     <section class="page-card page-card--section">
-      <div class="section-head">
-        <div>
-          <div class="section-head__title">快捷入口</div>
-          <div class="section-head__desc">保留当前高频业务入口，进入页面即可继续演示完整流程。</div>
-        </div>
-        <div class="shortcut-note">已聚合 {{ shortcuts.length }} 个常用入口</div>
-      </div>
+      <PageHeader
+        title="常用业务入口"
+        description="保留当前账号高频访问入口，便于在文物台账、流转、修复和系统管理场景之间快速切换。"
+      >
+        <template #extra>
+          <div class="shortcut-note">已聚合 {{ shortcutCards.length }} 个常用入口</div>
+        </template>
+      </PageHeader>
 
       <div class="shortcut-grid">
         <button
-          v-for="menu in shortcuts"
+          v-for="menu in shortcutCards"
           :key="menu.id"
           class="shortcut-card"
           @click="router.push(menu.path)"
         >
           <div class="shortcut-card__title">{{ menu.menuName }}</div>
+          <div class="shortcut-card__desc">{{ menu.description }}</div>
           <div class="shortcut-card__path">{{ menu.path }}</div>
         </button>
       </div>
@@ -106,12 +129,49 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { getDashboardSummaryApi } from '@/api/dashboard'
+import PageHeader from '@/components/common/PageHeader.vue'
+import { APP_SHORT_NAME, APP_TITLE } from '@/constants/menu'
 import { useAuthStore } from '@/stores/auth'
 import { useDictStore } from '@/stores/dict'
 import { resolveDictLabel } from '@/utils/format'
 import { collectShortcutMenus } from '@/utils/menu'
 
 const STATUS_COLORS = ['#7B2C2A', '#C68A39', '#3C8E5B', '#4C7CBE', '#8A5BB2', '#2E8C8C']
+
+const heroFocusCards = [
+  {
+    title: '馆藏建档',
+    description: '统一维护文物基本档案、图像资料、保存状态和库位信息。'
+  },
+  {
+    title: '业务闭环',
+    description: '覆盖入库、出库、盘点、修复、验收等馆内核心流程。'
+  },
+  {
+    title: '权限留痕',
+    description: '菜单授权、审批记录和操作日志统一沉淀，便于审计追溯。'
+  }
+]
+
+const shortcutDescriptionMap = {
+  '/system/user': '维护平台账号资料、角色绑定和启停状态。',
+  '/system/role': '维护角色分层、权限范围和菜单授权关系。',
+  '/system/menu': '维护菜单结构、按钮权限和授权标识。',
+  '/system/dict': '维护类别、材质、状态、库位等基础业务字典。',
+  '/system/log': '查看系统操作日志、请求参数和执行结果。',
+  '/relic/list': '统一检索馆藏档案、库位状态与数字化资料。',
+  '/relic/transfer': '在馆内库位之间发起单件或批量转存。',
+  '/inventory/inbound': '登记来源、批次和入库文物，形成入库台账。',
+  '/inventory/outbound/apply': '提交文物出库申请并跟踪流转状态。',
+  '/inventory/outbound/approve': '处理出库审批、归还登记与流转闭环。',
+  '/inventory/query': '按状态、类别、材质和库位筛查库存文物。',
+  '/inventory/task': '创建盘点任务并提交盘点结果。',
+  '/repair/apply': '筛选待修复文物并发起修复申请。',
+  '/repair/approve': '审核修复申请并确认是否进入修复流程。',
+  '/repair/process': '跟进个人修复任务、过程记录和附件资料。',
+  '/repair/acceptance': '完成修复成果验收、返库和闭环登记。',
+  '/repair/history': '查看已修复任务和历史修复档案。'
+}
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -131,40 +191,16 @@ const summary = ref({
 
 const statusOptions = computed(() => dictStore.itemsMap.relic_status || [])
 
-const summaryCards = computed(() => [
-  {
-    label: '文物总量',
-    value: summary.value.totalRelicCount || 0,
-    note: '系统已登记的全部馆藏文物'
-  },
-  {
-    label: '在库文物',
-    value: summary.value.inStockRelicCount || 0,
-    note: '当前可正常在馆藏库位中查询的文物'
-  },
-  {
-    label: '待出库审批',
-    value: summary.value.outboundPendingCount || 0,
-    note: '等待管理员处理的文物出库业务'
-  },
-  {
-    label: '待修复验收',
-    value: summary.value.repairAcceptancePendingCount || 0,
-    note: '已完成修复、等待最终验收回库'
-  },
-  {
-    label: '修复进行中',
-    value: summary.value.repairingCount || 0,
-    note: '研究员正在推进的修复任务'
-  },
-  {
-    label: '盘点进行中',
-    value: summary.value.inventoryRunningCount || 0,
-    note: '尚未完成提交结果的盘点任务'
-  }
-])
+const shortcutCards = computed(() =>
+  collectShortcutMenus(authStore.menus, 10).map((menu) => ({
+    ...menu,
+    description: shortcutDescriptionMap[menu.path] || `${menu.menuName}业务入口，支持按当前角色权限直接办理。`
+  }))
+)
 
-const shortcuts = computed(() => collectShortcutMenus(authStore.menus, 10))
+const activeTodoCount = computed(() =>
+  todoCards.value.reduce((sum, item) => sum + Number(item.count || 0), 0)
+)
 
 const statusStats = computed(() => {
   const total = summary.value.totalRelicCount || 0
@@ -204,42 +240,42 @@ const todoCards = computed(() => {
   const items = [
     {
       title: '待出库审批',
-      description: '处理文物出库申请并完成审批流转',
+      description: '处理文物出库申请并完成审批流转。',
       count: summary.value.outboundPendingCount || 0,
       route: { path: '/inventory/outbound/approve', query: { approveStatus: 'PENDING' } },
       visible: authStore.hasPermission('inventory:outbound:approve:view')
     },
     {
       title: '待归还登记',
-      description: '登记已审批出库文物的归还结果',
+      description: '登记已审批出库文物的归还结果。',
       count: summary.value.outboundReturnPendingCount || 0,
       route: { path: '/inventory/outbound/approve', query: { approveStatus: 'APPROVED' } },
       visible: authStore.hasPermission('inventory:outbound:approve:view')
     },
     {
       title: '待修复审批',
-      description: '审核研究员提交的修复申请任务',
+      description: '审核研究员提交的修复申请任务。',
       count: summary.value.repairPendingCount || 0,
       route: { path: '/repair/approve' },
       visible: authStore.hasPermission('repair:approve:view')
     },
     {
       title: '待修复验收',
-      description: '确认已完成修复任务的最终验收结果',
+      description: '确认已完成修复任务的最终验收结果。',
       count: summary.value.repairAcceptancePendingCount || 0,
       route: { path: '/repair/acceptance', query: { acceptanceStatus: 'WAITING' } },
       visible: authStore.hasPermission('repair:acceptance:view')
     },
     {
       title: '修复进行中',
-      description: '跟进研究员当前推进中的修复任务',
+      description: '跟进研究员当前推进中的修复任务。',
       count: summary.value.repairingCount || 0,
       route: { path: '/repair/process', query: { taskStatus: 'IN_PROGRESS' } },
       visible: authStore.hasPermission('repair:process:view')
     },
     {
       title: '盘点进行中',
-      description: '继续处理尚未完成提交的盘点任务',
+      description: '继续处理尚未完成提交的盘点任务。',
       count: summary.value.inventoryRunningCount || 0,
       route: { path: '/inventory/task', query: { taskStatus: 'IN_PROGRESS' } },
       visible: authStore.hasPermission('inventory:task:view')
@@ -266,56 +302,41 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.dashboard-summary {
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-}
-
-.summary-card {
+.dashboard-hero {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 244, 239, 0.92)),
-    var(--bg-card);
+    radial-gradient(circle at top right, rgba(184, 138, 68, 0.14), transparent 26%),
+    radial-gradient(circle at bottom left, rgba(123, 44, 42, 0.08), transparent 22%),
+    linear-gradient(180deg, rgba(255, 251, 246, 0.98), rgba(245, 237, 228, 0.95));
 }
 
-.summary-card__label {
-  color: var(--text-second);
-  font-size: 13px;
+.dashboard-focus-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
 }
 
-.summary-card__value {
-  margin-top: 10px;
-  font-size: 30px;
+.dashboard-focus-card {
+  padding: 16px 18px;
+  border: 1px solid rgba(123, 44, 42, 0.08);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(248, 241, 233, 0.94));
+}
+
+.dashboard-focus-card__title {
+  font-size: 15px;
   font-weight: 700;
 }
 
-.summary-card__note {
-  margin-top: 12px;
+.dashboard-focus-card__desc {
+  margin-top: 8px;
   color: var(--text-second);
-  line-height: 1.7;
   font-size: 13px;
+  line-height: 1.75;
 }
 
 .dashboard-main {
   grid-template-columns: 1.15fr 1fr;
-}
-
-.section-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.section-head__title {
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.section-head__desc {
-  margin-top: 8px;
-  color: var(--text-second);
-  font-size: 13px;
-  line-height: 1.8;
 }
 
 .chart-layout {
@@ -323,7 +344,7 @@ onMounted(() => {
   grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
   gap: 24px;
   align-items: start;
-  margin-top: 26px;
+  margin-top: 24px;
 }
 
 .status-pie {
@@ -420,7 +441,8 @@ onMounted(() => {
 
 .dashboard-panel {
   background:
-    linear-gradient(145deg, rgba(123, 44, 42, 0.06), rgba(123, 44, 42, 0.01)),
+    radial-gradient(circle at top right, rgba(184, 138, 68, 0.12), transparent 34%),
+    linear-gradient(145deg, rgba(123, 44, 42, 0.08), rgba(123, 44, 42, 0.01)),
     var(--bg-card);
 }
 
@@ -434,7 +456,7 @@ onMounted(() => {
   padding: 16px;
   border: 1px solid var(--border-line);
   border-radius: 14px;
-  background: linear-gradient(180deg, #fff, #faf8f6);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(249, 242, 235, 0.94));
   text-align: left;
   cursor: pointer;
   transition: transform 0.2s ease, border-color 0.2s ease;
@@ -506,16 +528,19 @@ onMounted(() => {
 
 .shortcut-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 14px;
   margin-top: 18px;
 }
 
 .shortcut-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   padding: 18px;
   border: 1px solid var(--border-line);
   border-radius: 14px;
-  background: linear-gradient(180deg, #fff, #faf8f8);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(245, 240, 235, 0.94));
   text-align: left;
   cursor: pointer;
   transition: transform 0.2s ease, border-color 0.2s ease;
@@ -526,10 +551,17 @@ onMounted(() => {
   font-weight: 700;
 }
 
-.shortcut-card__path {
-  margin-top: 8px;
+.shortcut-card__desc {
   color: var(--text-second);
   font-size: 13px;
+  line-height: 1.75;
+}
+
+.shortcut-card__path {
+  margin-top: auto;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
 }
 
 @media (max-width: 1180px) {
@@ -539,6 +571,10 @@ onMounted(() => {
 }
 
 @media (max-width: 960px) {
+  .dashboard-focus-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .chart-layout {
     grid-template-columns: 1fr;
     justify-items: center;
@@ -550,6 +586,10 @@ onMounted(() => {
 }
 
 @media (max-width: 720px) {
+  .dashboard-focus-grid {
+    grid-template-columns: 1fr;
+  }
+
   .todo-card__header,
   .todo-card__main {
     flex-wrap: wrap;

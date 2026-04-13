@@ -51,6 +51,7 @@ import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -556,9 +557,80 @@ public class DemoDataInitializer implements ApplicationRunner {
                     .eq(Relic::getRelicNo, normalizedRelicNo))
                 .last("LIMIT 1")
         );
-        if (relic == null) {
-            relic = new Relic();
+        if (relic != null) {
+            boolean changed = false;
+            String persistedRelicNo = resolvePersistedBusinessNo(relic.getRelicNo(), relicNo, createTime);
+            if (!Objects.equals(relic.getRelicNo(), persistedRelicNo)) {
+                relic.setRelicNo(persistedRelicNo);
+                changed = true;
+            }
+            if (!StringUtils.hasText(relic.getName()) && StringUtils.hasText(name)) {
+                relic.setName(name);
+                changed = true;
+            }
+            if (!StringUtils.hasText(relic.getCategoryCode()) && StringUtils.hasText(categoryCode)) {
+                relic.setCategoryCode(categoryCode);
+                changed = true;
+            }
+            if (!StringUtils.hasText(relic.getMaterialCode()) && StringUtils.hasText(materialCode)) {
+                relic.setMaterialCode(materialCode);
+                changed = true;
+            }
+            if (!StringUtils.hasText(relic.getEra()) && StringUtils.hasText(era)) {
+                relic.setEra(era);
+                changed = true;
+            }
+            if (!StringUtils.hasText(relic.getSource()) && StringUtils.hasText(source)) {
+                relic.setSource(source);
+                changed = true;
+            }
+            if (!StringUtils.hasText(relic.getStorageLocationCode()) && StringUtils.hasText(storageLocationCode)) {
+                relic.setStorageLocationCode(storageLocationCode);
+                changed = true;
+            }
+            if (!StringUtils.hasText(relic.getPreservationStatusCode()) && StringUtils.hasText(preservationStatusCode)) {
+                relic.setPreservationStatusCode(preservationStatusCode);
+                changed = true;
+            }
+            if (!StringUtils.hasText(relic.getCurrentStatus()) && StringUtils.hasText(currentStatus)) {
+                relic.setCurrentStatus(currentStatus);
+                changed = true;
+            }
+            if (!StringUtils.hasText(relic.getProtectionLevel()) && StringUtils.hasText(protectionLevel)) {
+                relic.setProtectionLevel(protectionLevel);
+                changed = true;
+            }
+            if (!StringUtils.hasText(relic.getStorageCondition())) {
+                relic.setStorageCondition("Constant temperature and humidity, quarterly inspection.");
+                changed = true;
+            }
+            if (!StringUtils.hasText(relic.getAttentionNote())) {
+                relic.setAttentionNote("Demo record for inbound, outbound, repair and inventory linkage.");
+                changed = true;
+            }
+            if (!StringUtils.hasText(relic.getDescription())) {
+                relic.setDescription(name + " demo record for museum business process simulation.");
+                changed = true;
+            }
+            if (!StringUtils.hasText(relic.getNote()) && StringUtils.hasText(note)) {
+                relic.setNote(note);
+                changed = true;
+            }
+            if (!StringUtils.hasText(relic.getImageUrl()) && StringUtils.hasText(imageUrl)) {
+                relic.setImageUrl(imageUrl);
+                changed = true;
+            }
+            if (!StringUtils.hasText(relic.getAppraisalReportUrl()) && StringUtils.hasText(reportUrl)) {
+                relic.setAppraisalReportUrl(reportUrl);
+                changed = true;
+            }
+            if (changed) {
+                touchAuditFields(relic, operatorId, demoNow());
+                relicMapper.updateById(relic);
+            }
+            return relic;
         }
+        relic = new Relic();
         relic.setRelicNo(resolvePersistedBusinessNo(relic.getRelicNo(), relicNo, createTime));
         relic.setName(name);
         relic.setCategoryCode(categoryCode);
@@ -635,9 +707,49 @@ public class DemoDataInitializer implements ApplicationRunner {
                     .eq(RelicInboundOrder::getOrderNo, normalizedOrderNo))
                 .last("LIMIT 1")
         );
-        if (entity == null) {
-            entity = new RelicInboundOrder();
+        if (entity != null) {
+            boolean changed = false;
+            String persistedOrderNo = resolvePersistedBusinessNo(entity.getOrderNo(), orderNo, inboundTime);
+            if (!Objects.equals(entity.getOrderNo(), persistedOrderNo)) {
+                entity.setOrderNo(persistedOrderNo);
+                changed = true;
+            }
+            String persistedBatchNo = resolvePersistedBusinessNo(entity.getBatchNo(), batchNo, inboundTime);
+            if (!Objects.equals(entity.getBatchNo(), persistedBatchNo)) {
+                entity.setBatchNo(persistedBatchNo);
+                changed = true;
+            }
+            if (!StringUtils.hasText(entity.getSource()) && StringUtils.hasText(source)) {
+                entity.setSource(source);
+                changed = true;
+            }
+            if (!StringUtils.hasText(entity.getHandlerName()) && StringUtils.hasText(handlerName)) {
+                entity.setHandlerName(handlerName);
+                changed = true;
+            }
+            if (entity.getInboundTime() == null && inboundTime != null) {
+                entity.setInboundTime(inboundTime);
+                changed = true;
+            }
+            if (entity.getTotalCount() == null && totalCount != null) {
+                entity.setTotalCount(totalCount);
+                changed = true;
+            }
+            if (!StringUtils.hasText(entity.getStatus()) && StringUtils.hasText(status)) {
+                entity.setStatus(status);
+                changed = true;
+            }
+            if (!StringUtils.hasText(entity.getRemark()) && StringUtils.hasText(remark)) {
+                entity.setRemark(remark);
+                changed = true;
+            }
+            if (changed) {
+                touchAuditFields(entity, operatorId, inboundTime == null ? demoNow() : inboundTime.plusHours(2));
+                relicInboundOrderMapper.updateById(entity);
+            }
+            return;
         }
+        entity = new RelicInboundOrder();
         entity.setOrderNo(resolvePersistedBusinessNo(entity.getOrderNo(), orderNo, inboundTime));
         entity.setBatchNo(resolvePersistedBusinessNo(entity.getBatchNo(), batchNo, inboundTime));
         entity.setSource(source);
@@ -677,9 +789,39 @@ public class DemoDataInitializer implements ApplicationRunner {
                 .eq(RelicInboundDetail::getRelicId, relic.getId())
                 .last("LIMIT 1")
         );
-        if (entity == null) {
-            entity = new RelicInboundDetail();
+        if (entity != null) {
+            boolean changed = false;
+            if (!Objects.equals(entity.getOrderId(), order.getId())) {
+                entity.setOrderId(order.getId());
+                changed = true;
+            }
+            if (!Objects.equals(entity.getRelicId(), relic.getId())) {
+                entity.setRelicId(relic.getId());
+                changed = true;
+            }
+            if (!StringUtils.hasText(entity.getRelicNo()) && StringUtils.hasText(relic.getRelicNo())) {
+                entity.setRelicNo(relic.getRelicNo());
+                changed = true;
+            }
+            if (!StringUtils.hasText(entity.getRelicName()) && StringUtils.hasText(relic.getName())) {
+                entity.setRelicName(relic.getName());
+                changed = true;
+            }
+            if (entity.getQuantity() == null && quantity != null) {
+                entity.setQuantity(quantity);
+                changed = true;
+            }
+            if (!StringUtils.hasText(entity.getRemark()) && StringUtils.hasText(remark)) {
+                entity.setRemark(remark);
+                changed = true;
+            }
+            if (changed) {
+                touchAuditFields(entity, operatorId, createTime.plusHours(1));
+                relicInboundDetailMapper.updateById(entity);
+            }
+            return;
         }
+        entity = new RelicInboundDetail();
         entity.setOrderId(order.getId());
         entity.setRelicId(relic.getId());
         entity.setRelicNo(relic.getRelicNo());
@@ -1027,6 +1169,12 @@ public class DemoDataInitializer implements ApplicationRunner {
     private void fillAuditFields(BaseEntity entity, Long operatorId, LocalDateTime createTime, LocalDateTime updateTime) {
         entity.setCreateBy(operatorId);
         entity.setCreateTime(createTime);
+        entity.setUpdateBy(operatorId);
+        entity.setUpdateTime(updateTime);
+        entity.setDeleted(0);
+    }
+
+    private void touchAuditFields(BaseEntity entity, Long operatorId, LocalDateTime updateTime) {
         entity.setUpdateBy(operatorId);
         entity.setUpdateTime(updateTime);
         entity.setDeleted(0);

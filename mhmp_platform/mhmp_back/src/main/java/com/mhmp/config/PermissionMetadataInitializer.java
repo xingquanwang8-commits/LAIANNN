@@ -9,6 +9,7 @@ import com.mhmp.mapper.SysMenuMapper;
 import com.mhmp.mapper.SysRoleMapper;
 import com.mhmp.mapper.SysRoleMenuMapper;
 import com.mhmp.mapper.SysUserMapper;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
@@ -24,6 +25,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
+@ConditionalOnProperty(prefix = "mhmp.startup", name = "init-enabled", havingValue = "true")
 @Order(-1)
 public class PermissionMetadataInitializer implements ApplicationRunner {
 

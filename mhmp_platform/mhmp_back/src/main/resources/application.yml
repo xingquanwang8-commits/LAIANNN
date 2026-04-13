@@ -35,6 +35,8 @@ mybatis-plus:
       logic-not-delete-value: 0
 
 mhmp:
+  startup:
+    init-enabled: false
   jwt:
     secret: ${JWT_SECRET:mhmp-platform-demo-secret-key-change-me-2026}
     expire-seconds: ${JWT_EXPIRE_SECONDS:86400}

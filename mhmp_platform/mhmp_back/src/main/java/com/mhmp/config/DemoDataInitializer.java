@@ -32,6 +32,7 @@ import com.mhmp.mapper.RelicOutboundOrderMapper;
 import com.mhmp.mapper.SysDictItemMapper;
 import com.mhmp.mapper.SysDictTypeMapper;
 import com.mhmp.mapper.SysUserMapper;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
@@ -57,6 +58,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Component
+@ConditionalOnProperty(prefix = "mhmp.startup", name = "init-enabled", havingValue = "true")
 @Order(1)
 public class DemoDataInitializer implements ApplicationRunner {
 

@@ -23,6 +23,7 @@ import com.mhmp.mapper.RelicInboundOrderMapper;
 import com.mhmp.mapper.RelicMapper;
 import com.mhmp.mapper.RelicOutboundDetailMapper;
 import com.mhmp.mapper.RelicOutboundOrderMapper;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
@@ -40,6 +41,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Component
+@ConditionalOnProperty(prefix = "mhmp.startup", name = "init-enabled", havingValue = "true")
 @Order(0)
 public class LegacyBusinessNoInitializer implements ApplicationRunner {
 

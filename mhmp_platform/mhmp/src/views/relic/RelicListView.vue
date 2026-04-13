@@ -48,7 +48,7 @@
       >
         <template #extra>
           <el-button
-            v-if="authStore.hasPermission('relic:add')"
+            v-if="false"
             type="primary"
             @click="router.push('/relic/create')"
           >

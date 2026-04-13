@@ -3,6 +3,7 @@ D:\Vue_Workspace\mhmp_platform\mhmp_back\src\main\java\com\mhmp\common\aspect\Op
 D:\Vue_Workspace\mhmp_platform\mhmp_back\src\main\java\com\mhmp\common\exception\BusinessException.java
 D:\Vue_Workspace\mhmp_platform\mhmp_back\src\main\java\com\mhmp\common\exception\GlobalExceptionHandler.java
 D:\Vue_Workspace\mhmp_platform\mhmp_back\src\main\java\com\mhmp\common\result\PageResponse.java
+D:\Vue_Workspace\mhmp_platform\mhmp_back\src\main\java\com\mhmp\common\result\R.java
 D:\Vue_Workspace\mhmp_platform\mhmp_back\src\main\java\com\mhmp\common\result\Result.java
 D:\Vue_Workspace\mhmp_platform\mhmp_back\src\main\java\com\mhmp\common\security\JwtAuthenticationFilter.java
 D:\Vue_Workspace\mhmp_platform\mhmp_back\src\main\java\com\mhmp\common\security\JwtProperties.java

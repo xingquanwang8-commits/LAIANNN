@@ -1,7 +1,7 @@
 package com.mhmp.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mhmp.common.result.Result;
+import com.mhmp.common.result.R;
 import com.mhmp.common.security.JwtAuthenticationFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
@@ -35,9 +35,9 @@ public class SecurityConfig {
             )
             .exceptionHandling(exception -> exception
                 .authenticationEntryPoint((request, response, authException) ->
-                    writeJson(response, objectMapper, HttpServletResponse.SC_UNAUTHORIZED, Result.fail(401, "未登录或登录已过期")))
+                    writeJson(response, objectMapper, HttpServletResponse.SC_UNAUTHORIZED, R.fail(401, "未登录或登录已过期")))
                 .accessDeniedHandler((request, response, accessDeniedException) ->
-                    writeJson(response, objectMapper, HttpServletResponse.SC_FORBIDDEN, Result.fail(403, "没有访问权限")))
+                    writeJson(response, objectMapper, HttpServletResponse.SC_FORBIDDEN, R.fail(403, "没有访问权限")))
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
@@ -51,7 +51,7 @@ public class SecurityConfig {
     private void writeJson(HttpServletResponse response,
                            ObjectMapper objectMapper,
                            int status,
-                           Result<Void> body) throws java.io.IOException {
+                           R<Void> body) throws java.io.IOException {
         response.setStatus(status);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

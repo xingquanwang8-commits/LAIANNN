@@ -19,6 +19,10 @@ function clearToken() {
   localStorage.removeItem(TOKEN_KEY)
 }
 
+function resolveResultMessage(result, fallback) {
+  return resolveErrorMessage(result?.message || result?.msg || result, fallback)
+}
+
 function handleUnauthorized(message) {
   clearToken()
   if (!redirecting) {
@@ -55,26 +59,31 @@ request.interceptors.request.use((config) => {
 request.interceptors.response.use(
   (response) => {
     const result = response.data
+    if (!result || typeof result !== 'object' || typeof result.code === 'undefined') {
+      return result
+    }
     if (result.code === 200) {
       return result.data
     }
+    const message = resolveResultMessage(result, '请求失败，请稍后重试')
     if (result.code === 401) {
-      handleUnauthorized(result.msg)
+      handleUnauthorized(message)
     } else if (result.code === 403) {
-      showErrorMessage(result.msg, '没有访问权限')
+      showErrorMessage(result, '没有访问权限')
     } else {
-      showErrorMessage(result.msg, '请求失败，请稍后重试')
+      showErrorMessage(result, '请求失败，请稍后重试')
     }
-    return rejectHandledMessage(resolveErrorMessage(result.msg, '请求失败，请稍后重试'))
+    return rejectHandledMessage(message)
   },
   (error) => {
     const status = error.response?.status
+    const responseData = error.response?.data
     if (status === 401) {
-      handleUnauthorized(error.response?.data?.msg)
+      handleUnauthorized(responseData)
     } else if (status === 403) {
-      showErrorMessage(error, '没有访问权限')
+      showErrorMessage(responseData || error, '没有访问权限')
     } else {
-      showErrorMessage(error, '网络请求失败，请稍后重试')
+      showErrorMessage(responseData || error, '网络请求失败，请稍后重试')
     }
     return Promise.reject(markErrorHandled(error))
   }

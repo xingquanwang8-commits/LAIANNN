@@ -133,7 +133,6 @@ public class DemoDataInitializer implements ApplicationRunner {
         Long tertiaryUserId = users.size() > 2 ? users.get(2).getId() : secondaryUserId;
 
         DemoFileBundle demoFiles = prepareDemoFiles();
-        ensureDictData(primaryUserId);
         normalizeLegacyRelicData(primaryUserId);
         long relicCount = relicMapper.selectCount(null);
         if (relicCount >= 10) {

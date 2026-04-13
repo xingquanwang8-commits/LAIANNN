@@ -8,16 +8,36 @@ const TECHNICAL_MESSAGE_PATTERNS = [
   /unexpected token/i,
   /network error/i,
   /request failed/i,
-  /timeout/i
+  /timeout/i,
+  /json parse error/i,
+  /status code \d+/i
 ]
 
 function extractFieldMessage(error) {
-  if (!error?.fields || typeof error.fields !== 'object') {
+  const fields = error?.errors || error?.fields
+  if (!fields || typeof fields !== 'object') {
     return ''
   }
-  const firstFieldErrors = Object.values(error.fields)[0]
+  const firstFieldErrors = Object.values(fields)[0]
+  if (typeof firstFieldErrors === 'string') {
+    return firstFieldErrors
+  }
   if (Array.isArray(firstFieldErrors) && firstFieldErrors.length) {
-    return firstFieldErrors[0]?.message || ''
+    return firstFieldErrors[0]?.message || firstFieldErrors[0] || ''
+  }
+  if (firstFieldErrors && typeof firstFieldErrors === 'object') {
+    return firstFieldErrors.message || ''
+  }
+  return ''
+}
+
+function extractResponseMessage(error) {
+  const responseData = error?.response?.data
+  if (responseData && typeof responseData === 'object') {
+    return responseData.message || responseData.msg || ''
+  }
+  if (error && typeof error === 'object') {
+    return error.message || error.msg || ''
   }
   return ''
 }
@@ -49,7 +69,7 @@ export function resolveErrorMessage(error, fallback = '操作失败，请稍后�
     return normalizeMessage(error, fallback)
   }
 
-  const fieldMessage = extractFieldMessage(error)
+  const fieldMessage = extractFieldMessage(error) || extractFieldMessage(error?.response?.data)
   if (fieldMessage) {
     return normalizeMessage(fieldMessage, fallback)
   }
@@ -57,6 +77,11 @@ export function resolveErrorMessage(error, fallback = '操作失败，请稍后�
   if (Array.isArray(error?.errors) && error.errors.length) {
     const message = error.errors[0]?.message || error.errors[0]
     return normalizeMessage(message, fallback)
+  }
+
+  const responseMessage = extractResponseMessage(error)
+  if (responseMessage) {
+    return normalizeMessage(responseMessage, fallback)
   }
 
   return normalizeMessage(error?.userMessage || error?.message, fallback)

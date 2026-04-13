@@ -13,4 +13,6 @@ public interface InboundService {
     InboundDetailVO detail(Long id);
 
     Long create(InboundCreateDTO createDTO);
+
+    void approve(Long id);
 }

@@ -16,24 +16,31 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class RelicBusinessRuleUtilsTest {
 
     @Test
-    void validateInboundCompletableShouldPassWhenOrderAndRelicMatch() {
+    void validateInboundApprovableShouldPassWhenOrderAndRelicMatch() {
         RelicInboundOrder order = new RelicInboundOrder();
-        order.setStatus("COMPLETED");
+        order.setStatus("PENDING");
 
-        Relic relic = buildRelic("REL-2026-001", "青铜鼎", "OUT_STOCK", "LOC_A", "COMPLETE");
+        Relic relic = buildRelic("REL-2026-001", "青铜鼎", "INBOUND_PENDING", "LOC_A", "COMPLETE");
 
-        assertDoesNotThrow(() -> RelicBusinessRuleUtils.validateInboundCompletable(order, List.of(relic)));
+        assertDoesNotThrow(() -> RelicBusinessRuleUtils.validateInboundApprovable(order, List.of(relic)));
     }
 
     @Test
-    void validateInboundCompletableShouldThrowWhenOrderStatusInvalid() {
+    void validateInboundApprovableShouldThrowWhenOrderStatusInvalid() {
         RelicInboundOrder order = new RelicInboundOrder();
         order.setStatus("CREATED");
 
-        Relic relic = buildRelic("REL-2026-001", "青铜鼎", "OUT_STOCK", "LOC_A", "COMPLETE");
+        Relic relic = buildRelic("REL-2026-001", "青铜鼎", "INBOUND_PENDING", "LOC_A", "COMPLETE");
 
         assertThrows(BusinessException.class,
-            () -> RelicBusinessRuleUtils.validateInboundCompletable(order, List.of(relic)));
+            () -> RelicBusinessRuleUtils.validateInboundApprovable(order, List.of(relic)));
+    }
+
+    @Test
+    void validateInboundCreatableShouldPassWhenRelicIsToBeInbound() {
+        Relic relic = buildRelic("REL-2026-010", "木匣", "TO_BE_INBOUND", "LOC_A", "BASIC_COMPLETE");
+
+        assertDoesNotThrow(() -> RelicBusinessRuleUtils.validateInboundCreatable(relic));
     }
 
     @Test

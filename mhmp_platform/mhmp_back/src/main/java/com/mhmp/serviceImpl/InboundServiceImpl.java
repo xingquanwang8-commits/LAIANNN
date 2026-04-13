@@ -25,6 +25,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class InboundServiceImpl implements InboundService {
@@ -53,7 +57,15 @@ public class InboundServiceImpl implements InboundService {
                     wrapper -> wrapper.like(RelicInboundOrder::getOrderNo, queryDTO.getKeyword())
                         .or().like(RelicInboundOrder::getBatchNo, queryDTO.getKeyword())
                         .or().like(RelicInboundOrder::getSource, queryDTO.getKeyword()))
-                .eq(StringUtils.hasText(queryDTO.getStatus()), RelicInboundOrder::getStatus, queryDTO.getStatus())
+                .and(StringUtils.hasText(queryDTO.getStatus()), wrapper -> {
+                    if ("APPROVED".equals(queryDTO.getStatus())) {
+                        wrapper.eq(RelicInboundOrder::getStatus, "APPROVED")
+                            .or()
+                            .eq(RelicInboundOrder::getStatus, "COMPLETED");
+                        return;
+                    }
+                    wrapper.eq(RelicInboundOrder::getStatus, queryDTO.getStatus());
+                })
                 .orderByDesc(RelicInboundOrder::getInboundTime)
                 .orderByDesc(RelicInboundOrder::getId)
         );
@@ -64,14 +76,12 @@ public class InboundServiceImpl implements InboundService {
     @Override
     public InboundDetailVO detail(Long id) {
         RelicInboundOrder order = getOrderOrThrow(id);
+        List<RelicInboundDetail> details = listOrderDetails(id);
+        Map<Long, Relic> relicMap = loadRelicMap(details);
         InboundDetailVO vo = new InboundDetailVO();
         BeanUtils.copyProperties(order, vo);
-        vo.setDetails(relicInboundDetailMapper.selectList(
-                Wrappers.<RelicInboundDetail>lambdaQuery()
-                    .eq(RelicInboundDetail::getOrderId, id)
-                    .orderByAsc(RelicInboundDetail::getId)
-            ).stream()
-            .map(this::toDetailItemVO)
+        vo.setDetails(details.stream()
+            .map(detail -> toDetailItemVO(detail, relicMap.get(detail.getRelicId())))
             .toList());
         return vo;
     }
@@ -84,20 +94,22 @@ public class InboundServiceImpl implements InboundService {
         if (relicList.size() != relicIds.size()) {
             throw new BusinessException("Selected relics contain invalid data");
         }
+        for (Relic relic : relicList) {
+            RelicBusinessRuleUtils.validateInboundCreatable(relic);
+        }
         Long currentUserId = SecurityUtils.getUserId();
         RelicInboundOrder order = new RelicInboundOrder();
         order.setOrderNo(businessNoService.nextInboundOrderNo());
         order.setBatchNo(businessNoService.nextInboundBatchNo());
         order.setSource(createDTO.getSource());
-        order.setHandlerName(createDTO.getHandlerName());
+        order.setHandlerName(resolveOperatorName(createDTO.getHandlerName()));
         order.setInboundTime(createDTO.getInboundTime());
         order.setTotalCount(relicList.size());
-        order.setStatus("COMPLETED");
+        order.setStatus("PENDING");
         order.setRemark(createDTO.getRemark());
         order.setCreateBy(currentUserId);
         order.setUpdateBy(currentUserId);
         order.setDeleted(0);
-        RelicBusinessRuleUtils.validateInboundCompletable(order, relicList);
         relicInboundOrderMapper.insert(order);
 
         for (Relic relic : relicList) {
@@ -107,17 +119,31 @@ public class InboundServiceImpl implements InboundService {
             detail.setRelicNo(relic.getRelicNo());
             detail.setRelicName(relic.getName());
             detail.setQuantity(1);
-            detail.setRemark("Inbound detail");
+            detail.setRemark("待审批入库文物");
             detail.setCreateBy(currentUserId);
             detail.setUpdateBy(currentUserId);
             detail.setDeleted(0);
             relicInboundDetailMapper.insert(detail);
 
-            relic.setCurrentStatus("IN_STOCK");
+            relic.setStorageLocationCode(createDTO.getStorageLocationCode());
+            relic.setCurrentStatus("INBOUND_PENDING");
             relic.setUpdateBy(currentUserId);
             relicMapper.updateById(relic);
         }
         return order.getId();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void approve(Long id) {
+        RelicInboundOrder order = getOrderOrThrow(id);
+        RelicBusinessRuleUtils.validateInboundApprovable(order, loadOrderRelics(id));
+
+        Long currentUserId = SecurityUtils.getUserId();
+        order.setStatus("APPROVED");
+        order.setUpdateBy(currentUserId);
+        relicInboundOrderMapper.updateById(order);
+        updateRelicStatus(id, "IN_STOCK", currentUserId);
     }
 
     private RelicInboundOrder getOrderOrThrow(Long id) {
@@ -128,15 +154,67 @@ public class InboundServiceImpl implements InboundService {
         return order;
     }
 
+    private List<Relic> loadOrderRelics(Long orderId) {
+        List<RelicInboundDetail> details = listOrderDetails(orderId);
+        Map<Long, Relic> relicMap = loadRelicMap(details);
+        return details.stream()
+            .map(detail -> relicMap.get(detail.getRelicId()))
+            .filter(Objects::nonNull)
+            .toList();
+    }
+
+    private void updateRelicStatus(Long orderId, String targetStatus, Long currentUserId) {
+        for (RelicInboundDetail detail : listOrderDetails(orderId)) {
+            Relic relic = relicMapper.selectById(detail.getRelicId());
+            if (relic == null) {
+                continue;
+            }
+            relic.setCurrentStatus(targetStatus);
+            relic.setUpdateBy(currentUserId);
+            relicMapper.updateById(relic);
+        }
+    }
+
+    private List<RelicInboundDetail> listOrderDetails(Long orderId) {
+        return relicInboundDetailMapper.selectList(
+            Wrappers.<RelicInboundDetail>lambdaQuery()
+                .eq(RelicInboundDetail::getOrderId, orderId)
+                .orderByAsc(RelicInboundDetail::getId)
+        );
+    }
+
+    private Map<Long, Relic> loadRelicMap(List<RelicInboundDetail> details) {
+        List<Long> relicIds = details.stream()
+            .map(RelicInboundDetail::getRelicId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+        if (relicIds.isEmpty()) {
+            return Map.of();
+        }
+        return relicMapper.selectBatchIds(relicIds).stream()
+            .collect(Collectors.toMap(Relic::getId, Function.identity()));
+    }
+
+    private String resolveOperatorName(String operatorName) {
+        if (StringUtils.hasText(operatorName)) {
+            return operatorName.trim();
+        }
+        return StringUtils.hasText(SecurityUtils.getUsername()) ? SecurityUtils.getUsername() : "当前用户";
+    }
+
     private InboundListVO toListVO(RelicInboundOrder entity) {
         InboundListVO vo = new InboundListVO();
         BeanUtils.copyProperties(entity, vo);
         return vo;
     }
 
-    private InboundDetailItemVO toDetailItemVO(RelicInboundDetail entity) {
+    private InboundDetailItemVO toDetailItemVO(RelicInboundDetail entity, Relic relic) {
         InboundDetailItemVO vo = new InboundDetailItemVO();
         BeanUtils.copyProperties(entity, vo);
+        if (relic != null) {
+            vo.setStorageLocationCode(relic.getStorageLocationCode());
+        }
         return vo;
     }
 }

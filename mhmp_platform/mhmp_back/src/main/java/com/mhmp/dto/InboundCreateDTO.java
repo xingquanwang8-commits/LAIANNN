@@ -15,11 +15,13 @@ public class InboundCreateDTO {
     @jakarta.validation.constraints.NotBlank(message = "source is required")
     private String source;
 
-    @jakarta.validation.constraints.NotBlank(message = "handlerName is required")
     private String handlerName;
 
     @NotNull(message = "inboundTime is required")
     private LocalDateTime inboundTime;
+
+    @jakarta.validation.constraints.NotBlank(message = "storageLocationCode is required")
+    private String storageLocationCode;
 
     private String remark;
 

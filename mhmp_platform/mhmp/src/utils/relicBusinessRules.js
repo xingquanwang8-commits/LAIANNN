@@ -49,12 +49,14 @@ export function checkInboundRelicEligibility(relic = {}) {
   }
 
   switch (relic.currentStatus) {
-    case 'OUT_STOCK':
-      return pass('\u5df2\u51fa\u5e93\u6587\u7269\u53ef\u76f4\u63a5\u53d1\u8d77\u5165\u5e93\uff0c\u63d0\u4ea4\u540e\u5c06\u8fdb\u5165\u5165\u5e93\u6d41\u7a0b')
+    case 'TO_BE_INBOUND':
+      return pass('\u5f53\u524d\u6587\u7269\u5904\u4e8e\u5f85\u5165\u5e93\u72b6\u6001\uff0c\u53ef\u76f4\u63a5\u63d0\u4ea4\u5165\u5e93\u5355')
     case 'INBOUND_PENDING':
       return fail('\u8be5\u6587\u7269\u5df2\u6709\u5165\u5e93\u5f85\u5ba1\u6279\u4e1a\u52a1\uff0c\u8bf7\u5148\u5b8c\u6210\u5f53\u524d\u6d41\u7a0b')
     case 'IN_STOCK':
       return fail('\u8be5\u6587\u7269\u5f53\u524d\u5df2\u5728\u5e93\uff0c\u65e0\u9700\u518d\u6b21\u53d1\u8d77\u5165\u5e93')
+    case 'OUT_STOCK':
+      return fail('\u8be5\u6587\u7269\u5df2\u51fa\u5e93\uff0c\u8bf7\u5148\u5c06\u72b6\u6001\u8c03\u6574\u4e3a\u5f85\u5165\u5e93\u540e\u518d\u53d1\u8d77')
     case 'OUTBOUND_PENDING':
       return fail('\u8be5\u6587\u7269\u5b58\u5728\u51fa\u5e93\u5f85\u5ba1\u6279\u4e1a\u52a1\uff0c\u8bf7\u5148\u5904\u7406\u5b8c\u6210\u540e\u518d\u53d1\u8d77\u5165\u5e93')
     case 'IN_REPAIR':
@@ -71,6 +73,8 @@ export function checkOutboundRelicEligibility(relic = {}) {
 
   if (relic.currentStatus !== 'IN_STOCK') {
     switch (relic.currentStatus) {
+      case 'TO_BE_INBOUND':
+        return fail('\u8be5\u6587\u7269\u5c1a\u672a\u5b8c\u6210\u5165\u5e93\uff0c\u8bf7\u5148\u63d0\u4ea4\u5165\u5e93\u5e76\u901a\u8fc7\u5ba1\u6279')
       case 'INBOUND_PENDING':
         return fail('\u8be5\u6587\u7269\u4ecd\u5728\u5165\u5e93\u5ba1\u6279\u6d41\u7a0b\u4e2d\uff0c\u8bf7\u5ba1\u6279\u5b8c\u6210\u540e\u518d\u53d1\u8d77\u51fa\u5e93')
       case 'OUTBOUND_PENDING':
@@ -98,6 +102,8 @@ export function checkTransferRelicEligibility(relic = {}, targetLocationCode = '
 
   if (relic.currentStatus !== 'IN_STOCK') {
     switch (relic.currentStatus) {
+      case 'TO_BE_INBOUND':
+        return fail('\u8be5\u6587\u7269\u5c1a\u672a\u5b8c\u6210\u5165\u5e93\uff0c\u6682\u4e0d\u53ef\u53d1\u8d77\u9986\u5185\u8f6c\u5b58')
       case 'INBOUND_PENDING':
         return fail('\u8be5\u6587\u7269\u4ecd\u5728\u5165\u5e93\u5ba1\u6279\u6d41\u7a0b\u4e2d\uff0c\u6682\u4e0d\u53ef\u53d1\u8d77\u9986\u5185\u8f6c\u5b58')
       case 'OUTBOUND_PENDING':
@@ -137,6 +143,8 @@ export function checkRepairRelicEligibility(relic = {}) {
 
   if (relic.currentStatus !== 'IN_STOCK') {
     switch (relic.currentStatus) {
+      case 'TO_BE_INBOUND':
+        return fail('\u8be5\u6587\u7269\u5c1a\u672a\u5b8c\u6210\u5165\u5e93\uff0c\u6682\u4e0d\u53ef\u53d1\u8d77\u4fee\u590d')
       case 'INBOUND_PENDING':
         return fail('\u8be5\u6587\u7269\u4ecd\u5728\u5165\u5e93\u5ba1\u6279\u6d41\u7a0b\u4e2d\uff0c\u5ba1\u6279\u901a\u8fc7\u540e\u624d\u53ef\u53d1\u8d77\u4fee\u590d')
       case 'OUTBOUND_PENDING':
@@ -166,6 +174,8 @@ export function checkInventoryRelicEligibility(relic = {}) {
 
   if (relic.currentStatus !== 'IN_STOCK') {
     switch (relic.currentStatus) {
+      case 'TO_BE_INBOUND':
+        return fail('\u8be5\u6587\u7269\u5c1a\u672a\u5b8c\u6210\u5165\u5e93\uff0c\u6682\u4e0d\u5efa\u8bae\u53d1\u8d77\u76d8\u70b9')
       case 'INBOUND_PENDING':
         return fail('\u8be5\u6587\u7269\u4ecd\u5728\u5165\u5e93\u5ba1\u6279\u6d41\u7a0b\u4e2d\uff0c\u6682\u4e0d\u5efa\u8bae\u53d1\u8d77\u76d8\u70b9')
       case 'OUTBOUND_PENDING':

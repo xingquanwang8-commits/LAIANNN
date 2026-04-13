@@ -259,6 +259,7 @@ import {
 import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import { useAuthStore } from '@/stores/auth'
+import { validateElForm } from '@/utils/form'
 import { formatDateTime } from '@/utils/format'
 
 const authStore = useAuthStore()
@@ -375,7 +376,10 @@ async function openEdit(id) {
 }
 
 async function handleSave() {
-  await formRef.value.validate()
+  const valid = await validateElForm(formRef, '璇峰厛瀹屽杽鐢ㄦ埛淇℃伅鍚庡啀淇濆瓨')
+  if (!valid) {
+    return
+  }
   saving.value = true
   try {
     if (editingId.value) {

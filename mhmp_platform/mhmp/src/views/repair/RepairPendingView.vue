@@ -217,6 +217,7 @@ import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useDictStore } from '@/stores/dict'
+import { validateElForm } from '@/utils/form'
 import { formatDateTime, resolveDictLabel } from '@/utils/format'
 import {
   checkRepairRelicEligibility,
@@ -321,7 +322,10 @@ async function openApplyDialog(row, options = {}) {
 }
 
 async function handleSubmit() {
-  await formRef.value.validate()
+  const valid = await validateElForm(formRef, '璇峰厛瀹屽杽淇鐢宠淇℃伅鍚庡啀鎻愪氦')
+  if (!valid) {
+    return
+  }
   if (!repairCheckResult.value?.passed) {
     ElMessage.warning(repairCheckResult.value?.message || '当前文物不符合发起修复的条件')
     return

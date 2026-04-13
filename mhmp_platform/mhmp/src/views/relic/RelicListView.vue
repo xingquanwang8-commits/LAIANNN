@@ -30,7 +30,7 @@
           <article class="metric-card">
             <span class="metric-card__label">当前页待流转业务</span>
             <strong class="metric-card__value">{{ pendingFlowCount }}</strong>
-            <div class="metric-card__meta">包含入库待审与出库待审文物</div>
+            <div class="metric-card__meta">包含待入库、入库待审与出库待审文物</div>
           </article>
           <article class="metric-card">
             <span class="metric-card__label">当前页已配图档案</span>
@@ -272,7 +272,7 @@ const currentPageCount = computed(() => pageData.value.records.length)
 const inStockCount = computed(() => pageData.value.records.filter((item) => item.currentStatus === 'IN_STOCK').length)
 const repairCount = computed(() => pageData.value.records.filter((item) => item.currentStatus === 'IN_REPAIR').length)
 const pendingFlowCount = computed(() =>
-  pageData.value.records.filter((item) => ['INBOUND_PENDING', 'OUTBOUND_PENDING'].includes(item.currentStatus)).length
+  pageData.value.records.filter((item) => ['TO_BE_INBOUND', 'INBOUND_PENDING', 'OUTBOUND_PENDING'].includes(item.currentStatus)).length
 )
 const illustratedCount = computed(() => pageData.value.records.filter((item) => item.imageUrl).length)
 

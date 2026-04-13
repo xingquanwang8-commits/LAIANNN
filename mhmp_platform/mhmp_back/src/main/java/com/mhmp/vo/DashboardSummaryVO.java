@@ -10,6 +10,7 @@ public class DashboardSummaryVO {
 
     private Long totalRelicCount;
     private Long inStockRelicCount;
+    private Long inboundPendingCount;
     private Long outboundPendingCount;
     private Long outboundReturnPendingCount;
     private Long repairPendingCount;

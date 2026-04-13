@@ -257,6 +257,7 @@ import {
 } from '@/api/system'
 import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
+import { validateElForm } from '@/utils/form'
 
 const loadingTypes = ref(false)
 const loadingItems = ref(false)
@@ -418,7 +419,10 @@ function openImportDialog() {
 }
 
 async function handleSaveType() {
-  await typeFormRef.value.validate()
+  const valid = await validateElForm(typeFormRef, '璇峰厛瀹屽杽瀛楀吀绫诲瀷淇℃伅鍚庡啀淇濆瓨')
+  if (!valid) {
+    return
+  }
   savingType.value = true
   try {
     if (editingTypeId.value) {
@@ -436,7 +440,10 @@ async function handleSaveType() {
 }
 
 async function handleSaveItem() {
-  await itemFormRef.value.validate()
+  const valid = await validateElForm(itemFormRef, '璇峰厛瀹屽杽瀛楀吀鏉＄洰淇℃伅鍚庡啀淇濆瓨')
+  if (!valid) {
+    return
+  }
   savingItem.value = true
   try {
     itemForm.dictTypeCode = currentType.value.dictTypeCode

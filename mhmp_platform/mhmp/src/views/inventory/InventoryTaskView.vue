@@ -192,7 +192,7 @@
             <el-date-picker v-model="formData.startTime" type="datetime" value-format="YYYY-MM-DDTHH:mm:ss" />
           </el-form-item>
           <el-form-item label="负责人" prop="principalName">
-            <el-input v-model="formData.principalName" />
+            <el-input v-model="formData.principalName" disabled />
           </el-form-item>
           <el-form-item label="备注">
             <el-input v-model="formData.remark" type="textarea" :rows="3" placeholder="可填写盘点范围、重点关注事项或交接说明" />
@@ -322,6 +322,7 @@ import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useDictStore } from '@/stores/dict'
+import { validateElForm } from '@/utils/form'
 import { formatDateTime, resolveDictLabel } from '@/utils/format'
 import {
   checkInventoryRelicEligibility,
@@ -388,6 +389,7 @@ const resultLabelMap = {
 }
 
 const locationOptions = computed(() => dictStore.itemsMap.storage_location || [])
+const currentOperatorName = computed(() => authStore.displayName || authStore.user?.username || '褰撳墠鐢ㄦ埛')
 const inventoryCheckVisible = computed(() => dialogVisible.value && Boolean(formData.locationCode))
 const inventoryCheckPassed = computed(() =>
   Boolean(formData.locationCode)
@@ -437,12 +439,23 @@ const progressCount = computed(() => pageData.value.records.filter((item) => ite
 const completedCount = computed(() => pageData.value.records.filter((item) => item.taskStatus === 'COMPLETED').length)
 const diffTotal = computed(() => pageData.value.records.reduce((sum, item) => sum + Number(item.diffCount || 0), 0))
 
+function currentDateTime() {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = `${now.getMonth() + 1}`.padStart(2, '0')
+  const day = `${now.getDate()}`.padStart(2, '0')
+  const hour = `${now.getHours()}`.padStart(2, '0')
+  const minute = `${now.getMinutes()}`.padStart(2, '0')
+  const second = `${now.getSeconds()}`.padStart(2, '0')
+  return `${year}-${month}-${day}T${hour}:${minute}:${second}`
+}
+
 function resetForm() {
   Object.assign(formData, {
     taskName: '',
     locationCode: '',
-    startTime: '',
-    principalName: '',
+    startTime: currentDateTime(),
+    principalName: currentOperatorName.value,
     remark: ''
   })
 }
@@ -537,7 +550,10 @@ async function handleSave() {
     ElMessage.warning('当前账号没有新增盘点任务的权限')
     return
   }
-  await formRef.value.validate()
+  const valid = await validateElForm(formRef, '璇峰厛瀹屽杽鐩樼偣浠诲姟淇℃伅鍚庡啀鎻愪氦')
+  if (!valid) {
+    return
+  }
   if (inventoryCheckLoading.value) {
     ElMessage.warning('正在核对当前库位业务状态，请稍候后再提交')
     return

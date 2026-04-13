@@ -133,6 +133,13 @@
 
                   <div class="pending-card__actions">
                     <el-button
+                      v-if="item.businessType === 'INBOUND_APPROVAL' && authStore.hasPermission('inventory:inbound:approve')"
+                      type="primary"
+                      @click="handleApproveInbound(item.relatedId)"
+                    >
+                      审批通过
+                    </el-button>
+                    <el-button
                       v-if="item.businessType === 'OUTBOUND_APPROVAL' && authStore.hasPermission('inventory:outbound:approve')"
                       type="primary"
                       @click="handleApproveOutbound(item.relatedId)"
@@ -328,6 +335,7 @@
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { approveInboundApi } from '@/api/inbound'
 import { approveOutboundApi, rejectOutboundApi, returnOutboundApi } from '@/api/outbound'
 import { getRelicDetailApi } from '@/api/relic'
 import StatusTag from '@/components/common/StatusTag.vue'
@@ -376,6 +384,7 @@ const businessStatusLabelMap = {
   WAITING: '等待验收',
   SUCCESS: '验收成功',
   PASS: '通过',
+  TO_BE_INBOUND: '待入库',
   IN_STOCK: '在库',
   INBOUND_PENDING: '入库待审批',
   OUTBOUND_PENDING: '出库待审批',
@@ -696,6 +705,10 @@ function formatFileSize(fileSize) {
 }
 
 function handleBusinessPageJump(item) {
+  if (item.businessType === 'INBOUND_APPROVAL') {
+    router.push('/inventory/inbound/approve')
+    return
+  }
   if (item.businessType === 'REPAIR_ACCEPTANCE') {
     router.push({
       path: '/repair/acceptance',
@@ -706,6 +719,21 @@ function handleBusinessPageJump(item) {
     return
   }
   router.push('/inventory/outbound/approve')
+}
+
+async function handleApproveInbound(id) {
+  try {
+    await ElMessageBox.confirm('确认审批通过该入库单吗？通过后相关文物将正式转为在库状态。', '入库审批', {
+      type: 'warning'
+    })
+    await approveInboundApi(id)
+    ElMessage.success('入库审批已通过')
+    await loadDetail()
+  } catch (error) {
+    if (error !== 'cancel' && error !== 'close') {
+      throw error
+    }
+  }
 }
 
 function handleLaunchBusiness(item) {

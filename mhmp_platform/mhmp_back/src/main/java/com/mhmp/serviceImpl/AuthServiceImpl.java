@@ -41,6 +41,7 @@ public class AuthServiceImpl implements AuthService {
         Map.entry("/inventory/inbound", "文物入库"),
         Map.entry("/inventory/outbound/apply", "文物出库"),
         Map.entry("/inventory/query", "库存查询"),
+        Map.entry("/inventory/inbound/approve", "入库审批"),
         Map.entry("/inventory/outbound/approve", "出库审批"),
         Map.entry("/inventory/task", "盘点任务"),
         Map.entry("/repair/apply", "待修复文物"),
@@ -72,6 +73,7 @@ public class AuthServiceImpl implements AuthService {
         )),
         new MenuGroupDefinition(-102L, "库存管理", "Box", 40, List.of(
             new MenuItemDefinition("/inventory/query", "库存查询", "inventory:query:view", "Search"),
+            new MenuItemDefinition("/inventory/inbound/approve", "入库审批", "inventory:inbound:approve", "CircleCheck"),
             new MenuItemDefinition("/inventory/outbound/approve", "出库审批", "inventory:outbound:approve:view", "CircleCheck"),
             new MenuItemDefinition("/inventory/task", "盘点任务", "inventory:task:view", "Checked")
         )),

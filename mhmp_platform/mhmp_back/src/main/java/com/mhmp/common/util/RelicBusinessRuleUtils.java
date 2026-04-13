@@ -41,17 +41,21 @@ public final class RelicBusinessRuleUtils {
 
     public static void validateInboundCreatable(Relic relic) {
         requireRelicExists(relic, "文物入库");
-        if (!"OUT_STOCK".equals(relic.getCurrentStatus())) {
+        if (!"TO_BE_INBOUND".equals(relic.getCurrentStatus())) {
             throw new BusinessException(resolveRelicIdentity(relic) + " 当前状态不允许发起文物入库");
         }
     }
 
-    public static void validateInboundCompletable(RelicInboundOrder order, List<Relic> relics) {
+    public static void validateInboundApprovable(RelicInboundOrder order, List<Relic> relics) {
         requireInboundOrderExists(order);
-        if (!"COMPLETED".equals(order.getStatus())) {
-            throw new BusinessException("入库单完成状态异常，无法执行入库完成");
+        if (!"PENDING".equals(order.getStatus())) {
+            throw new BusinessException("当前入库单不是待审批状态，无法执行入库审批");
         }
-        validateInboundRelics(relics);
+        validateInboundRelics(relics, "入库审批", "INBOUND_PENDING");
+    }
+
+    public static void validateInboundCompletable(RelicInboundOrder order, List<Relic> relics) {
+        validateInboundApprovable(order, relics);
     }
 
     public static void validateOutboundCreatable(Relic relic) {
@@ -261,12 +265,15 @@ public final class RelicBusinessRuleUtils {
         }
     }
 
-    private static void validateInboundRelics(List<Relic> relics) {
+    private static void validateInboundRelics(List<Relic> relics, String actionName, String requiredStatus) {
         if (relics == null || relics.isEmpty()) {
-            throw new BusinessException("入库单缺少文物明细，无法执行入库完成");
+            throw new BusinessException("入库单缺少文物明细，无法执行" + actionName);
         }
         for (Relic relic : relics) {
-            validateInboundCreatable(relic);
+            requireRelicExists(relic, actionName);
+            if (!requiredStatus.equals(relic.getCurrentStatus())) {
+                throw new BusinessException(resolveRelicIdentity(relic) + " 当前状态与" + actionName + "不匹配");
+            }
         }
     }
 

@@ -353,6 +353,7 @@ import {
   updateRelicApi
 } from '@/api/relic'
 import { useDictStore } from '@/stores/dict'
+import { validateElForm } from '@/utils/form'
 import { resolveDictLabel } from '@/utils/format'
 
 const PROTECTION_LEVEL_OPTIONS = [
@@ -373,6 +374,10 @@ const DAMAGE_PRESERVATION_CODES = [
 ]
 
 const STATUS_RULE_HINTS = {
+  TO_BE_INBOUND: {
+    location: '待入库文物应先明确拟入库库位，便于后续提交入库并进入审批流程。',
+    preservation: '建议按接收入馆时的真实保存状态建档，便于审批时核对实物情况。'
+  },
   IN_STOCK: {
     location: '在库文物需要保留馆内库位，便于盘点、出库和业务追踪。',
     preservation: '可按文物当前实际保存情况选择完整或病害状态。'
@@ -419,7 +424,7 @@ const form = reactive({
   source: '',
   storageLocationCode: '',
   preservationStatusCode: '',
-  currentStatus: 'IN_STOCK',
+  currentStatus: 'TO_BE_INBOUND',
   protectionLevel: '',
   storageCondition: '',
   attentionNote: '',
@@ -458,7 +463,7 @@ const repairLocationOptions = computed(() =>
   )
 )
 const availableLocationOptions = computed(() => {
-  if (form.currentStatus === 'OUT_STOCK') {
+  if (!shouldEditStorageLocation.value || form.currentStatus === 'OUT_STOCK') {
     return []
   }
   if (form.currentStatus === 'IN_REPAIR' && repairLocationOptions.value.length) {
@@ -472,8 +477,12 @@ const availablePreservationOptions = computed(() => {
   }
   return preservationOptions.value
 })
-const locationSelectDisabled = computed(() => form.currentStatus === 'OUT_STOCK')
+const shouldEditStorageLocation = computed(() => isEdit.value && form.currentStatus !== 'TO_BE_INBOUND')
+const locationSelectDisabled = computed(() => !shouldEditStorageLocation.value || form.currentStatus === 'OUT_STOCK')
 const locationPlaceholder = computed(() =>
+  !shouldEditStorageLocation.value
+    ? '鏂板缓妗ｆ鏃朵笉濉啓搴撲綅锛屽叆搴撴椂鍐嶅綍鍏?'
+    :
   form.currentStatus === 'OUT_STOCK' ? '已出库状态无需选择库位' : '请选择藏品库位'
 )
 const preservationPlaceholder = computed(() =>
@@ -482,6 +491,9 @@ const preservationPlaceholder = computed(() =>
 const currentStatusHints = computed(() => STATUS_RULE_HINTS[form.currentStatus] || STATUS_RULE_HINTS.IN_STOCK)
 const currentStatusLabel = computed(() => resolveDictLabel(statusOptions.value, form.currentStatus) || '待设置')
 const currentLocationLabel = computed(() => {
+  if (!shouldEditStorageLocation.value) {
+    return '鍏ュ簱鏃跺～鍐?'
+  }
   if (form.currentStatus === 'OUT_STOCK') {
     return '系统自动清空'
   }
@@ -557,6 +569,14 @@ function normalizeFormByStatus() {
 }
 
 function validateStorageLocation(_rule, value, callback) {
+  if (!shouldEditStorageLocation.value) {
+    if (value) {
+      callback(new Error('鏂板缓鏂囩墿妗ｆ鏃朵笉闇€濉啓搴撲綅锛岃鍦ㄥ叆搴撴椂鍐嶅綍鍏?'))
+      return
+    }
+    callback()
+    return
+  }
   if (form.currentStatus === 'OUT_STOCK') {
     if (value) {
       callback(new Error('已出库文物不应保留馆内库位'))
@@ -607,7 +627,7 @@ function fillForm(detail) {
     source: detail.source || '',
     storageLocationCode: detail.storageLocationCode || '',
     preservationStatusCode: detail.preservationStatusCode || '',
-    currentStatus: detail.currentStatus || 'IN_STOCK',
+    currentStatus: detail.currentStatus || 'TO_BE_INBOUND',
     protectionLevel: detail.protectionLevel || '',
     storageCondition: detail.storageCondition || '',
     attentionNote: detail.attentionNote || '',
@@ -689,7 +709,7 @@ function setCoverImage(fileUrl) {
 }
 
 async function handleCreateCategory() {
-  const valid = await categoryFormRef.value?.validate().catch(() => false)
+  const valid = await validateElForm(categoryFormRef, '璇峰厛杈撳叆鏂囩墿鍒嗙被鍚嶇О')
   if (!valid) {
     return
   }
@@ -711,7 +731,7 @@ async function handleCreateCategory() {
 }
 
 async function handleCreateMaterial() {
-  const valid = await materialFormRef.value?.validate().catch(() => false)
+  const valid = await validateElForm(materialFormRef, '璇峰厛杈撳叆鏂囩墿鏉愯川鍚嶇О')
   if (!valid) {
     return
   }
@@ -734,7 +754,7 @@ async function handleCreateMaterial() {
 
 async function handleSubmit() {
   normalizeFormByStatus()
-  const valid = await formRef.value?.validate().catch(() => false)
+  const valid = await validateElForm(formRef, '璇峰厛瀹屽杽鏂囩墿妗ｆ淇℃伅鍚庡啀鎻愪氦')
   if (!valid) {
     return
   }

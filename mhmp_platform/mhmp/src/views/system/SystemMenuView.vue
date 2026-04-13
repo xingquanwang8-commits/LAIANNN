@@ -210,6 +210,7 @@ import { createMenuApi, deleteMenuApi, getMenuDetailApi, getMenuTreeApi, updateM
 import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import { useAuthStore } from '@/stores/auth'
+import { validateElForm } from '@/utils/form'
 import { buildTreeSelectOptions } from '@/utils/format'
 
 const authStore = useAuthStore()
@@ -349,7 +350,10 @@ async function handleSave() {
     ElMessage.warning('当前账号没有新增结构节点的权限')
     return
   }
-  await formRef.value.validate()
+  const valid = await validateElForm(formRef, '璇峰厛瀹屽杽鑿滃崟淇℃伅鍚庡啀淇濆瓨')
+  if (!valid) {
+    return
+  }
   saving.value = true
   try {
     const payload = {

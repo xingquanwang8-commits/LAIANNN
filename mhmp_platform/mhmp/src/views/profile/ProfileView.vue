@@ -120,6 +120,7 @@ import { ElMessage } from 'element-plus'
 import { uploadFileApi } from '@/api/file'
 import { getProfileApi, updateProfileApi } from '@/api/profile'
 import { useAuthStore } from '@/stores/auth'
+import { validateElForm } from '@/utils/form'
 
 const authStore = useAuthStore()
 
@@ -198,7 +199,10 @@ async function handleAvatarUpload(option) {
 }
 
 async function handleSaveProfile() {
-  await profileFormRef.value.validate()
+  const valid = await validateElForm(profileFormRef, '璇峰厛瀹屽杽涓汉淇℃伅鍚庡啀淇濆瓨')
+  if (!valid) {
+    return
+  }
   saving.value = true
   try {
     await updateProfileApi(profileForm)

@@ -261,6 +261,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { batchTransferRelicApi, getRelicDetailApi, getRelicPageApi, transferRelicApi } from '@/api/relic'
 import PageHeader from '@/components/common/PageHeader.vue'
 import { useDictStore } from '@/stores/dict'
+import { validateElForm } from '@/utils/form'
 import { formatDateTime, resolveDictLabel } from '@/utils/format'
 import {
   analyzeRelicSelection,
@@ -396,7 +397,10 @@ function openBatchTransferDialog() {
 }
 
 async function handleSubmit() {
-  await formRef.value?.validate()
+  const valid = await validateElForm(formRef, '璇峰厛瀹屽杽搴撲綅杞Щ淇℃伅鍚庡啀鎻愪氦')
+  if (!valid) {
+    return
+  }
   if (!transferCheck.value.allPassed) {
     ElMessage.warning(transferCheck.value.invalidItems[0]?.message || '当前选中文物不符合馆内转存条件')
     return

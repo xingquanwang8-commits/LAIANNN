@@ -236,14 +236,19 @@ public class RelicServiceImpl implements RelicService {
     }
 
     private void fillRelic(Relic relic, RelicSaveDTO saveDTO) {
+        String currentStatus = saveDTO.getCurrentStatus();
         relic.setName(saveDTO.getName());
         relic.setCategoryCode(saveDTO.getCategoryCode());
         relic.setMaterialCode(saveDTO.getMaterialCode());
         relic.setEra(saveDTO.getEra());
         relic.setSource(saveDTO.getSource());
-        relic.setStorageLocationCode(saveDTO.getStorageLocationCode());
+        if ("OUT_STOCK".equals(currentStatus) || "TO_BE_INBOUND".equals(currentStatus)) {
+            relic.setStorageLocationCode(null);
+        } else {
+            relic.setStorageLocationCode(saveDTO.getStorageLocationCode());
+        }
         relic.setPreservationStatusCode(saveDTO.getPreservationStatusCode());
-        relic.setCurrentStatus(saveDTO.getCurrentStatus());
+        relic.setCurrentStatus(currentStatus);
         relic.setProtectionLevel(saveDTO.getProtectionLevel());
         relic.setStorageCondition(saveDTO.getStorageCondition());
         relic.setAttentionNote(saveDTO.getAttentionNote());
@@ -352,6 +357,28 @@ public class RelicServiceImpl implements RelicService {
     private List<RelicPendingBusinessVO> buildPendingBusinesses(Relic relic) {
         List<RelicPendingBusinessVO> pendingBusinesses = new ArrayList<>();
         Long relicId = relic.getId();
+
+        List<RelicInboundDetail> inboundDetails = relicInboundDetailMapper.selectList(
+            Wrappers.<RelicInboundDetail>lambdaQuery().eq(RelicInboundDetail::getRelicId, relicId)
+        );
+        Map<Long, RelicInboundOrder> inboundOrderMap = loadInboundOrderMap(inboundDetails.stream()
+            .map(RelicInboundDetail::getOrderId)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet()));
+        inboundOrderMap.values().stream()
+            .filter(order -> "PENDING".equals(order.getStatus()))
+            .sorted(Comparator.comparing(RelicInboundOrder::getInboundTime, Comparator.nullsLast(LocalDateTime::compareTo)).reversed())
+            .forEach(order -> {
+                RelicPendingBusinessVO vo = new RelicPendingBusinessVO();
+                vo.setBusinessType("INBOUND_APPROVAL");
+                vo.setRelatedId(order.getId());
+                vo.setTitle("待处理入库审批");
+                vo.setDescription(String.format("入库单 %s，来源：%s，批次：%s",
+                    order.getOrderNo(), order.getSource(), order.getBatchNo()));
+                vo.setStatus(order.getStatus());
+                vo.setEventTime(order.getInboundTime());
+                pendingBusinesses.add(vo);
+            });
 
         List<RelicOutboundDetail> outboundDetails = relicOutboundDetailMapper.selectList(
             Wrappers.<RelicOutboundDetail>lambdaQuery().eq(RelicOutboundDetail::getRelicId, relicId)

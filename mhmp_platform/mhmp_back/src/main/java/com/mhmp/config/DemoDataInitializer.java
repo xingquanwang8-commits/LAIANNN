@@ -37,6 +37,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -44,12 +45,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 @Order(1)
@@ -57,6 +61,10 @@ public class DemoDataInitializer implements ApplicationRunner {
 
     private static final String PLACEHOLDER_PNG_BASE64 =
         "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO2Z2y8AAAAASUVORK5CYII=";
+    private static final Pattern DATE_SERIAL_PATTERN = Pattern.compile("^([A-Z]+)-(\\d{8})-(\\d{3,})$");
+    private static final Pattern YEAR_SERIAL_PATTERN = Pattern.compile("^([A-Z]+)-(\\d{4})-(\\d{3,})$");
+    private static final DateTimeFormatter DATE_SEGMENT_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
+    private static final LocalDateTime DEMO_BASE_TIME = LocalDateTime.of(2026, 4, 8, 10, 0);
 
     private final SysUserMapper sysUserMapper;
     private final SysDictTypeMapper sysDictTypeMapper;
@@ -127,6 +135,8 @@ public class DemoDataInitializer implements ApplicationRunner {
         long relicCount = relicMapper.selectCount(null);
         if (relicCount >= 10) {
             ensureInboundPendingSampleRelic(primaryUserId, demoFiles);
+            ensureToBeInboundSampleRelic(primaryUserId, demoFiles);
+            ensurePendingInboundSampleOrder(primaryUserId);
             return;
         }
         Map<String, Relic> relics = ensureRelicData(primaryUserId, demoFiles);
@@ -167,6 +177,7 @@ public class DemoDataInitializer implements ApplicationRunner {
         ensureDictItem("relic_material", "竹木", "BAMBOO_WOOD", 9, operatorId);
 
         syncDictItems("relic_status", operatorId, new String[][]{
+            {"待入库", "TO_BE_INBOUND"},
             {"在库", "IN_STOCK"},
             {"入库待审批", "INBOUND_PENDING"},
             {"出库待审批", "OUTBOUND_PENDING"},
@@ -214,15 +225,30 @@ public class DemoDataInitializer implements ApplicationRunner {
     }
 
     private void ensureInboundPendingSampleRelic(Long operatorId, DemoFileBundle demoFiles) {
-        long count = relicMapper.selectCount(
-            Wrappers.<Relic>lambdaQuery().eq(Relic::getCurrentStatus, "INBOUND_PENDING")
-        );
-        if (count > 0) {
-            return;
-        }
         upsertRelic("REL-2026-013", "民国木胎漆盘", "LACQUER", "LACQUER_WOOD", "民国", "临时征集",
             "LOC_D", "BASIC_COMPLETE", "INBOUND_PENDING", "一般", demoFiles.imageUrl(), demoFiles.reportUrl(),
-            "用于模拟文物入库待审批状态。", operatorId, LocalDateTime.now().minusDays(12));
+            "用于模拟文物入库待审批状态。", operatorId, demoNow().minusDays(12));
+    }
+
+    private void ensureToBeInboundSampleRelic(Long operatorId, DemoFileBundle demoFiles) {
+        upsertRelic("REL-2026-015", "清代嵌螺钿木匣", "WOOD", "BAMBOO_WOOD", "清代", "新征集待交接",
+            null, "BASIC_COMPLETE", "TO_BE_INBOUND", "一般", demoFiles.imageUrl(), demoFiles.reportUrl(),
+            "用于模拟新增建档后待入库、可发起入库的文物。", operatorId, demoNow().minusDays(5));
+    }
+
+    private void ensurePendingInboundSampleOrder(Long operatorId) {
+        Relic relic = relicMapper.selectOne(
+            Wrappers.<Relic>lambdaQuery()
+                .eq(Relic::getName, "民国木胎漆盘")
+                .last("LIMIT 1")
+        );
+        if (relic == null) {
+            return;
+        }
+        LocalDateTime now = demoNow();
+        upsertInboundOrder("IN-2026-003", "BATCH-2026-003", "馆际征集交接", "周敏", now.minusDays(11),
+            1, "PENDING", "待审批演示入库单", operatorId);
+        upsertInboundDetail("IN-2026-003", relic, 1, "待入库审批", operatorId, now.minusDays(11));
     }
 
     private String normalizeCurrentStatus(String currentStatus) {
@@ -230,7 +256,7 @@ public class DemoDataInitializer implements ApplicationRunner {
             return "IN_STOCK";
         }
         return switch (currentStatus) {
-            case "IN_STOCK", "INBOUND_PENDING", "OUTBOUND_PENDING", "OUT_STOCK", "IN_REPAIR" -> currentStatus;
+            case "TO_BE_INBOUND", "IN_STOCK", "INBOUND_PENDING", "OUTBOUND_PENDING", "OUT_STOCK", "IN_REPAIR" -> currentStatus;
             default -> currentStatus;
         };
     }
@@ -281,57 +307,60 @@ public class DemoDataInitializer implements ApplicationRunner {
         Map<String, Relic> relics = new LinkedHashMap<>();
         relics.put("REL-2026-001", upsertRelic("REL-2026-001", "西周饕餮纹青铜鼎", "BRONZE", "BRONZE", "西周", "考古发掘",
             "LOC_A", "COMPLETE", "IN_STOCK", "一级", demoFiles.imageUrl(), demoFiles.reportUrl(),
-            "馆藏代表性青铜器，适合答辩展示完整档案流程。", operatorId, LocalDateTime.now().minusMonths(8)));
+            "馆藏代表性青铜器，适合答辩展示完整档案流程。", operatorId, demoNow().minusMonths(8)));
         relics.put("REL-2026-002", upsertRelic("REL-2026-002", "宋代青釉刻花碗", "CERAMIC", "PORCELAIN", "宋代", "社会征集",
             "LOC_A", "INCOMPLETE", "IN_STOCK", "二级", demoFiles.imageUrl(), demoFiles.reportUrl(),
-            "口沿存在细裂，需要进入待修复清单。", operatorId, LocalDateTime.now().minusMonths(6)));
+            "口沿存在细裂，需要进入待修复清单。", operatorId, demoNow().minusMonths(6)));
         relics.put("REL-2026-003", upsertRelic("REL-2026-003", "明代绢本山水轴", "PAINTING", "SILK", "明代", "旧藏移交",
             "LOC_B", "PHYSICAL_DAMAGE", "IN_REPAIR", "一级", demoFiles.imageUrl(), demoFiles.reportUrl(),
-            "正在进行修复过程跟踪。", operatorId, LocalDateTime.now().minusMonths(5)));
+            "正在进行修复过程跟踪。", operatorId, demoNow().minusMonths(5)));
         relics.put("REL-2026-004", upsertRelic("REL-2026-004", "北齐石佛立像", "STONE", "STONE", "北齐", "寺院征集",
             "LOC_C", "COMPLETE", "OUT_STOCK", "一级", demoFiles.imageUrl(), demoFiles.reportUrl(),
-            "用于模拟已审批未归还的出库状态。", operatorId, LocalDateTime.now().minusMonths(10)));
+            "用于模拟已审批未归还的出库状态。", operatorId, demoNow().minusMonths(10)));
         relics.put("REL-2026-005", upsertRelic("REL-2026-005", "汉代白玉璧", "JADE", "JADE", "汉代", "移交入藏",
             "LOC_C", "BASIC_COMPLETE", "OUTBOUND_PENDING", "一级", demoFiles.imageUrl(), demoFiles.reportUrl(),
-            "用于模拟待审批出库申请。", operatorId, LocalDateTime.now().minusMonths(4)));
+            "用于模拟待审批出库申请。", operatorId, demoNow().minusMonths(4)));
         relics.put("REL-2026-006", upsertRelic("REL-2026-006", "清代描金漆盒", "LACQUER", "LACQUER_WOOD", "清代", "社会捐赠",
             "LOC_B", "CHEMICAL_DEGRADATION", "IN_STOCK", "二级", demoFiles.imageUrl(), demoFiles.reportUrl(),
-            "漆层脱落，待研究员申请修复。", operatorId, LocalDateTime.now().minusMonths(3)));
+            "漆层脱落，待研究员申请修复。", operatorId, demoNow().minusMonths(3)));
         relics.put("REL-2026-007", upsertRelic("REL-2026-007", "唐代彩绘陶马", "POTTERY", "CLAY", "唐代", "考古发掘",
             "LOC_D", "BIOLOGICAL_DISEASE", "IN_STOCK", "二级", demoFiles.imageUrl(), demoFiles.reportUrl(),
-            "用于模拟已归还后的在库文物。", operatorId, LocalDateTime.now().minusMonths(7)));
+            "用于模拟已归还后的在库文物。", operatorId, demoNow().minusMonths(7)));
         relics.put("REL-2026-008", upsertRelic("REL-2026-008", "金代累丝发冠", "GOLD", "GOLD", "金代", "旧藏整理",
             "LOC_VIP", "COMPLETE", "IN_STOCK", "一级", demoFiles.imageUrl(), demoFiles.reportUrl(),
-            "用于模拟修复申请被驳回与出库申请被驳回。", operatorId, LocalDateTime.now().minusMonths(2)));
+            "用于模拟修复申请被驳回与出库申请被驳回。", operatorId, demoNow().minusMonths(2)));
         relics.put("REL-2026-009", upsertRelic("REL-2026-009", "战国竹简", "BAMBOO", "BAMBOO_WOOD", "战国", "考古发掘",
             "LOC_A", "BASIC_COMPLETE", "IN_STOCK", "一级", demoFiles.imageUrl(), demoFiles.reportUrl(),
-            "用于展示已修复页面与多次修复历史。", operatorId, LocalDateTime.now().minusMonths(9)));
+            "用于展示已修复页面与多次修复历史。", operatorId, demoNow().minusMonths(9)));
         relics.put("REL-2026-010", upsertRelic("REL-2026-010", "清雍正粉彩瓶", "CERAMIC", "PORCELAIN", "清代", "社会征集",
             "LOC_C", "INCOMPLETE", "IN_STOCK", "一级", demoFiles.imageUrl(), demoFiles.reportUrl(),
-            "已通过修复审批，等待研究员正式开展修复。", operatorId, LocalDateTime.now().minusMonths(4)));
+            "已通过修复审批，等待研究员正式开展修复。", operatorId, demoNow().minusMonths(4)));
         relics.put("REL-2026-011", upsertRelic("REL-2026-011", "汉代铜镜", "BRONZE", "BRONZE", "汉代", "旧藏移交",
             "LOC_B", "SEVERE_INCOMPLETE", "IN_STOCK", "二级", demoFiles.imageUrl(), demoFiles.reportUrl(),
-            "严重病害文物，已有待审批修复申请。", operatorId, LocalDateTime.now().minusMonths(5)));
+            "严重病害文物，已有待审批修复申请。", operatorId, demoNow().minusMonths(5)));
         relics.put("REL-2026-012", upsertRelic("REL-2026-012", "明代木雕佛像", "WOOD", "BAMBOO_WOOD", "明代", "寺院征集",
             "LOC_D", "FRAGMENTED", "IN_REPAIR", "一级", demoFiles.imageUrl(), demoFiles.reportUrl(),
-            "修复流程已完成，等待验收。", operatorId, LocalDateTime.now().minusMonths(6)));
+            "修复流程已完成，等待验收。", operatorId, demoNow().minusMonths(6)));
         relics.put("REL-2026-013", upsertRelic("REL-2026-013", "民国木胎漆盘", "LACQUER", "LACQUER_WOOD", "民国", "临时征集",
             "LOC_D", "BASIC_COMPLETE", "INBOUND_PENDING", "一般", demoFiles.imageUrl(), demoFiles.reportUrl(),
-            "用于模拟文物入库待审批状态。", operatorId, LocalDateTime.now().minusDays(12)));
+            "用于模拟文物入库待审批状态。", operatorId, demoNow().minusDays(12)));
+        relics.put("REL-2026-015", upsertRelic("REL-2026-015", "清代嵌螺钿木匣", "WOOD", "BAMBOO_WOOD", "清代", "新征集待交接",
+            null, "BASIC_COMPLETE", "TO_BE_INBOUND", "一般", demoFiles.imageUrl(), demoFiles.reportUrl(),
+            "用于模拟新增建档后待入库、可发起入库的文物。", operatorId, demoNow().minusDays(5)));
         return relics;
     }
 
     private void ensureRelicAttachments(Map<String, Relic> relics, Long operatorId, DemoFileBundle demoFiles) {
         upsertAttachment(relics.get("REL-2026-001").getId(), "DOCUMENT", "青铜鼎测绘记录.txt", demoFiles.attachmentUrl(),
-            256L, "txt", "基础档案附件", operatorId, LocalDateTime.now().minusMonths(7));
+            256L, "txt", "基础档案附件", operatorId, demoNow().minusMonths(7));
         upsertAttachment(relics.get("REL-2026-006").getId(), "DOCUMENT", "漆盒病害说明.txt", demoFiles.attachmentUrl(),
-            256L, "txt", "待修复病害说明", operatorId, LocalDateTime.now().minusMonths(2));
+            256L, "txt", "待修复病害说明", operatorId, demoNow().minusMonths(2));
         upsertAttachment(relics.get("REL-2026-009").getId(), "DOCUMENT", "竹简修复总结.txt", demoFiles.reportUrl(),
-            512L, "txt", "已修复总结材料", operatorId, LocalDateTime.now().minusMonths(1));
+            512L, "txt", "已修复总结材料", operatorId, demoNow().minusMonths(1));
     }
 
     private void ensureInboundData(Map<String, Relic> relics, Long operatorId) {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = demoNow();
         upsertInboundOrder("IN-2026-001", "BATCH-2026-001", "考古工地移交", "王倩", now.minusMonths(6), 4, "COMPLETED", "第一批演示入库单", operatorId);
         upsertInboundDetail("IN-2026-001", relics.get("REL-2026-001"), 1, "入库验收通过", operatorId, now.minusMonths(6));
         upsertInboundDetail("IN-2026-001", relics.get("REL-2026-002"), 1, "入库验收通过", operatorId, now.minusMonths(6));
@@ -343,10 +372,13 @@ public class DemoDataInitializer implements ApplicationRunner {
         upsertInboundDetail("IN-2026-002", relics.get("REL-2026-008"), 1, "入库验收通过", operatorId, now.minusMonths(4));
         upsertInboundDetail("IN-2026-002", relics.get("REL-2026-009"), 1, "入库验收通过", operatorId, now.minusMonths(4));
         upsertInboundDetail("IN-2026-002", relics.get("REL-2026-010"), 1, "入库验收通过", operatorId, now.minusMonths(4));
+
+        upsertInboundOrder("IN-2026-003", "BATCH-2026-003", "馆际征集交接", "周敏", now.minusDays(11), 1, "PENDING", "待审批演示入库单", operatorId);
+        upsertInboundDetail("IN-2026-003", relics.get("REL-2026-013"), 1, "待入库审批", operatorId, now.minusDays(11));
     }
 
     private void ensureOutboundData(Map<String, Relic> relics, Long applyUserId, Long approveUserId) {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = demoNow();
         upsertOutboundOrder("OUT-2026-001", "专题展借展", "省博临展厅", "陈昊", now.minusDays(8),
             applyUserId, "PENDING", null, null, "等待审批中", null, "待审批出库申请", applyUserId);
         upsertOutboundDetail("OUT-2026-001", relics.get("REL-2026-005"), 1, "IN_STOCK", "待审批快照", applyUserId, now.minusDays(8));
@@ -365,7 +397,7 @@ public class DemoDataInitializer implements ApplicationRunner {
     }
 
     private void ensureInventoryData(Map<String, Relic> relics, Long operatorId) {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = demoNow();
         upsertInventoryTask("INV-2026-001", "一号综合库季度盘点", "LOC_A", "COMPLETED",
             now.minusDays(26), now.minusDays(25), "王敏", "已完成盘点提交", operatorId);
         upsertInventoryTaskDetail("INV-2026-001", relics.get("REL-2026-001"), 1, 1, 0, "", "NORMAL", operatorId, now.minusDays(25));
@@ -388,7 +420,7 @@ public class DemoDataInitializer implements ApplicationRunner {
                                   Long secondaryUserId,
                                   Long tertiaryUserId,
                                   DemoFileBundle demoFiles) {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = demoNow();
 
         RepairTask acceptedRecent = upsertRepairTask("REP-2026-001", relics.get("REL-2026-009"), primaryUserId,
             "纸基脆弱、局部断裂，需要系统修复", "ACCEPTED", "SUCCESS", now.minusDays(120), secondaryUserId,
@@ -468,7 +500,7 @@ public class DemoDataInitializer implements ApplicationRunner {
         entity.setDictName(dictName);
         entity.setStatus("ENABLED");
         entity.setRemark("Demo generated dictionary data");
-        fillAuditFields(entity, operatorId, LocalDateTime.now().minusDays(30), LocalDateTime.now());
+        fillAuditFields(entity, operatorId, demoNow().minusDays(30), demoNow());
         if (entity.getId() == null) {
             sysDictTypeMapper.insert(entity);
         } else {
@@ -493,7 +525,7 @@ public class DemoDataInitializer implements ApplicationRunner {
         entity.setItemSort(itemSort);
         entity.setStatus("ENABLED");
         entity.setRemark("Demo generated dictionary item");
-        fillAuditFields(entity, operatorId, LocalDateTime.now().minusDays(30), LocalDateTime.now());
+        fillAuditFields(entity, operatorId, demoNow().minusDays(30), demoNow());
         if (entity.getId() == null) {
             sysDictItemMapper.insert(entity);
         } else {
@@ -516,15 +548,18 @@ public class DemoDataInitializer implements ApplicationRunner {
                               String note,
                               Long operatorId,
                               LocalDateTime createTime) {
+        String normalizedRelicNo = normalizeBusinessNo(relicNo, createTime);
         Relic relic = relicMapper.selectOne(
             Wrappers.<Relic>lambdaQuery()
-                .eq(Relic::getRelicNo, relicNo)
+                .and(wrapper -> wrapper.eq(Relic::getRelicNo, relicNo)
+                    .or()
+                    .eq(Relic::getRelicNo, normalizedRelicNo))
                 .last("LIMIT 1")
         );
         if (relic == null) {
             relic = new Relic();
         }
-        relic.setRelicNo(relicNo);
+        relic.setRelicNo(resolvePersistedBusinessNo(relic.getRelicNo(), relicNo, createTime));
         relic.setName(name);
         relic.setCategoryCode(categoryCode);
         relic.setMaterialCode(materialCode);
@@ -540,7 +575,7 @@ public class DemoDataInitializer implements ApplicationRunner {
         relic.setNote(note);
         relic.setImageUrl(imageUrl);
         relic.setAppraisalReportUrl(reportUrl);
-        fillAuditFields(relic, operatorId, createTime, LocalDateTime.now());
+        fillAuditFields(relic, operatorId, createTime, demoNow());
         if (relic.getId() == null) {
             relicMapper.insert(relic);
         } else {
@@ -575,7 +610,7 @@ public class DemoDataInitializer implements ApplicationRunner {
         entity.setFileSize(fileSize);
         entity.setFileSuffix(fileSuffix);
         entity.setRemark(remark);
-        fillAuditFields(entity, operatorId, createTime, LocalDateTime.now());
+        fillAuditFields(entity, operatorId, createTime, demoNow());
         if (entity.getId() == null) {
             relicAttachmentMapper.insert(entity);
         } else {
@@ -592,16 +627,19 @@ public class DemoDataInitializer implements ApplicationRunner {
                                     String status,
                                     String remark,
                                     Long operatorId) {
+        String normalizedOrderNo = normalizeBusinessNo(orderNo, inboundTime);
         RelicInboundOrder entity = relicInboundOrderMapper.selectOne(
             Wrappers.<RelicInboundOrder>lambdaQuery()
-                .eq(RelicInboundOrder::getOrderNo, orderNo)
+                .and(wrapper -> wrapper.eq(RelicInboundOrder::getOrderNo, orderNo)
+                    .or()
+                    .eq(RelicInboundOrder::getOrderNo, normalizedOrderNo))
                 .last("LIMIT 1")
         );
         if (entity == null) {
             entity = new RelicInboundOrder();
         }
-        entity.setOrderNo(orderNo);
-        entity.setBatchNo(batchNo);
+        entity.setOrderNo(resolvePersistedBusinessNo(entity.getOrderNo(), orderNo, inboundTime));
+        entity.setBatchNo(resolvePersistedBusinessNo(entity.getBatchNo(), batchNo, inboundTime));
         entity.setSource(source);
         entity.setHandlerName(handlerName);
         entity.setInboundTime(inboundTime);
@@ -622,9 +660,12 @@ public class DemoDataInitializer implements ApplicationRunner {
                                      String remark,
                                      Long operatorId,
                                      LocalDateTime createTime) {
+        String normalizedOrderNo = normalizeBusinessNo(orderNo, createTime);
         RelicInboundOrder order = relicInboundOrderMapper.selectOne(
             Wrappers.<RelicInboundOrder>lambdaQuery()
-                .eq(RelicInboundOrder::getOrderNo, orderNo)
+                .and(wrapper -> wrapper.eq(RelicInboundOrder::getOrderNo, orderNo)
+                    .or()
+                    .eq(RelicInboundOrder::getOrderNo, normalizedOrderNo))
                 .last("LIMIT 1")
         );
         if (order == null || relic == null) {
@@ -666,15 +707,18 @@ public class DemoDataInitializer implements ApplicationRunner {
                                      LocalDateTime returnTime,
                                      String remark,
                                      Long operatorId) {
+        String normalizedOrderNo = normalizeBusinessNo(orderNo, outboundTime);
         RelicOutboundOrder entity = relicOutboundOrderMapper.selectOne(
             Wrappers.<RelicOutboundOrder>lambdaQuery()
-                .eq(RelicOutboundOrder::getOrderNo, orderNo)
+                .and(wrapper -> wrapper.eq(RelicOutboundOrder::getOrderNo, orderNo)
+                    .or()
+                    .eq(RelicOutboundOrder::getOrderNo, normalizedOrderNo))
                 .last("LIMIT 1")
         );
         if (entity == null) {
             entity = new RelicOutboundOrder();
         }
-        entity.setOrderNo(orderNo);
+        entity.setOrderNo(resolvePersistedBusinessNo(entity.getOrderNo(), orderNo, outboundTime));
         entity.setPurpose(purpose);
         entity.setDestination(destination);
         entity.setHandlerName(handlerName);
@@ -686,7 +730,7 @@ public class DemoDataInitializer implements ApplicationRunner {
         entity.setApproveRemark(approveRemark);
         entity.setReturnTime(returnTime);
         entity.setRemark(remark);
-        fillAuditFields(entity, operatorId, outboundTime, LocalDateTime.now());
+        fillAuditFields(entity, operatorId, outboundTime, demoNow());
         if (entity.getId() == null) {
             relicOutboundOrderMapper.insert(entity);
         } else {
@@ -701,9 +745,12 @@ public class DemoDataInitializer implements ApplicationRunner {
                                       String remark,
                                       Long operatorId,
                                       LocalDateTime createTime) {
+        String normalizedOrderNo = normalizeBusinessNo(orderNo, createTime);
         RelicOutboundOrder order = relicOutboundOrderMapper.selectOne(
             Wrappers.<RelicOutboundOrder>lambdaQuery()
-                .eq(RelicOutboundOrder::getOrderNo, orderNo)
+                .and(wrapper -> wrapper.eq(RelicOutboundOrder::getOrderNo, orderNo)
+                    .or()
+                    .eq(RelicOutboundOrder::getOrderNo, normalizedOrderNo))
                 .last("LIMIT 1")
         );
         if (order == null || relic == null) {
@@ -742,15 +789,18 @@ public class DemoDataInitializer implements ApplicationRunner {
                                      String principalName,
                                      String remark,
                                      Long operatorId) {
+        String normalizedTaskNo = normalizeBusinessNo(taskNo, startTime);
         InventoryTask entity = inventoryTaskMapper.selectOne(
             Wrappers.<InventoryTask>lambdaQuery()
-                .eq(InventoryTask::getTaskNo, taskNo)
+                .and(wrapper -> wrapper.eq(InventoryTask::getTaskNo, taskNo)
+                    .or()
+                    .eq(InventoryTask::getTaskNo, normalizedTaskNo))
                 .last("LIMIT 1")
         );
         if (entity == null) {
             entity = new InventoryTask();
         }
-        entity.setTaskNo(taskNo);
+        entity.setTaskNo(resolvePersistedBusinessNo(entity.getTaskNo(), taskNo, startTime));
         entity.setTaskName(taskName);
         entity.setLocationCode(locationCode);
         entity.setTaskStatus(taskStatus);
@@ -758,7 +808,7 @@ public class DemoDataInitializer implements ApplicationRunner {
         entity.setEndTime(endTime);
         entity.setPrincipalName(principalName);
         entity.setRemark(remark);
-        fillAuditFields(entity, operatorId, startTime, endTime == null ? LocalDateTime.now() : endTime);
+        fillAuditFields(entity, operatorId, startTime, endTime == null ? demoNow() : endTime);
         if (entity.getId() == null) {
             inventoryTaskMapper.insert(entity);
         } else {
@@ -775,9 +825,12 @@ public class DemoDataInitializer implements ApplicationRunner {
                                            String resultStatus,
                                            Long operatorId,
                                            LocalDateTime createTime) {
+        String normalizedTaskNo = normalizeBusinessNo(taskNo, createTime);
         InventoryTask task = inventoryTaskMapper.selectOne(
             Wrappers.<InventoryTask>lambdaQuery()
-                .eq(InventoryTask::getTaskNo, taskNo)
+                .and(wrapper -> wrapper.eq(InventoryTask::getTaskNo, taskNo)
+                    .or()
+                    .eq(InventoryTask::getTaskNo, normalizedTaskNo))
                 .last("LIMIT 1")
         );
         if (task == null || relic == null) {
@@ -801,7 +854,7 @@ public class DemoDataInitializer implements ApplicationRunner {
         entity.setDiffQuantity(diffQuantity);
         entity.setDiffRemark(diffRemark);
         entity.setResultStatus(resultStatus);
-        fillAuditFields(entity, operatorId, createTime, LocalDateTime.now());
+        fillAuditFields(entity, operatorId, createTime, demoNow());
         if (entity.getId() == null) {
             inventoryTaskDetailMapper.insert(entity);
         } else {
@@ -822,15 +875,18 @@ public class DemoDataInitializer implements ApplicationRunner {
                                         LocalDateTime startTime,
                                         LocalDateTime endTime,
                                         String remark) {
+        String normalizedTaskNo = normalizeBusinessNo(taskNo, applyTime);
         RepairTask entity = repairTaskMapper.selectOne(
             Wrappers.<RepairTask>lambdaQuery()
-                .eq(RepairTask::getTaskNo, taskNo)
+                .and(wrapper -> wrapper.eq(RepairTask::getTaskNo, taskNo)
+                    .or()
+                    .eq(RepairTask::getTaskNo, normalizedTaskNo))
                 .last("LIMIT 1")
         );
         if (entity == null) {
             entity = new RepairTask();
         }
-        entity.setTaskNo(taskNo);
+        entity.setTaskNo(resolvePersistedBusinessNo(entity.getTaskNo(), taskNo, applyTime));
         entity.setRelicId(relic.getId());
         entity.setRelicNo(relic.getRelicNo());
         entity.setRelicName(relic.getName());
@@ -845,7 +901,7 @@ public class DemoDataInitializer implements ApplicationRunner {
         entity.setStartTime(startTime);
         entity.setEndTime(endTime);
         entity.setRemark(remark);
-        fillAuditFields(entity, applyUserId, applyTime, LocalDateTime.now());
+        fillAuditFields(entity, applyUserId, applyTime, demoNow());
         if (entity.getId() == null) {
             repairTaskMapper.insert(entity);
         } else {
@@ -866,16 +922,19 @@ public class DemoDataInitializer implements ApplicationRunner {
                                   LocalDateTime reviewTime,
                                   String reviewRemark,
                                   Long operatorId) {
+        String normalizedPlanNo = normalizeBusinessNo(planNo, reviewTime);
         RepairPlan entity = repairPlanMapper.selectOne(
             Wrappers.<RepairPlan>lambdaQuery()
-                .eq(RepairPlan::getPlanNo, planNo)
+                .and(wrapper -> wrapper.eq(RepairPlan::getPlanNo, planNo)
+                    .or()
+                    .eq(RepairPlan::getPlanNo, normalizedPlanNo))
                 .last("LIMIT 1")
         );
         if (entity == null) {
             entity = new RepairPlan();
         }
         entity.setRepairTaskId(repairTaskId);
-        entity.setPlanNo(planNo);
+        entity.setPlanNo(resolvePersistedBusinessNo(entity.getPlanNo(), planNo, reviewTime));
         entity.setPlanTitle(planTitle);
         entity.setPlanContent(planContent);
         entity.setMaterials(materials);
@@ -903,16 +962,19 @@ public class DemoDataInitializer implements ApplicationRunner {
                                  String progressStatus,
                                  String remark,
                                  Long operatorId) {
+        String normalizedLogNo = normalizeBusinessNo(logNo, logTime);
         RepairLog entity = repairLogMapper.selectOne(
             Wrappers.<RepairLog>lambdaQuery()
-                .eq(RepairLog::getLogNo, logNo)
+                .and(wrapper -> wrapper.eq(RepairLog::getLogNo, logNo)
+                    .or()
+                    .eq(RepairLog::getLogNo, normalizedLogNo))
                 .last("LIMIT 1")
         );
         if (entity == null) {
             entity = new RepairLog();
         }
         entity.setRepairTaskId(repairTaskId);
-        entity.setLogNo(logNo);
+        entity.setLogNo(resolvePersistedBusinessNo(entity.getLogNo(), logNo, logTime));
         entity.setStepName(stepName);
         entity.setOperationContent(operationContent);
         entity.setMaterialsUsed(materialsUsed);
@@ -936,16 +998,19 @@ public class DemoDataInitializer implements ApplicationRunner {
                                         String acceptanceRemark,
                                         String followUpSuggestion,
                                         Long operatorId) {
+        String normalizedAcceptanceNo = normalizeBusinessNo(acceptanceNo, acceptanceTime);
         RepairAcceptance entity = repairAcceptanceMapper.selectOne(
             Wrappers.<RepairAcceptance>lambdaQuery()
-                .eq(RepairAcceptance::getAcceptanceNo, acceptanceNo)
+                .and(wrapper -> wrapper.eq(RepairAcceptance::getAcceptanceNo, acceptanceNo)
+                    .or()
+                    .eq(RepairAcceptance::getAcceptanceNo, normalizedAcceptanceNo))
                 .last("LIMIT 1")
         );
         if (entity == null) {
             entity = new RepairAcceptance();
         }
         entity.setRepairTaskId(repairTaskId);
-        entity.setAcceptanceNo(acceptanceNo);
+        entity.setAcceptanceNo(resolvePersistedBusinessNo(entity.getAcceptanceNo(), acceptanceNo, acceptanceTime));
         entity.setAcceptanceResult(acceptanceResult);
         entity.setAcceptanceBy(acceptanceBy);
         entity.setAcceptanceTime(acceptanceTime);
@@ -965,6 +1030,38 @@ public class DemoDataInitializer implements ApplicationRunner {
         entity.setUpdateBy(operatorId);
         entity.setUpdateTime(updateTime);
         entity.setDeleted(0);
+    }
+
+    private LocalDateTime demoNow() {
+        return DEMO_BASE_TIME;
+    }
+
+    private String normalizeBusinessNo(String businessNo, LocalDateTime businessTime) {
+        if (!StringUtils.hasText(businessNo)) {
+            return businessNo;
+        }
+        Matcher dateMatcher = DATE_SERIAL_PATTERN.matcher(businessNo);
+        if (dateMatcher.matches()) {
+            return businessNo;
+        }
+
+        Matcher yearMatcher = YEAR_SERIAL_PATTERN.matcher(businessNo);
+        if (!yearMatcher.matches()) {
+            return businessNo;
+        }
+
+        LocalDateTime resolvedTime = businessTime == null ? demoNow() : businessTime;
+        return String.format("%s-%s-%s",
+            yearMatcher.group(1),
+            resolvedTime.format(DATE_SEGMENT_FORMATTER),
+            yearMatcher.group(3));
+    }
+
+    private String resolvePersistedBusinessNo(String existingBusinessNo, String inputBusinessNo, LocalDateTime businessTime) {
+        if (StringUtils.hasText(existingBusinessNo) && DATE_SERIAL_PATTERN.matcher(existingBusinessNo).matches()) {
+            return existingBusinessNo;
+        }
+        return normalizeBusinessNo(inputBusinessNo, businessTime);
     }
 
     private DemoFileBundle prepareDemoFiles() throws IOException {

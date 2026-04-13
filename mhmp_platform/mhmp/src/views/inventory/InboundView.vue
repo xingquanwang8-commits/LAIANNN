@@ -7,7 +7,7 @@
             <div class="overview-panel__eyebrow">MHMP Inbound Ledger</div>
             <h2 class="overview-panel__title">文物入库台账</h2>
             <p class="overview-panel__desc">
-              统一登记文物入库批次、来源、经手人和入库时间，形成可追踪的入库业务记录，并与文物档案联动。
+              统一登记文物入库批次、来源、入库人、库位和入库时间，提交后进入“入库待审批”，审批通过后文物正式转为“在库”。
             </p>
           </div>
           <div class="overview-panel__meta">
@@ -18,24 +18,24 @@
 
         <div class="metric-grid inbound-metrics">
           <article class="metric-card">
-            <span class="metric-card__label">当前页已完成</span>
-            <strong class="metric-card__value">{{ completedCount }}</strong>
-            <div class="metric-card__meta">已完成的入库单可作为后续业务追溯依据</div>
+            <span class="metric-card__label">当前页待审批</span>
+            <strong class="metric-card__value">{{ pendingCount }}</strong>
+            <div class="metric-card__meta">已提交待审的入库单可在审批页继续处理</div>
           </article>
           <article class="metric-card">
             <span class="metric-card__label">当前页涉及文物</span>
             <strong class="metric-card__value">{{ totalRelicCount }}</strong>
-            <div class="metric-card__meta">按入库单合计统计本页入库文物数量</div>
+            <div class="metric-card__meta">按入库单合计统计当前页文物数量</div>
           </article>
           <article class="metric-card">
-            <span class="metric-card__label">来源类型数</span>
-            <strong class="metric-card__value">{{ sourceCount }}</strong>
-            <div class="metric-card__meta">便于快速识别本页入库来源分布</div>
+            <span class="metric-card__label">当前页已审批</span>
+            <strong class="metric-card__value">{{ approvedCount }}</strong>
+            <div class="metric-card__meta">审批完成后文物正式转为在库状态</div>
           </article>
           <article class="metric-card">
-            <span class="metric-card__label">快速入库准备</span>
-            <strong class="metric-card__value">{{ inboundSelection.totalCount }}</strong>
-            <div class="metric-card__meta">弹窗中已选文物会同步显示前置校验结果</div>
+            <span class="metric-card__label">可入库文物</span>
+            <strong class="metric-card__value">{{ relicOptions.length }}</strong>
+            <div class="metric-card__meta">这里只显示当前处于待入库状态的文物</div>
           </article>
         </div>
       </div>
@@ -64,7 +64,8 @@
           </el-form-item>
           <el-form-item label="状态">
             <el-select v-model="queryForm.status" clearable placeholder="全部状态">
-              <el-option label="已完成" value="COMPLETED" />
+              <el-option label="待审批" value="PENDING" />
+              <el-option label="已审批" value="APPROVED" />
             </el-select>
           </el-form-item>
           <el-form-item class="query-form__actions">
@@ -79,7 +80,7 @@
       <div class="list-section__header">
         <div>
           <div class="list-section__title">入库记录</div>
-          <div class="list-section__desc">当前展示 {{ currentPageCount }} 条入库业务记录，可进入抽屉查看来源、经手人和文物明细。</div>
+          <div class="list-section__desc">当前展示 {{ currentPageCount }} 条入库业务记录，可进入抽屉查看来源、入库人、库位和文物明细。</div>
         </div>
       </div>
 
@@ -90,7 +91,7 @@
         <el-table-column prop="orderNo" label="入库单号" min-width="150" />
         <el-table-column prop="batchNo" label="批次号" min-width="130" />
         <el-table-column prop="source" label="来源" min-width="150" show-overflow-tooltip />
-        <el-table-column prop="handlerName" label="经手人" min-width="120" />
+        <el-table-column prop="handlerName" label="入库人" min-width="120" />
         <el-table-column prop="totalCount" label="数量" width="90" />
         <el-table-column label="入库时间" min-width="160">
           <template #default="{ row }">{{ formatDateTime(row.inboundTime) }}</template>
@@ -128,11 +129,11 @@
               <div class="overview-panel__eyebrow">Inbound Request</div>
               <h3 class="overview-panel__title dialog-overview__title">新建文物入库单</h3>
               <p class="overview-panel__desc">
-                录入来源、经手人、入库时间和涉及文物后即可提交入库单，系统会在提交前自动校验当前文物是否满足入库条件。
+                新增文物只负责建档录入，库位在这里统一填写；提交前系统会自动校验所选文物是否仍然处于待入库状态。
               </p>
             </div>
             <div class="overview-panel__meta">
-              <span class="overview-chip">入库批次保存后生成</span>
+              <span class="overview-chip">批次号保存后自动生成</span>
               <span class="overview-chip overview-chip--accent">已选文物 {{ inboundSelection.totalCount }} 件</span>
             </div>
           </div>
@@ -151,8 +152,8 @@
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="经手人" prop="handlerName">
-                <el-input v-model="formData.handlerName" />
+              <el-form-item label="入库人" prop="handlerName">
+                <el-input v-model="formData.handlerName" disabled />
               </el-form-item>
             </el-col>
             <el-col :span="12">
@@ -165,9 +166,21 @@
                 />
               </el-form-item>
             </el-col>
+            <el-col :span="12">
+              <el-form-item label="入库库位" prop="storageLocationCode">
+                <el-select v-model="formData.storageLocationCode" placeholder="请选择入库库位">
+                  <el-option
+                    v-for="item in locationOptions"
+                    :key="item.itemValue"
+                    :label="item.itemLabel"
+                    :value="item.itemValue"
+                  />
+                </el-select>
+              </el-form-item>
+            </el-col>
             <el-col :span="24">
               <el-form-item label="入库文物" prop="relicIds">
-                <el-select v-model="formData.relicIds" multiple filterable placeholder="请选择文物">
+                <el-select v-model="formData.relicIds" multiple filterable placeholder="请选择待入库文物">
                   <el-option
                     v-for="item in relicOptions"
                     :key="item.id"
@@ -199,7 +212,12 @@
             </el-col>
             <el-col :span="24">
               <el-form-item label="备注">
-                <el-input v-model="formData.remark" type="textarea" :rows="3" placeholder="可记录来源说明、入库背景或交接备注" />
+                <el-input
+                  v-model="formData.remark"
+                  type="textarea"
+                  :rows="3"
+                  placeholder="可记录来源说明、入库背景或交接备注"
+                />
               </el-form-item>
             </el-col>
           </el-row>
@@ -211,7 +229,7 @@
       </template>
     </el-dialog>
 
-    <el-drawer v-model="drawerVisible" title="文物入库详情" size="52%">
+    <el-drawer v-model="drawerVisible" title="文物入库详情" size="56%">
       <div class="detail-stack">
         <div class="overview-panel overview-panel--compact drawer-overview">
           <div class="overview-panel__top">
@@ -219,7 +237,7 @@
               <div class="overview-panel__eyebrow">Inbound Detail</div>
               <h3 class="overview-panel__title drawer-overview__title">{{ detail.orderNo || '入库详情' }}</h3>
               <p class="overview-panel__desc">
-                查看本次入库的批次、来源、经手人、时间和明细文物，便于对接档案登记与后续业务追踪。
+                查看本次入库的批次、来源、入库人、状态和文物明细，便于对接档案登记与后续审批追踪。
               </p>
             </div>
             <div class="overview-panel__meta">
@@ -233,7 +251,7 @@
           <div class="info-section__header">
             <div>
               <h3 class="info-section__title">单据信息</h3>
-              <p class="info-section__desc">汇总入库单号、批次、来源和经手人等关键字段，作为馆内入库登记依据。</p>
+              <p class="info-section__desc">汇总入库单号、批次、来源、入库人和时间等关键字段，作为馆内入库登记依据。</p>
             </div>
           </div>
 
@@ -242,7 +260,7 @@
             <el-descriptions-item label="状态">{{ resolveInboundStatusLabel(detail.status) }}</el-descriptions-item>
             <el-descriptions-item label="批次号">{{ detail.batchNo || '--' }}</el-descriptions-item>
             <el-descriptions-item label="来源">{{ detail.source || '--' }}</el-descriptions-item>
-            <el-descriptions-item label="经手人">{{ detail.handlerName || '--' }}</el-descriptions-item>
+            <el-descriptions-item label="入库人">{{ detail.handlerName || '--' }}</el-descriptions-item>
             <el-descriptions-item label="入库时间">{{ formatDateTime(detail.inboundTime) }}</el-descriptions-item>
             <el-descriptions-item label="备注" :span="2">{{ detail.remark || '--' }}</el-descriptions-item>
           </el-descriptions>
@@ -251,7 +269,7 @@
         <section class="info-section">
           <PageHeader
             title="入库文物明细"
-            description="展示本次入库单中涉及的文物编号、名称、数量和备注，用于入库交接和后续业务核验。"
+            description="展示本次入库涉及的文物编号、名称、库位、数量和备注，用于审批与后续库存核验。"
           />
           <el-table :data="detail.details || []" class="drawer-table">
             <template #empty>
@@ -259,6 +277,11 @@
             </template>
             <el-table-column prop="relicNo" label="文物编号" min-width="140" />
             <el-table-column prop="relicName" label="文物名称" min-width="160" />
+            <el-table-column label="入库库位" min-width="140">
+              <template #default="{ row }">
+                {{ resolveDictLabel(locationOptions, row.storageLocationCode) || '--' }}
+              </template>
+            </el-table-column>
             <el-table-column prop="quantity" label="数量" width="90" />
             <el-table-column prop="remark" label="备注" min-width="140" />
           </el-table>
@@ -277,7 +300,9 @@ import { getRelicDetailApi, getRelicPageApi } from '@/api/relic'
 import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import { useAuthStore } from '@/stores/auth'
-import { formatDateTime } from '@/utils/format'
+import { useDictStore } from '@/stores/dict'
+import { validateElForm } from '@/utils/form'
+import { formatDateTime, resolveDictLabel } from '@/utils/format'
 import {
   analyzeRelicSelection,
   checkInboundRelicEligibility,
@@ -285,6 +310,7 @@ import {
 } from '@/utils/relicBusinessRules'
 
 const authStore = useAuthStore()
+const dictStore = useDictStore()
 const route = useRoute()
 
 const loading = ref(false)
@@ -312,54 +338,68 @@ const formData = reactive({
   source: '',
   handlerName: '',
   inboundTime: '',
+  storageLocationCode: '',
   remark: '',
   relicIds: []
 })
 
 const rules = {
   source: [{ required: true, message: '请输入来源', trigger: 'blur' }],
-  handlerName: [{ required: true, message: '请输入经手人', trigger: 'blur' }],
+  handlerName: [{ required: true, message: '当前入库人不能为空', trigger: 'change' }],
   inboundTime: [{ required: true, message: '请选择入库时间', trigger: 'change' }],
+  storageLocationCode: [{ required: true, message: '请选择入库库位', trigger: 'change' }],
   relicIds: [{ required: true, type: 'array', message: '请选择文物', trigger: 'change' }]
 }
 
+const locationOptions = computed(() => dictStore.itemsMap.storage_location || [])
+const currentOperatorName = computed(() => authStore.displayName || authStore.user?.username || '当前用户')
 const selectedRelics = computed(() =>
   formData.relicIds
     .map((id) => relicOptions.value.find((item) => String(item.id) === String(id)))
     .filter(Boolean)
 )
-
 const inboundSelection = computed(() =>
   analyzeRelicSelection(selectedRelics.value, checkInboundRelicEligibility)
 )
-
 const inboundSelectionTitle = computed(() => (
-  inboundSelection.value.allPassed
-    ? '入库前置校验已通过'
-    : '入库前置校验未通过'
+  inboundSelection.value.allPassed ? '入库前置校验已通过' : '入库前置校验未通过'
 ))
-
 const inboundSelectionSummary = computed(() => {
   if (!inboundSelection.value.totalCount) {
     return ''
   }
   if (inboundSelection.value.allPassed) {
-    return `已选 ${inboundSelection.value.totalCount} 件文物，均符合入库发起条件，可直接提交入库申请。`
+    return `已选 ${inboundSelection.value.totalCount} 件文物，均符合待入库条件，可直接提交入库单。`
   }
-  return `已选 ${inboundSelection.value.totalCount} 件文物，其中 ${inboundSelection.value.invalidItems.length} 件不符合入库条件，请先处理状态再提交。`
+  return `已选 ${inboundSelection.value.totalCount} 件文物，其中 ${inboundSelection.value.invalidItems.length} 件不符合待入库条件，请先处理状态后再提交。`
 })
-
 const currentPageCount = computed(() => pageData.value.records.length)
-const completedCount = computed(() => pageData.value.records.filter((item) => item.status === 'COMPLETED').length)
+const pendingCount = computed(() => pageData.value.records.filter((item) => item.status === 'PENDING').length)
+const approvedCount = computed(() =>
+  pageData.value.records.filter((item) => ['APPROVED', 'COMPLETED'].includes(item.status)).length
+)
 const totalRelicCount = computed(() =>
   pageData.value.records.reduce((sum, item) => sum + Number(item.totalCount || 0), 0)
 )
-const sourceCount = computed(() => new Set(pageData.value.records.map((item) => item.source).filter(Boolean)).size)
 const detailRelicCount = computed(() => detail.value?.details?.length || 0)
 
+function getCurrentDateTime() {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = `${now.getMonth() + 1}`.padStart(2, '0')
+  const day = `${now.getDate()}`.padStart(2, '0')
+  const hour = `${now.getHours()}`.padStart(2, '0')
+  const minute = `${now.getMinutes()}`.padStart(2, '0')
+  const second = `${now.getSeconds()}`.padStart(2, '0')
+  return `${year}-${month}-${day}T${hour}:${minute}:${second}`
+}
+
 function resolveInboundStatusLabel(status) {
-  if (status === 'COMPLETED') {
-    return '已完成'
+  if (status === 'PENDING') {
+    return '待审批'
+  }
+  if (['APPROVED', 'COMPLETED'].includes(status)) {
+    return '已审批'
   }
   return status || '--'
 }
@@ -367,8 +407,9 @@ function resolveInboundStatusLabel(status) {
 function resetForm() {
   Object.assign(formData, {
     source: '',
-    handlerName: '',
-    inboundTime: '',
+    handlerName: currentOperatorName.value,
+    inboundTime: getCurrentDateTime(),
+    storageLocationCode: '',
     remark: '',
     relicIds: []
   })
@@ -385,7 +426,8 @@ function appendRelicOption(relic) {
 async function loadRelicOptions() {
   const page = await getRelicPageApi({
     pageNum: 1,
-    pageSize: 200
+    pageSize: 200,
+    currentStatus: 'TO_BE_INBOUND'
   })
   relicOptions.value = (page.records || [])
     .map((item) => pickRelicBusinessFields(item))
@@ -441,7 +483,10 @@ async function openCreate(prefill = {}) {
 }
 
 async function handleSave() {
-  await formRef.value.validate()
+  const valid = await validateElForm(formRef, '请先完善入库信息后再提交')
+  if (!valid) {
+    return
+  }
   if (!inboundSelection.value.allPassed) {
     ElMessage.warning(inboundSelection.value.invalidItems[0]?.message || '当前选中文物不符合入库条件')
     return
@@ -449,7 +494,7 @@ async function handleSave() {
   saving.value = true
   try {
     await createInboundApi(formData)
-    ElMessage.success('入库单已创建')
+    ElMessage.success('入库单已提交，等待审批')
     dialogVisible.value = false
     await loadOrders()
   } finally {
@@ -498,6 +543,7 @@ async function handleQuickCreateFromRoute() {
   await openCreate({ relicId: route.query.relicId })
 }
 
+dictStore.ensureItems('storage_location')
 watch(
   () => route.fullPath,
   () => {

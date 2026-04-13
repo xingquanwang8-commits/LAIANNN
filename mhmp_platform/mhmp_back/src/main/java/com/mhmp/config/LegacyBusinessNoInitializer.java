@@ -29,8 +29,9 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Comparator;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,8 +43,10 @@ import java.util.stream.Collectors;
 @Order(0)
 public class LegacyBusinessNoInitializer implements ApplicationRunner {
 
+    private static final Pattern DATE_SERIAL_PATTERN = Pattern.compile("^([A-Z]+)-(\\d{8})-(\\d{3,})$");
     private static final Pattern YEAR_SERIAL_PATTERN = Pattern.compile("^([A-Z]+)-(\\d{4})-(\\d{3,})$");
     private static final Pattern YEAR_PATTERN = Pattern.compile("(20\\d{2})");
+    private static final DateTimeFormatter DATE_SEGMENT_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     private final RelicMapper relicMapper;
     private final RelicInboundOrderMapper relicInboundOrderMapper;
@@ -104,7 +107,7 @@ public class LegacyBusinessNoInitializer implements ApplicationRunner {
             "REL",
             Relic::getRelicNo,
             Relic::setRelicNo,
-            relic -> resolveYear(relic.getRelicNo(), relic.getCreateTime()),
+            Relic::getCreateTime,
             relicMapper::updateById
         );
     }
@@ -119,7 +122,7 @@ public class LegacyBusinessNoInitializer implements ApplicationRunner {
             "IN",
             RelicInboundOrder::getOrderNo,
             RelicInboundOrder::setOrderNo,
-            order -> resolveYear(order.getOrderNo(), order.getInboundTime()),
+            RelicInboundOrder::getInboundTime,
             relicInboundOrderMapper::updateById
         );
         normalizeYearSerial(
@@ -127,7 +130,7 @@ public class LegacyBusinessNoInitializer implements ApplicationRunner {
             "BATCH",
             RelicInboundOrder::getBatchNo,
             RelicInboundOrder::setBatchNo,
-            order -> resolveYear(order.getBatchNo(), order.getInboundTime()),
+            RelicInboundOrder::getInboundTime,
             relicInboundOrderMapper::updateById
         );
     }
@@ -142,7 +145,7 @@ public class LegacyBusinessNoInitializer implements ApplicationRunner {
             "OUT",
             RelicOutboundOrder::getOrderNo,
             RelicOutboundOrder::setOrderNo,
-            order -> resolveYear(order.getOrderNo(), order.getOutboundTime()),
+            RelicOutboundOrder::getOutboundTime,
             relicOutboundOrderMapper::updateById
         );
     }
@@ -157,7 +160,7 @@ public class LegacyBusinessNoInitializer implements ApplicationRunner {
             "INV",
             InventoryTask::getTaskNo,
             InventoryTask::setTaskNo,
-            task -> resolveYear(task.getTaskNo(), task.getStartTime()),
+            InventoryTask::getStartTime,
             inventoryTaskMapper::updateById
         );
     }
@@ -172,7 +175,7 @@ public class LegacyBusinessNoInitializer implements ApplicationRunner {
             "REP",
             RepairTask::getTaskNo,
             RepairTask::setTaskNo,
-            task -> resolveYear(task.getTaskNo(), task.getApplyTime()),
+            RepairTask::getApplyTime,
             repairTaskMapper::updateById
         );
     }
@@ -187,7 +190,7 @@ public class LegacyBusinessNoInitializer implements ApplicationRunner {
             "PLAN",
             RepairPlan::getPlanNo,
             RepairPlan::setPlanNo,
-            plan -> resolveYear(plan.getPlanNo(), plan.getReviewTime()),
+            RepairPlan::getReviewTime,
             repairPlanMapper::updateById
         );
     }
@@ -202,7 +205,7 @@ public class LegacyBusinessNoInitializer implements ApplicationRunner {
             "LOG",
             RepairLog::getLogNo,
             RepairLog::setLogNo,
-            log -> resolveYear(log.getLogNo(), log.getLogTime()),
+            RepairLog::getLogTime,
             repairLogMapper::updateById
         );
     }
@@ -217,7 +220,7 @@ public class LegacyBusinessNoInitializer implements ApplicationRunner {
             "ACC",
             RepairAcceptance::getAcceptanceNo,
             RepairAcceptance::setAcceptanceNo,
-            acceptance -> resolveYear(acceptance.getAcceptanceNo(), acceptance.getAcceptanceTime()),
+            RepairAcceptance::getAcceptanceTime,
             repairAcceptanceMapper::updateById
         );
     }
@@ -226,60 +229,89 @@ public class LegacyBusinessNoInitializer implements ApplicationRunner {
                                          String prefix,
                                          java.util.function.Function<T, String> codeGetter,
                                          java.util.function.BiConsumer<T, String> codeSetter,
-                                         java.util.function.ToIntFunction<T> yearResolver,
+                                         java.util.function.Function<T, LocalDateTime> timeResolver,
                                          java.util.function.Consumer<T> updater) {
-        Map<Integer, Integer> yearMaxMap = new HashMap<>();
+        Map<LocalDate, Integer> dateMaxMap = new HashMap<>();
         for (T entity : entities) {
-            String code = codeGetter.apply(entity);
-            Matcher matcher = YEAR_SERIAL_PATTERN.matcher(code == null ? "" : code);
-            if (!matcher.matches() || !prefix.equals(matcher.group(1))) {
+            BusinessNoParts businessNo = parseBusinessNo(prefix, codeGetter.apply(entity));
+            if (businessNo == null || businessNo.businessDate() == null) {
                 continue;
             }
-            int year = Integer.parseInt(matcher.group(2));
-            int seq = Integer.parseInt(matcher.group(3));
-            yearMaxMap.merge(year, seq, Math::max);
+            dateMaxMap.merge(businessNo.businessDate(), businessNo.seq(), Math::max);
         }
 
         List<T> legacyEntities = entities.stream()
-            .filter(entity -> !matchesYearSerial(prefix, codeGetter.apply(entity)))
-            .sorted(Comparator.comparing(
-                entity -> legacySortKey(codeGetter.apply(entity)),
-                Comparator.nullsLast(String::compareTo)
-            ))
+            .filter(entity -> !matchesDateSerial(prefix, codeGetter.apply(entity)))
             .toList();
 
         for (T entity : legacyEntities) {
-            int year = yearResolver.applyAsInt(entity);
-            int nextSeq = yearMaxMap.getOrDefault(year, 0) + 1;
-            yearMaxMap.put(year, nextSeq);
-            codeSetter.accept(entity, String.format("%s-%d-%03d", prefix, year, nextSeq));
+            BusinessNoParts businessNo = parseBusinessNo(prefix, codeGetter.apply(entity));
+            LocalDate businessDate = resolveDate(codeGetter.apply(entity), timeResolver.apply(entity));
+            int currentMax = dateMaxMap.getOrDefault(businessDate, 0);
+            int nextSeq = businessNo == null ? currentMax + 1 : businessNo.seq();
+            if (nextSeq <= currentMax) {
+                nextSeq = currentMax + 1;
+            }
+            dateMaxMap.put(businessDate, nextSeq);
+            codeSetter.accept(entity, formatBusinessNo(prefix, businessDate, nextSeq));
             updater.accept(entity);
         }
     }
 
-    private boolean matchesYearSerial(String prefix, String code) {
-        if (!StringUtils.hasText(code)) {
-            return false;
-        }
-        Matcher matcher = YEAR_SERIAL_PATTERN.matcher(code);
-        return matcher.matches() && prefix.equals(matcher.group(1));
+    private boolean matchesDateSerial(String prefix, String code) {
+        BusinessNoParts businessNo = parseBusinessNo(prefix, code);
+        return businessNo != null && businessNo.businessDate() != null;
     }
 
-    private int resolveYear(String code, LocalDateTime fallbackTime) {
+    private LocalDate resolveDate(String code, LocalDateTime fallbackTime) {
         if (StringUtils.hasText(code)) {
+            Matcher dateMatcher = DATE_SERIAL_PATTERN.matcher(code);
+            if (dateMatcher.matches()) {
+                return LocalDate.parse(dateMatcher.group(2), DATE_SEGMENT_FORMATTER);
+            }
             Matcher matcher = YEAR_PATTERN.matcher(code);
             if (matcher.find()) {
-                return Integer.parseInt(matcher.group(1));
+                int year = Integer.parseInt(matcher.group(1));
+                if (fallbackTime != null && fallbackTime.getYear() == year) {
+                    return fallbackTime.toLocalDate();
+                }
+                return LocalDate.of(year, 1, 1);
             }
         }
         if (fallbackTime != null) {
-            return fallbackTime.getYear();
+            return fallbackTime.toLocalDate();
         }
-        return LocalDateTime.now().getYear();
+        return LocalDate.now();
     }
 
-    private String legacySortKey(String code) {
-        return StringUtils.hasText(code) ? code : "ZZZ";
+    private String formatBusinessNo(String prefix, LocalDate businessDate, int seq) {
+        return String.format("%s-%s-%03d", prefix, businessDate.format(DATE_SEGMENT_FORMATTER), seq);
+    }
+
+    private BusinessNoParts parseBusinessNo(String prefix, String code) {
+        if (!StringUtils.hasText(code)) {
+            return null;
+        }
+
+        Matcher dateMatcher = DATE_SERIAL_PATTERN.matcher(code);
+        if (dateMatcher.matches() && prefix.equals(dateMatcher.group(1))) {
+            return new BusinessNoParts(
+                LocalDate.parse(dateMatcher.group(2), DATE_SEGMENT_FORMATTER),
+                Integer.parseInt(dateMatcher.group(3))
+            );
+        }
+
+        Matcher yearMatcher = YEAR_SERIAL_PATTERN.matcher(code);
+        if (yearMatcher.matches() && prefix.equals(yearMatcher.group(1))) {
+            return new BusinessNoParts(
+                null,
+                Integer.parseInt(yearMatcher.group(3))
+            );
+        }
+        return null;
+    }
+
+    private record BusinessNoParts(LocalDate businessDate, int seq) {
     }
 
     private void syncRelicSnapshots() {

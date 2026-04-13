@@ -281,7 +281,7 @@ public class RepairServiceImpl implements RepairService {
         log.setStepName(createDTO.getStepName());
         log.setOperationContent(createDTO.getOperationContent());
         log.setMaterialsUsed(createDTO.getMaterialsUsed());
-        log.setOperatorName(createDTO.getOperatorName());
+        log.setOperatorName(resolveOperatorName(createDTO.getOperatorName()));
         log.setLogTime(createDTO.getLogTime());
         log.setProgressStatus(createDTO.getProgressStatus());
         log.setRemark(createDTO.getRemark());
@@ -552,6 +552,13 @@ public class RepairServiceImpl implements RepairService {
             return user.getNickName();
         }
         return user.getUsername();
+    }
+
+    private String resolveOperatorName(String operatorName) {
+        if (StringUtils.hasText(operatorName)) {
+            return operatorName.trim();
+        }
+        return StringUtils.hasText(SecurityUtils.getUsername()) ? SecurityUtils.getUsername() : "当前用户";
     }
 
     private void saveRepairAttachments(RepairTask task,

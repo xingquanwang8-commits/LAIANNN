@@ -4,9 +4,11 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.mhmp.common.util.RelicBusinessRuleUtils;
 import com.mhmp.entity.InventoryTask;
 import com.mhmp.entity.Relic;
+import com.mhmp.entity.RelicInboundOrder;
 import com.mhmp.entity.RelicOutboundOrder;
 import com.mhmp.entity.RepairTask;
 import com.mhmp.mapper.InventoryTaskMapper;
+import com.mhmp.mapper.RelicInboundOrderMapper;
 import com.mhmp.mapper.RelicMapper;
 import com.mhmp.mapper.RelicOutboundOrderMapper;
 import com.mhmp.mapper.RepairTaskMapper;
@@ -26,15 +28,18 @@ import java.util.stream.Collectors;
 public class DashboardServiceImpl implements DashboardService {
 
     private final RelicMapper relicMapper;
+    private final RelicInboundOrderMapper relicInboundOrderMapper;
     private final RelicOutboundOrderMapper relicOutboundOrderMapper;
     private final RepairTaskMapper repairTaskMapper;
     private final InventoryTaskMapper inventoryTaskMapper;
 
     public DashboardServiceImpl(RelicMapper relicMapper,
+                                RelicInboundOrderMapper relicInboundOrderMapper,
                                 RelicOutboundOrderMapper relicOutboundOrderMapper,
                                 RepairTaskMapper repairTaskMapper,
                                 InventoryTaskMapper inventoryTaskMapper) {
         this.relicMapper = relicMapper;
+        this.relicInboundOrderMapper = relicInboundOrderMapper;
         this.relicOutboundOrderMapper = relicOutboundOrderMapper;
         this.repairTaskMapper = repairTaskMapper;
         this.inventoryTaskMapper = inventoryTaskMapper;
@@ -46,6 +51,9 @@ public class DashboardServiceImpl implements DashboardService {
         vo.setTotalRelicCount(relicMapper.selectCount(null));
         vo.setInStockRelicCount(relicMapper.selectCount(
             Wrappers.<Relic>lambdaQuery().eq(Relic::getCurrentStatus, "IN_STOCK")
+        ));
+        vo.setInboundPendingCount(relicInboundOrderMapper.selectCount(
+            Wrappers.<RelicInboundOrder>lambdaQuery().eq(RelicInboundOrder::getStatus, "PENDING")
         ));
         vo.setOutboundPendingCount(relicOutboundOrderMapper.selectCount(
             Wrappers.<RelicOutboundOrder>lambdaQuery().eq(RelicOutboundOrder::getApproveStatus, "PENDING")
@@ -80,7 +88,7 @@ public class DashboardServiceImpl implements DashboardService {
             .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
         List<DashboardStatusSliceVO> slices = new ArrayList<>();
-        List<String> preferredOrder = List.of("IN_STOCK", "INBOUND_PENDING", "OUTBOUND_PENDING", "IN_REPAIR", "OUT_STOCK");
+        List<String> preferredOrder = List.of("TO_BE_INBOUND", "INBOUND_PENDING", "IN_STOCK", "OUTBOUND_PENDING", "IN_REPAIR", "OUT_STOCK");
         for (String status : preferredOrder) {
             Long count = statusCountMap.remove(status);
             if (count != null && count > 0) {

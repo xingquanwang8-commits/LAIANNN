@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import { markErrorHandled, resolveErrorMessage, showErrorMessage } from '@/utils/error'
 
 const TOKEN_KEY = 'mhmp_token'
 let redirecting = false
@@ -22,7 +23,7 @@ function handleUnauthorized(message) {
   clearToken()
   if (!redirecting) {
     redirecting = true
-    ElMessage.error(message || '登录已失效，请重新登录')
+    ElMessage.error(resolveErrorMessage(message, '登录已失效，请重新登录'))
     const currentHash = window.location.hash || '#/'
     const redirect = encodeURIComponent(currentHash.replace(/^#/, ''))
     window.location.hash = `/login?redirect=${redirect}`
@@ -30,6 +31,12 @@ function handleUnauthorized(message) {
       redirecting = false
     }, 300)
   }
+}
+
+function rejectHandledMessage(message) {
+  const error = new Error(message)
+  error.userMessage = message
+  return Promise.reject(markErrorHandled(error))
 }
 
 const request = axios.create({
@@ -54,22 +61,22 @@ request.interceptors.response.use(
     if (result.code === 401) {
       handleUnauthorized(result.msg)
     } else if (result.code === 403) {
-      ElMessage.error(result.msg || '没有访问权限')
+      showErrorMessage(result.msg, '没有访问权限')
     } else {
-      ElMessage.error(result.msg || '请求失败')
+      showErrorMessage(result.msg, '请求失败，请稍后重试')
     }
-    return Promise.reject(new Error(result.msg || 'Request Error'))
+    return rejectHandledMessage(resolveErrorMessage(result.msg, '请求失败，请稍后重试'))
   },
   (error) => {
     const status = error.response?.status
     if (status === 401) {
       handleUnauthorized(error.response?.data?.msg)
     } else if (status === 403) {
-      ElMessage.error(error.response?.data?.msg || '没有访问权限')
+      showErrorMessage(error, '没有访问权限')
     } else {
-      ElMessage.error(error.response?.data?.msg || error.message || '网络请求失败')
+      showErrorMessage(error, '网络请求失败，请稍后重试')
     }
-    return Promise.reject(error)
+    return Promise.reject(markErrorHandled(error))
   }
 )
 

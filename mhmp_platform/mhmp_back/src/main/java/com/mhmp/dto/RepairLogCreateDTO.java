@@ -19,7 +19,6 @@ public class RepairLogCreateDTO {
 
     private String materialsUsed;
 
-    @NotBlank(message = "operatorName is required")
     private String operatorName;
 
     @NotNull(message = "logTime is required")

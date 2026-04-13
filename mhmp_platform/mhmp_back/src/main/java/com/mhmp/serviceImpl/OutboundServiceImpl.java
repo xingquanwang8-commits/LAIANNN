@@ -96,7 +96,7 @@ public class OutboundServiceImpl implements OutboundService {
         order.setOrderNo(businessNoService.nextOutboundOrderNo());
         order.setPurpose(createDTO.getPurpose());
         order.setDestination(createDTO.getDestination());
-        order.setHandlerName(createDTO.getHandlerName());
+        order.setHandlerName(resolveOperatorName(createDTO.getHandlerName()));
         order.setOutboundTime(createDTO.getOutboundTime());
         order.setApplyUserId(currentUserId);
         order.setApproveStatus("PENDING");
@@ -237,5 +237,12 @@ public class OutboundServiceImpl implements OutboundService {
         OutboundDetailItemVO vo = new OutboundDetailItemVO();
         BeanUtils.copyProperties(entity, vo);
         return vo;
+    }
+
+    private String resolveOperatorName(String operatorName) {
+        if (StringUtils.hasText(operatorName)) {
+            return operatorName.trim();
+        }
+        return StringUtils.hasText(SecurityUtils.getUsername()) ? SecurityUtils.getUsername() : "当前用户";
     }
 }

@@ -3,6 +3,7 @@ const tagTypeMap = {
   DISABLED: 'info',
   SUCCESS: 'success',
   FAIL: 'danger',
+  TO_BE_INBOUND: 'warning',
   IN_STOCK: 'success',
   INBOUND_PENDING: 'warning',
   OUTBOUND_PENDING: 'warning',

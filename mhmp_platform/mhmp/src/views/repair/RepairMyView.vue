@@ -185,7 +185,7 @@
             <el-input v-model="formData.materialsUsed" placeholder="可填写胶料、纸浆、支撑材料等" />
           </el-form-item>
           <el-form-item label="操作人" prop="operatorName">
-            <el-input v-model="formData.operatorName" />
+            <el-input v-model="formData.operatorName" disabled />
           </el-form-item>
           <el-form-item label="记录时间" prop="logTime">
             <el-date-picker v-model="formData.logTime" type="datetime" value-format="YYYY-MM-DDTHH:mm:ss" />
@@ -266,10 +266,13 @@ import { addRepairLogApi, applyRepairAcceptanceApi, getMyRepairPageApi, getRepai
 import { uploadFileApi } from '@/api/file'
 import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
+import { useAuthStore } from '@/stores/auth'
+import { validateElForm } from '@/utils/form'
 import RepairTaskDrawer from './components/RepairTaskDrawer.vue'
 import { formatDateTime } from '@/utils/format'
 
 const route = useRoute()
+const authStore = useAuthStore()
 const loading = ref(false)
 const saving = ref(false)
 const dialogVisible = ref(false)
@@ -324,6 +327,7 @@ const acceptanceStatusLabelMap = {
   REJECTED: '验收被驳回'
 }
 
+const currentOperatorName = computed(() => authStore.displayName || authStore.user?.username || '褰撳墠鐢ㄦ埛')
 const imageAttachments = computed(() => formData.attachments.filter((item) => item.attachmentType === 'REPAIR_IMAGE'))
 const fileAttachments = computed(() => formData.attachments.filter((item) => item.attachmentType === 'REPAIR_FILE'))
 const currentPageCount = computed(() => pageData.value.records.length)
@@ -350,7 +354,7 @@ function resetForm() {
     stepName: '',
     operationContent: '',
     materialsUsed: '',
-    operatorName: '',
+    operatorName: currentOperatorName.value,
     logTime: currentDateTime(),
     progressStatus: 'IN_PROGRESS',
     remark: '',
@@ -415,7 +419,10 @@ async function refreshCurrentDetail(id) {
 }
 
 async function handleSubmitProgress() {
-  await formRef.value.validate()
+  const valid = await validateElForm(formRef, '璇峰厛瀹屽杽淇杩涘害淇℃伅鍚庡啀鎻愪氦')
+  if (!valid) {
+    return
+  }
   saving.value = true
   try {
     await addRepairLogApi(currentTaskId.value, formData)
@@ -441,8 +448,8 @@ async function handleSubmitAcceptance(id) {
     await loadPage()
     await refreshCurrentDetail(id)
   } catch (error) {
-    if (error !== 'cancel' && error !== 'close') {
-      throw error
+    if (error === 'cancel' || error === 'close') {
+      return
     }
   } finally {
     saving.value = false

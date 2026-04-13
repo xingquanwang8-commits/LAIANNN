@@ -47,4 +47,12 @@ public class InboundController {
     public Result<Long> create(@Valid @RequestBody InboundCreateDTO createDTO) {
         return Result.success(inboundService.create(createDTO));
     }
+
+    @PostMapping("/approve/{id}")
+    @PreAuthorize("hasAuthority('inventory:inbound:approve')")
+    @OperationLog(module = "Inbound", businessType = "APPROVE", description = "Approve inbound order")
+    public Result<Void> approve(@PathVariable Long id) {
+        inboundService.approve(id);
+        return Result.success();
+    }
 }

@@ -22,3 +22,10 @@ export function createInboundApi(data) {
     data
   })
 }
+
+export function approveInboundApi(id) {
+  return request({
+    url: `/inbound/approve/${id}`,
+    method: 'post'
+  })
+}

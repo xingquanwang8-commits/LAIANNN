@@ -220,6 +220,7 @@ import {
 import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import { useAuthStore } from '@/stores/auth'
+import { validateElForm } from '@/utils/form'
 
 const authStore = useAuthStore()
 
@@ -325,7 +326,10 @@ async function handleSave() {
     ElMessage.warning('当前账号没有新增角色的权限')
     return
   }
-  await formRef.value.validate()
+  const valid = await validateElForm(formRef, '璇峰厛瀹屽杽瑙掕壊淇℃伅鍚庡啀淇濆瓨')
+  if (!valid) {
+    return
+  }
   saving.value = true
   try {
     if (editingId.value) {

@@ -34,6 +34,7 @@ public class PermissionMetadataInitializer implements ApplicationRunner {
         new ButtonPermissionDefinition("sys:role", "角色删除", "sys:role:delete", "sys:role:delete", 5, "角色管理删除权限"),
         new ButtonPermissionDefinition("sys:menu", "菜单编辑", "sys:menu:edit", "sys:menu:edit", 2, "菜单管理编辑权限"),
         new ButtonPermissionDefinition("sys:menu", "菜单删除", "sys:menu:delete", "sys:menu:delete", 3, "菜单管理删除权限"),
+        new ButtonPermissionDefinition("inventory:inbound", "入库审批", "inventory:inbound:approve", "inventory:inbound:approve", 0, "文物入库审批权限"),
         new ButtonPermissionDefinition("inventory:task", "盘点任务新增", "inventory:task:add", "inventory:task:add", 0, "盘点任务创建权限")
     );
 
@@ -45,9 +46,13 @@ public class PermissionMetadataInitializer implements ApplicationRunner {
             "sys:role:delete",
             "sys:menu:edit",
             "sys:menu:delete",
+            "inventory:inbound:approve",
             "inventory:task:add"
         ),
-        "researcher", List.of("inventory:task:add")
+        "researcher", List.of(
+            "inventory:task:add",
+            "inventory:inbound:approve"
+        )
     );
 
     private final SysMenuMapper sysMenuMapper;

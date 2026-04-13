@@ -5,6 +5,7 @@ import com.mhmp.common.security.LoginUser;
 import com.mhmp.dto.RepairAcceptanceDTO;
 import com.mhmp.dto.RepairApproveDTO;
 import com.mhmp.entity.RepairAcceptance;
+import com.mhmp.entity.RepairPlan;
 import com.mhmp.entity.RepairTask;
 import com.mhmp.entity.Relic;
 import com.mhmp.mapper.RepairAcceptanceMapper;
@@ -113,8 +114,8 @@ class RepairServiceImplTest {
         repairService.approve(1L, dto);
 
         verify(repairTaskMapper).updateById(task);
-        verify(repairPlanMapper, never()).insert(any());
-        verify(repairPlanMapper, never()).updateById(any());
+        verify(repairPlanMapper, never()).insert(any(RepairPlan.class));
+        verify(repairPlanMapper, never()).updateById(any(RepairPlan.class));
 
         assertEquals("APPROVED", task.getTaskStatus());
         assertEquals("UNACCEPTED", task.getAcceptanceStatus());
@@ -163,7 +164,7 @@ class RepairServiceImplTest {
         when(repairTaskMapper.selectById(2L)).thenReturn(task);
         when(relicMapper.selectById(21L)).thenReturn(relic);
         when(repairAcceptanceMapper.selectOne(any())).thenReturn(null);
-        when(businessNoService.nextRepairAcceptanceNo()).thenReturn("ACC-2026-001");
+        when(businessNoService.nextRepairAcceptanceNo()).thenReturn("ACC-20260408-001");
 
         RepairAcceptanceDTO dto = new RepairAcceptanceDTO();
         dto.setAcceptanceResult("PASS");
@@ -184,7 +185,7 @@ class RepairServiceImplTest {
         assertEquals("IN_STOCK", relic.getCurrentStatus());
         assertEquals("BASIC_COMPLETE", relic.getPreservationStatusCode());
         assertEquals("LOC_A", relic.getStorageLocationCode());
-        assertEquals("ACC-2026-001", acceptanceCaptor.getValue().getAcceptanceNo());
+        assertEquals("ACC-20260408-001", acceptanceCaptor.getValue().getAcceptanceNo());
     }
 
     @Test
@@ -230,7 +231,7 @@ class RepairServiceImplTest {
         when(repairTaskMapper.selectById(4L)).thenReturn(task);
         when(relicMapper.selectById(23L)).thenReturn(relic);
         when(repairAcceptanceMapper.selectOne(any())).thenReturn(null);
-        when(businessNoService.nextRepairAcceptanceNo()).thenReturn("ACC-2026-002");
+        when(businessNoService.nextRepairAcceptanceNo()).thenReturn("ACC-20260408-002");
 
         RepairAcceptanceDTO dto = new RepairAcceptanceDTO();
         dto.setAcceptanceResult("REJECTED");

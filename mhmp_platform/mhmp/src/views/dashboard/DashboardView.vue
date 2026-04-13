@@ -76,7 +76,7 @@
           </template>
         </PageHeader>
 
-        <div v-if="todoCards.length" class="todo-grid">
+        <div v-if="todoCards.length" :class="todoGridClass">
           <button
             v-for="item in todoCards"
             :key="item.title"
@@ -162,6 +162,7 @@ const shortcutDescriptionMap = {
   '/relic/list': '统一检索馆藏档案、库位状态与数字化资料。',
   '/relic/transfer': '在馆内库位之间发起单件或批量转存。',
   '/inventory/inbound': '登记来源、批次和入库文物，形成入库台账。',
+  '/inventory/inbound/approve': '集中处理入库审批并将文物正式转为在库状态。',
   '/inventory/outbound/apply': '提交文物出库申请并跟踪流转状态。',
   '/inventory/outbound/approve': '处理出库审批、归还登记与流转闭环。',
   '/inventory/query': '按状态、类别、材质和库位筛查库存文物。',
@@ -180,6 +181,7 @@ const dictStore = useDictStore()
 const summary = ref({
   totalRelicCount: 0,
   inStockRelicCount: 0,
+  inboundPendingCount: 0,
   outboundPendingCount: 0,
   outboundReturnPendingCount: 0,
   repairPendingCount: 0,
@@ -201,6 +203,11 @@ const shortcutCards = computed(() =>
 const activeTodoCount = computed(() =>
   todoCards.value.reduce((sum, item) => sum + Number(item.count || 0), 0)
 )
+
+const todoGridClass = computed(() => [
+  'todo-grid',
+  { 'todo-grid--compact': todoCards.value.length > 6 }
+])
 
 const statusStats = computed(() => {
   const total = summary.value.totalRelicCount || 0
@@ -238,6 +245,13 @@ const pieStyle = computed(() => {
 
 const todoCards = computed(() => {
   const items = [
+    {
+      title: '待入库审批',
+      description: '处理已提交的入库单并确认文物正式入库。',
+      count: summary.value.inboundPendingCount || 0,
+      route: { path: '/inventory/inbound/approve', query: { status: 'PENDING' } },
+      visible: authStore.hasPermission('inventory:inbound:approve')
+    },
     {
       title: '待出库审批',
       description: '处理文物出库申请并完成审批流转。',
@@ -452,6 +466,15 @@ onMounted(() => {
   margin-top: 18px;
 }
 
+.todo-grid--compact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.todo-grid--compact .todo-card {
+  padding: 14px;
+}
+
 .todo-card {
   padding: 16px;
   border: 1px solid var(--border-line);
@@ -587,6 +610,10 @@ onMounted(() => {
 
 @media (max-width: 720px) {
   .dashboard-focus-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .todo-grid--compact {
     grid-template-columns: 1fr;
   }
 

@@ -125,7 +125,7 @@ export const APP_ROUTE_DEFINITIONS = [
     meta: {
       title: '文物入库',
       requiresAuth: true,
-      permission: 'inventory:inbound:view'
+      permission: 'inventory:inbound:approve'
     }
   },
   {
@@ -156,6 +156,16 @@ export const APP_ROUTE_DEFINITIONS = [
       title: '库存查询',
       requiresAuth: true,
       permission: 'inventory:query:view'
+    }
+  },
+  {
+    path: 'inventory/inbound/approve',
+    name: 'inventory-inbound-approve',
+    component: () => import('@/views/inventory/InboundApproveView.vue'),
+    meta: {
+      title: '入库审批',
+      requiresAuth: true,
+      permission: 'inventory:inbound:view'
     }
   },
   {

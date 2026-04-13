@@ -9,6 +9,7 @@ public class InboundDetailItemVO {
     private Long relicId;
     private String relicNo;
     private String relicName;
+    private String storageLocationCode;
     private Integer quantity;
     private String remark;
 }

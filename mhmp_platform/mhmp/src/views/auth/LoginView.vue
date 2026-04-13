@@ -80,6 +80,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
 import { APP_BRAND_LINE, APP_LOGO_PUBLIC_PATH } from '@/constants/menu'
+import { validateElForm } from '@/utils/form'
 import { getFirstAccessiblePath } from '@/utils/menu'
 
 const router = useRouter()
@@ -99,7 +100,7 @@ const rules = {
 }
 
 async function handleLogin() {
-  const valid = await formRef.value.validate().catch(() => false)
+  const valid = await validateElForm(formRef, '璇峰厛杈撳叆鐢ㄦ埛鍚嶅拰瀵嗙爜')
   if (!valid) {
     return
   }

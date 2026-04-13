@@ -96,6 +96,7 @@ import { computed, reactive, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { acceptRepairApi } from '@/api/repair'
 import { useDictStore } from '@/stores/dict'
+import { validateElForm } from '@/utils/form'
 
 const props = defineProps({
   modelValue: {
@@ -182,7 +183,10 @@ function switchAction(action) {
 }
 
 async function handleSubmit(action) {
-  await formRef.value.validate()
+  const valid = await validateElForm(formRef, '璇峰厛瀹屽杽楠屾敹淇℃伅鍚庡啀鎻愪氦')
+  if (!valid) {
+    return
+  }
   if (!props.taskId) {
     return
   }

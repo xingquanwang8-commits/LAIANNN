@@ -159,7 +159,7 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="经手人" prop="handlerName">
-                <el-input v-model="form.handlerName" />
+                <el-input v-model="form.handlerName" disabled />
               </el-form-item>
             </el-col>
             <el-col :span="12">
@@ -299,6 +299,7 @@ import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useDictStore } from '@/stores/dict'
+import { validateElForm } from '@/utils/form'
 import { formatDateTime, resolveDictLabel } from '@/utils/format'
 import {
   analyzeRelicSelection,
@@ -350,6 +351,7 @@ const rules = {
 
 const statusOptions = computed(() => dictStore.itemsMap.outbound_status || [])
 const relicStatusOptions = computed(() => dictStore.itemsMap.relic_status || [])
+const currentOperatorName = computed(() => authStore.displayName || authStore.user?.username || '当前用户')
 const selectedRelics = computed(() =>
   form.relicIds
     .map((id) => relicOptions.value.find((item) => String(item.id) === String(id)))
@@ -409,7 +411,7 @@ function resetForm() {
   Object.assign(form, {
     purpose: '',
     destination: '',
-    handlerName: '',
+    handlerName: currentOperatorName.value,
     outboundTime: getCurrentDateTime(),
     remark: '',
     relicIds: []
@@ -503,7 +505,7 @@ function handleReset() {
 }
 
 async function handleSave() {
-  const valid = await formRef.value.validate().catch(() => false)
+  const valid = await validateElForm(formRef, '请先完善出库申请信息后再提交')
   if (!valid) {
     return
   }

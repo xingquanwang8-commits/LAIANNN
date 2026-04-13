@@ -133,7 +133,7 @@ public class InventoryServiceImpl implements InventoryService {
         task.setLocationCode(createDTO.getLocationCode());
         task.setTaskStatus("CREATED");
         task.setStartTime(createDTO.getStartTime());
-        task.setPrincipalName(createDTO.getPrincipalName());
+        task.setPrincipalName(resolveOperatorName(createDTO.getPrincipalName()));
         task.setRemark(createDTO.getRemark());
         task.setCreateBy(currentUserId);
         task.setUpdateBy(currentUserId);
@@ -234,5 +234,12 @@ public class InventoryServiceImpl implements InventoryService {
         InventoryTaskItemVO vo = new InventoryTaskItemVO();
         BeanUtils.copyProperties(entity, vo);
         return vo;
+    }
+
+    private String resolveOperatorName(String operatorName) {
+        if (StringUtils.hasText(operatorName)) {
+            return operatorName.trim();
+        }
+        return StringUtils.hasText(SecurityUtils.getUsername()) ? SecurityUtils.getUsername() : "当前用户";
     }
 }

@@ -5,8 +5,12 @@
         <div class="overview-panel__top">
           <div>
             <div class="overview-panel__eyebrow">MHMP Archive Workspace</div>
-            <h2 class="overview-panel__title">{{ formOverviewTitle }}</h2>
-            <p class="overview-panel__desc">{{ formOverviewDesc }}</p>
+            <h2 class="overview-panel__title">{{ archiveOverviewTitle }}</h2>
+            <p class="overview-panel__desc">{{ archiveOverviewDesc }}</p>
+          </div>
+          <div v-if="false" class="overview-panel__meta">
+            <span class="overview-chip">{{ isEdit ? `档案编号 ${form.relicNo || '--'}` : '编号保存后自动生成' }}</span>
+            <span class="overview-chip overview-chip--accent">当前状态 {{ currentStatusLabel }}</span>
           </div>
           <div class="overview-panel__meta">
             <span class="overview-chip">{{ isEdit ? `档案编号 ${form.relicNo || '--'}` : '编号保存后自动生成' }}</span>
@@ -14,7 +18,7 @@
           </div>
         </div>
 
-        <div class="metric-grid relic-form__metrics">
+        <div v-if="false" class="metric-grid relic-form__metrics">
           <article class="metric-card">
             <span class="metric-card__label">当前状态</span>
             <strong class="metric-card__value">{{ currentStatusLabel }}</strong>
@@ -123,7 +127,7 @@
               <el-form-item label="藏品库位" prop="storageLocationCode">
                 <el-select
                   v-model="form.storageLocationCode"
-                  :placeholder="locationPlaceholder"
+                  :placeholder="archiveLocationPlaceholder"
                   :disabled="locationSelectDisabled"
                   clearable
                 >
@@ -137,7 +141,7 @@
                 <div class="field-hint">{{ currentStatusHints.location }}</div>
               </el-form-item>
               <el-form-item label="当前状态" prop="currentStatus">
-                <el-select v-model="form.currentStatus" placeholder="请选择当前状态">
+                <el-select v-model="form.currentStatus" :disabled="!isEdit" placeholder="请选择当前状态">
                   <el-option
                     v-for="item in statusOptions"
                     :key="item.itemValue"
@@ -176,7 +180,7 @@
               </div>
             </div>
 
-            <div class="page-grid upload-grid">
+            <div v-if="false" class="page-grid upload-grid">
               <div class="upload-card">
                 <div class="upload-card__header">文物主图</div>
                 <div class="upload-card__body">
@@ -198,6 +202,38 @@
                   <el-upload :show-file-list="false" :http-request="handleReportUpload">
                     <el-button>上传报告</el-button>
                   </el-upload>
+                </div>
+              </div>
+            </div>
+
+            <div class="page-grid upload-grid">
+              <div class="upload-card">
+                <div class="upload-card__header">文物主图</div>
+                <div class="upload-card__body">
+                  <img v-if="form.imageUrl" :src="form.imageUrl" alt="文物主图" class="upload-preview">
+                  <div v-else class="upload-placeholder">暂无主图</div>
+                  <div class="upload-card__actions">
+                    <el-upload :show-file-list="false" accept="image/*" :http-request="handleImageUpload">
+                      <el-button>上传主图</el-button>
+                    </el-upload>
+                    <el-button v-if="form.imageUrl" text type="danger" @click="clearCoverImage">删除主图</el-button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="upload-card">
+                <div class="upload-card__header">鉴定报告</div>
+                <div class="upload-card__body upload-card__body--left">
+                  <a v-if="form.appraisalReportUrl" :href="form.appraisalReportUrl" target="_blank" rel="noreferrer">
+                    查看当前鉴定报告
+                  </a>
+                  <span v-else class="upload-placeholder upload-placeholder--inline">暂无鉴定报告</span>
+                  <div class="upload-card__actions upload-card__actions--left">
+                    <el-upload :show-file-list="false" :http-request="handleReportUpload">
+                      <el-button>上传报告</el-button>
+                    </el-upload>
+                    <el-button v-if="form.appraisalReportUrl" text type="danger" @click="clearAppraisalReport">删除报告</el-button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -479,6 +515,7 @@ const availablePreservationOptions = computed(() => {
 })
 const shouldEditStorageLocation = computed(() => isEdit.value && form.currentStatus !== 'TO_BE_INBOUND')
 const locationSelectDisabled = computed(() => !shouldEditStorageLocation.value || form.currentStatus === 'OUT_STOCK')
+// eslint-disable-next-line no-unused-vars
 const locationPlaceholder = computed(() =>
   !shouldEditStorageLocation.value
     ? '鏂板缓妗ｆ鏃朵笉濉啓搴撲綅锛屽叆搴撴椂鍐嶅綍鍏?'
@@ -488,6 +525,12 @@ const locationPlaceholder = computed(() =>
 const preservationPlaceholder = computed(() =>
   form.currentStatus === 'IN_REPAIR' ? '修复中仅可选择病害类保存状态' : '请选择保存状态'
 )
+const archiveLocationPlaceholder = computed(() => {
+  if (!shouldEditStorageLocation.value) {
+    return '新增建档阶段不填写库位，请在入库时再填写'
+  }
+  return form.currentStatus === 'OUT_STOCK' ? '已出库状态无需选择库位' : '请选择藏品库位'
+})
 const currentStatusHints = computed(() => STATUS_RULE_HINTS[form.currentStatus] || STATUS_RULE_HINTS.IN_STOCK)
 const currentStatusLabel = computed(() => resolveDictLabel(statusOptions.value, form.currentStatus) || '待设置')
 const currentLocationLabel = computed(() => {
@@ -523,11 +566,19 @@ const digitalAssetCount = computed(() => {
   })
   return assetUrls.size
 })
+// eslint-disable-next-line no-unused-vars
 const formOverviewTitle = computed(() => (isEdit.value ? '完善文物档案' : '新建文物档案'))
+// eslint-disable-next-line no-unused-vars
 const formOverviewDesc = computed(() => (
   isEdit.value
     ? '在不改变现有业务逻辑的前提下补全文物档案、保管状态和数字资料，保证详情页、台账导出与后续业务流转展示一致。'
     : '录入新入藏文物的基础档案、保管状态和数字资料，形成可直接投入演示与业务流转的标准文物档案。'
+))
+const archiveOverviewTitle = computed(() => (isEdit.value ? '完善文物档案' : '新建文物档案'))
+const archiveOverviewDesc = computed(() => (
+  isEdit.value
+    ? '编辑文物档案时可维护基础信息、保存状态和数字化资料，确保后续出入库、修复和台账展示一致。'
+    : '新增文物时仅完成档案信息录入，库位信息在后续入库时填写，便于将建档和入库流程分开展示。'
 ))
 const statusRuleSummary = computed(() => `${currentStatusHints.value.location} ${currentStatusHints.value.preservation}`)
 
@@ -608,12 +659,24 @@ function validatePreservationStatus(_rule, value, callback) {
   callback()
 }
 
+function validateArchiveStorageLocation(_rule, value, callback) {
+  if (!shouldEditStorageLocation.value) {
+    if (value) {
+      callback(new Error('新增文物建档时无需填写库位，请在入库时再填写'))
+      return
+    }
+    callback()
+    return
+  }
+  validateStorageLocation(_rule, value, callback)
+}
+
 const rules = {
   name: [{ required: true, message: '请输入文物名称', trigger: 'blur' }],
   categoryCode: [{ required: true, message: '请选择文物类别', trigger: 'change' }],
   materialCode: [{ required: true, message: '请选择文物材质', trigger: 'change' }],
   currentStatus: [{ required: true, message: '请选择当前状态', trigger: 'change' }],
-  storageLocationCode: [{ validator: validateStorageLocation, trigger: 'change' }],
+  storageLocationCode: [{ validator: validateArchiveStorageLocation, trigger: 'change' }],
   preservationStatusCode: [{ validator: validatePreservationStatus, trigger: 'change' }]
 }
 
@@ -682,6 +745,16 @@ async function handleReportUpload(option) {
   form.appraisalReportUrl = result.fileUrl
 }
 
+function clearCoverImage() {
+  form.imageUrl = ''
+  ElMessage.success('主图已删除')
+}
+
+function clearAppraisalReport() {
+  form.appraisalReportUrl = ''
+  ElMessage.success('鉴定报告已删除')
+}
+
 async function handleAttachmentUpload(option) {
   const result = await handleUpload(option.file, 'relic-attachment')
   form.attachments.push({
@@ -709,7 +782,7 @@ function setCoverImage(fileUrl) {
 }
 
 async function handleCreateCategory() {
-  const valid = await validateElForm(categoryFormRef, '璇峰厛杈撳叆鏂囩墿鍒嗙被鍚嶇О')
+  const valid = await validateElForm(categoryFormRef, '请先输入文物分类名称')
   if (!valid) {
     return
   }
@@ -731,7 +804,7 @@ async function handleCreateCategory() {
 }
 
 async function handleCreateMaterial() {
-  const valid = await validateElForm(materialFormRef, '璇峰厛杈撳叆鏂囩墿鏉愯川鍚嶇О')
+  const valid = await validateElForm(materialFormRef, '请先输入文物材质名称')
   if (!valid) {
     return
   }
@@ -754,7 +827,7 @@ async function handleCreateMaterial() {
 
 async function handleSubmit() {
   normalizeFormByStatus()
-  const valid = await validateElForm(formRef, '璇峰厛瀹屽杽鏂囩墿妗ｆ淇℃伅鍚庡啀鎻愪氦')
+  const valid = await validateElForm(formRef, '请先完善文物档案信息后再提交')
   if (!valid) {
     return
   }
@@ -862,6 +935,17 @@ loadDetail()
 
 .upload-card__body--left {
   align-items: flex-start;
+}
+
+.upload-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.upload-card__actions--left {
+  justify-content: flex-start;
 }
 
 .upload-spec-note {

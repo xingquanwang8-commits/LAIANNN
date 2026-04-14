@@ -40,6 +40,7 @@
 | Vue CLI 5 | 构建工具 | 开发、打包、代理转发 |
 | ESLint | 代码规范 | 基础静态检查 |
 
+前端当前推荐使用 Node.js 18 LTS 或 20 LTS 作为运行环境。由于 Vue CLI 5 的依赖链仍包含 `spdy` 等旧包，项目已在 `mhmp/package.json` 中增加 `postinstall` 自动补丁脚本，用于把旧依赖中的 `util._extend` 替换为标准 `Object.assign()`，以消除新版 Node 的废弃告警；答辩和演示环境不建议使用 Node.js 24。
 前端当前已对 Element Plus 做按需组件注册和按需样式引入，用于在不影响现有功能的前提下减小构建包体。
 
 ### 2.2 后端技术栈
@@ -61,6 +62,7 @@
 | --- | --- | --- |
 | 前端端口 | `8081` | `mhmp/vue.config.js` |
 | 后端端口 | `8080` | `application.yml` |
+| Node.js | `18 LTS` / `20 LTS` | 前端推荐运行环境，不建议使用 `24.x` |
 | MySQL | `127.0.0.1:3306/mhmp_db` | 主业务数据库 |
 | Redis | `127.0.0.1:6379` | Token 状态缓存 |
 | 上传目录 | `uploads` | 业务附件物理存储目录 |

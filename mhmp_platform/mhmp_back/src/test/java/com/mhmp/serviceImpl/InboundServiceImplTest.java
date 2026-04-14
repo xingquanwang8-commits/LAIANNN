@@ -24,6 +24,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -117,8 +118,6 @@ class InboundServiceImplTest {
         when(relicInboundOrderMapper.selectById(1L)).thenReturn(order);
         when(relicInboundDetailMapper.selectList(any())).thenReturn(List.of(detailOne, detailTwo));
         when(relicMapper.selectBatchIds(List.of(11L, 12L))).thenReturn(List.of(relicOne, relicTwo));
-        when(relicMapper.selectById(11L)).thenReturn(relicOne);
-        when(relicMapper.selectById(12L)).thenReturn(relicTwo);
 
         inboundService.approve(1L);
 
@@ -129,6 +128,8 @@ class InboundServiceImplTest {
         assertEquals("APPROVED", order.getStatus());
         assertEquals("IN_STOCK", relicOne.getCurrentStatus());
         assertEquals("IN_STOCK", relicTwo.getCurrentStatus());
+        verify(relicMapper, never()).selectById(11L);
+        verify(relicMapper, never()).selectById(12L);
     }
 
     private Relic buildRelic(Long id, String relicNo, String name, String currentStatus) {

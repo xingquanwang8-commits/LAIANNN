@@ -27,8 +27,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -66,7 +68,12 @@ public class OutboundServiceImpl implements OutboundService {
                 .orderByDesc(RelicOutboundOrder::getCreateTime)
                 .orderByDesc(RelicOutboundOrder::getId)
         );
-        List<OutboundListVO> records = resultPage.getRecords().stream().map(this::toListVO).toList();
+        Map<Long, Integer> detailCountMap = loadDetailCountMap(resultPage.getRecords().stream()
+            .map(RelicOutboundOrder::getId)
+            .toList());
+        List<OutboundListVO> records = resultPage.getRecords().stream()
+            .map(order -> toListVO(order, detailCountMap))
+            .toList();
         return PageResponse.of(resultPage, records);
     }
 
@@ -130,7 +137,8 @@ public class OutboundServiceImpl implements OutboundService {
     @Transactional(rollbackFor = Exception.class)
     public void approve(Long id, OutboundApproveDTO approveDTO) {
         RelicOutboundOrder order = getOrderOrThrow(id);
-        RelicBusinessRuleUtils.validateOutboundApprovable(order, loadOrderRelics(id));
+        OutboundOrderContext orderContext = loadOrderContext(id);
+        RelicBusinessRuleUtils.validateOutboundApprovable(order, toRelicList(orderContext));
 
         Long currentUserId = SecurityUtils.getUserId();
         order.setApproveStatus("APPROVED");
@@ -139,14 +147,15 @@ public class OutboundServiceImpl implements OutboundService {
         order.setApproveRemark(approveDTO.getApproveRemark());
         order.setUpdateBy(currentUserId);
         relicOutboundOrderMapper.updateById(order);
-        updateRelicStatus(id, "OUT_STOCK", currentUserId);
+        updateRelicStatus(orderContext, "OUT_STOCK", currentUserId);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void reject(Long id, OutboundApproveDTO approveDTO) {
         RelicOutboundOrder order = getOrderOrThrow(id);
-        RelicBusinessRuleUtils.validateOutboundRejectable(order, loadOrderRelics(id));
+        OutboundOrderContext orderContext = loadOrderContext(id);
+        RelicBusinessRuleUtils.validateOutboundRejectable(order, toRelicList(orderContext));
 
         Long currentUserId = SecurityUtils.getUserId();
         order.setApproveStatus("REJECTED");
@@ -155,14 +164,15 @@ public class OutboundServiceImpl implements OutboundService {
         order.setApproveRemark(approveDTO.getApproveRemark());
         order.setUpdateBy(currentUserId);
         relicOutboundOrderMapper.updateById(order);
-        updateRelicStatus(id, "IN_STOCK", currentUserId);
+        updateRelicStatus(orderContext, "IN_STOCK", currentUserId);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void returnOrder(Long id, OutboundReturnDTO returnDTO) {
         RelicOutboundOrder order = getOrderOrThrow(id);
-        RelicBusinessRuleUtils.validateOutboundReturnable(order, loadOrderRelics(id));
+        OutboundOrderContext orderContext = loadOrderContext(id);
+        RelicBusinessRuleUtils.validateOutboundReturnable(order, toRelicList(orderContext));
 
         Long currentUserId = SecurityUtils.getUserId();
         order.setApproveStatus("RETURNED");
@@ -172,7 +182,7 @@ public class OutboundServiceImpl implements OutboundService {
         }
         order.setUpdateBy(currentUserId);
         relicOutboundOrderMapper.updateById(order);
-        updateRelicStatus(id, "IN_STOCK", currentUserId);
+        updateRelicStatus(orderContext, "IN_STOCK", currentUserId);
     }
 
     private RelicOutboundOrder getOrderOrThrow(Long id) {
@@ -183,36 +193,37 @@ public class OutboundServiceImpl implements OutboundService {
         return order;
     }
 
-    private List<Relic> loadOrderRelics(Long orderId) {
-        List<RelicOutboundDetail> details = listOrderDetails(orderId);
-        List<Long> relicIds = details.stream()
-            .map(RelicOutboundDetail::getRelicId)
-            .distinct()
-            .toList();
-        if (relicIds.isEmpty()) {
-            return List.of();
-        }
-        Map<Long, Relic> relicMap = relicMapper.selectBatchIds(relicIds).stream()
-            .collect(Collectors.toMap(Relic::getId, Function.identity()));
-        return details.stream()
-            .map(detail -> relicMap.get(detail.getRelicId()))
-            .toList();
-    }
-
     private List<OutboundDetailItemVO> listDetailItems(Long orderId) {
         return listOrderDetails(orderId).stream()
             .map(this::toDetailItemVO)
             .toList();
     }
 
-    private void updateRelicStatus(Long orderId, String targetStatus, Long currentUserId) {
-        for (RelicOutboundDetail detail : listOrderDetails(orderId)) {
-            Relic relic = relicMapper.selectById(detail.getRelicId());
-            if (relic != null) {
-                relic.setCurrentStatus(targetStatus);
-                relic.setUpdateBy(currentUserId);
-                relicMapper.updateById(relic);
+    // 审批、驳回和归还都会用到同一批明细和文物，统一预加载避免重复查询。
+    private OutboundOrderContext loadOrderContext(Long orderId) {
+        List<RelicOutboundDetail> details = listOrderDetails(orderId);
+        return new OutboundOrderContext(details, loadRelicMap(details));
+    }
+
+    private List<Relic> toRelicList(OutboundOrderContext orderContext) {
+        return orderContext.details().stream()
+            .map(detail -> orderContext.relicMap().get(detail.getRelicId()))
+            .toList();
+    }
+
+    private void updateRelicStatus(OutboundOrderContext orderContext, String targetStatus, Long currentUserId) {
+        for (Long relicId : orderContext.details().stream()
+            .map(RelicOutboundDetail::getRelicId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList()) {
+            Relic relic = orderContext.relicMap().get(relicId);
+            if (relic == null) {
+                continue;
             }
+            relic.setCurrentStatus(targetStatus);
+            relic.setUpdateBy(currentUserId);
+            relicMapper.updateById(relic);
         }
     }
 
@@ -224,12 +235,37 @@ public class OutboundServiceImpl implements OutboundService {
         );
     }
 
-    private OutboundListVO toListVO(RelicOutboundOrder entity) {
+    private Map<Long, Integer> loadDetailCountMap(List<Long> orderIds) {
+        if (orderIds == null || orderIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        return relicOutboundDetailMapper.selectList(
+                Wrappers.<RelicOutboundDetail>lambdaQuery()
+                    .in(RelicOutboundDetail::getOrderId, orderIds)
+            ).stream()
+            .collect(Collectors.groupingBy(
+                RelicOutboundDetail::getOrderId,
+                Collectors.collectingAndThen(Collectors.counting(), Long::intValue)
+            ));
+    }
+
+    private Map<Long, Relic> loadRelicMap(List<RelicOutboundDetail> details) {
+        List<Long> relicIds = details.stream()
+            .map(RelicOutboundDetail::getRelicId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+        if (relicIds.isEmpty()) {
+            return Map.of();
+        }
+        return relicMapper.selectBatchIds(relicIds).stream()
+            .collect(Collectors.toMap(Relic::getId, Function.identity()));
+    }
+
+    private OutboundListVO toListVO(RelicOutboundOrder entity, Map<Long, Integer> detailCountMap) {
         OutboundListVO vo = new OutboundListVO();
         BeanUtils.copyProperties(entity, vo);
-        vo.setDetailCount(Math.toIntExact(relicOutboundDetailMapper.selectCount(
-            Wrappers.<RelicOutboundDetail>lambdaQuery().eq(RelicOutboundDetail::getOrderId, entity.getId())
-        )));
+        vo.setDetailCount(detailCountMap.getOrDefault(entity.getId(), 0));
         return vo;
     }
 
@@ -244,5 +280,8 @@ public class OutboundServiceImpl implements OutboundService {
             return operatorName.trim();
         }
         return StringUtils.hasText(SecurityUtils.getUsername()) ? SecurityUtils.getUsername() : "当前用户";
+    }
+
+    private record OutboundOrderContext(List<RelicOutboundDetail> details, Map<Long, Relic> relicMap) {
     }
 }

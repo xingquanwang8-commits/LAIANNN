@@ -24,6 +24,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -85,7 +86,6 @@ class OutboundServiceImplTest {
         when(relicOutboundOrderMapper.selectById(1L)).thenReturn(order);
         when(relicOutboundDetailMapper.selectList(any())).thenReturn(List.of(detail));
         when(relicMapper.selectBatchIds(any())).thenReturn(List.of(relic));
-        when(relicMapper.selectById(11L)).thenReturn(relic);
 
         OutboundApproveDTO dto = new OutboundApproveDTO();
         dto.setApproveRemark("approved");
@@ -95,6 +95,7 @@ class OutboundServiceImplTest {
         assertEquals("OUT_STOCK", relic.getCurrentStatus());
         verify(relicOutboundOrderMapper).updateById(order);
         verify(relicMapper).updateById(relic);
+        verify(relicMapper, never()).selectById(11L);
     }
 
     @Test
@@ -116,7 +117,6 @@ class OutboundServiceImplTest {
         when(relicOutboundOrderMapper.selectById(2L)).thenReturn(order);
         when(relicOutboundDetailMapper.selectList(any())).thenReturn(List.of(detail));
         when(relicMapper.selectBatchIds(any())).thenReturn(List.of(relic));
-        when(relicMapper.selectById(12L)).thenReturn(relic);
 
         OutboundReturnDTO dto = new OutboundReturnDTO();
         dto.setReturnTime(LocalDateTime.now());
@@ -127,5 +127,6 @@ class OutboundServiceImplTest {
         assertEquals("IN_STOCK", relic.getCurrentStatus());
         verify(relicOutboundOrderMapper).updateById(order);
         verify(relicMapper).updateById(relic);
+        verify(relicMapper, never()).selectById(12L);
     }
 }

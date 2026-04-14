@@ -76,12 +76,11 @@ public class InboundServiceImpl implements InboundService {
     @Override
     public InboundDetailVO detail(Long id) {
         RelicInboundOrder order = getOrderOrThrow(id);
-        List<RelicInboundDetail> details = listOrderDetails(id);
-        Map<Long, Relic> relicMap = loadRelicMap(details);
+        InboundOrderContext orderContext = loadOrderContext(id);
         InboundDetailVO vo = new InboundDetailVO();
         BeanUtils.copyProperties(order, vo);
-        vo.setDetails(details.stream()
-            .map(detail -> toDetailItemVO(detail, relicMap.get(detail.getRelicId())))
+        vo.setDetails(orderContext.details().stream()
+            .map(detail -> toDetailItemVO(detail, orderContext.relicMap().get(detail.getRelicId())))
             .toList());
         return vo;
     }
@@ -137,13 +136,14 @@ public class InboundServiceImpl implements InboundService {
     @Transactional(rollbackFor = Exception.class)
     public void approve(Long id) {
         RelicInboundOrder order = getOrderOrThrow(id);
-        RelicBusinessRuleUtils.validateInboundApprovable(order, loadOrderRelics(id));
+        InboundOrderContext orderContext = loadOrderContext(id);
+        RelicBusinessRuleUtils.validateInboundApprovable(order, toRelicList(orderContext));
 
         Long currentUserId = SecurityUtils.getUserId();
         order.setStatus("APPROVED");
         order.setUpdateBy(currentUserId);
         relicInboundOrderMapper.updateById(order);
-        updateRelicStatus(id, "IN_STOCK", currentUserId);
+        updateRelicStatus(orderContext, "IN_STOCK", currentUserId);
     }
 
     private RelicInboundOrder getOrderOrThrow(Long id) {
@@ -154,18 +154,25 @@ public class InboundServiceImpl implements InboundService {
         return order;
     }
 
-    private List<Relic> loadOrderRelics(Long orderId) {
+    private InboundOrderContext loadOrderContext(Long orderId) {
         List<RelicInboundDetail> details = listOrderDetails(orderId);
-        Map<Long, Relic> relicMap = loadRelicMap(details);
-        return details.stream()
-            .map(detail -> relicMap.get(detail.getRelicId()))
+        return new InboundOrderContext(details, loadRelicMap(details));
+    }
+
+    private List<Relic> toRelicList(InboundOrderContext orderContext) {
+        return orderContext.details().stream()
+            .map(detail -> orderContext.relicMap().get(detail.getRelicId()))
             .filter(Objects::nonNull)
             .toList();
     }
 
-    private void updateRelicStatus(Long orderId, String targetStatus, Long currentUserId) {
-        for (RelicInboundDetail detail : listOrderDetails(orderId)) {
-            Relic relic = relicMapper.selectById(detail.getRelicId());
+    private void updateRelicStatus(InboundOrderContext orderContext, String targetStatus, Long currentUserId) {
+        for (Long relicId : orderContext.details().stream()
+            .map(RelicInboundDetail::getRelicId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList()) {
+            Relic relic = orderContext.relicMap().get(relicId);
             if (relic == null) {
                 continue;
             }
@@ -216,5 +223,8 @@ public class InboundServiceImpl implements InboundService {
             vo.setStorageLocationCode(relic.getStorageLocationCode());
         }
         return vo;
+    }
+
+    private record InboundOrderContext(List<RelicInboundDetail> details, Map<Long, Relic> relicMap) {
     }
 }

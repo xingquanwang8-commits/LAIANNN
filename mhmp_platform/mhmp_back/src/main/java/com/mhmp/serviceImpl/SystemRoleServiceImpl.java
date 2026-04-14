@@ -10,6 +10,7 @@ import com.mhmp.dto.RoleSaveDTO;
 import com.mhmp.entity.SysMenu;
 import com.mhmp.entity.SysRole;
 import com.mhmp.entity.SysRoleMenu;
+import com.mhmp.entity.SysUserRole;
 import com.mhmp.mapper.SysMenuMapper;
 import com.mhmp.mapper.SysRoleMapper;
 import com.mhmp.mapper.SysRoleMenuMapper;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -57,16 +59,25 @@ public class SystemRoleServiceImpl implements SystemRoleService {
                 .eq(StringUtils.hasText(queryDTO.getStatus()), SysRole::getStatus, queryDTO.getStatus())
                 .orderByAsc(SysRole::getId)
         );
-        List<RoleListVO> records = resultPage.getRecords().stream().map(this::toListVO).toList();
+        Map<Long, RoleRelationStats> relationStatsMap = loadRelationStats(resultPage.getRecords().stream()
+            .map(SysRole::getId)
+            .toList());
+        List<RoleListVO> records = resultPage.getRecords().stream()
+            .map(role -> toListVO(role, relationStatsMap))
+            .toList();
         return PageResponse.of(resultPage, records);
     }
 
     @Override
     public List<RoleListVO> listAll() {
-        return sysRoleMapper.selectList(
-                Wrappers.<SysRole>lambdaQuery().orderByAsc(SysRole::getId)
-            ).stream()
-            .map(this::toListVO)
+        List<SysRole> roles = sysRoleMapper.selectList(
+            Wrappers.<SysRole>lambdaQuery().orderByAsc(SysRole::getId)
+        );
+        Map<Long, RoleRelationStats> relationStatsMap = loadRelationStats(roles.stream()
+            .map(SysRole::getId)
+            .toList());
+        return roles.stream()
+            .map(role -> toListVO(role, relationStatsMap))
             .toList();
     }
 
@@ -146,11 +157,36 @@ public class SystemRoleServiceImpl implements SystemRoleService {
         }
     }
 
-    private RoleListVO toListVO(SysRole entity) {
+    // 角色列表只需要统计值，批量加载关联关系即可避免逐角色重复查询。
+    private Map<Long, RoleRelationStats> loadRelationStats(List<Long> roleIds) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        Map<Long, Long> userCountMap = sysUserRoleMapper.selectList(
+                Wrappers.<SysUserRole>lambdaQuery()
+                    .in(SysUserRole::getRoleId, roleIds)
+            ).stream()
+            .collect(Collectors.groupingBy(SysUserRole::getRoleId, Collectors.counting()));
+        Map<Long, Long> menuCountMap = sysRoleMenuMapper.selectList(
+                Wrappers.<SysRoleMenu>lambdaQuery()
+                    .in(SysRoleMenu::getRoleId, roleIds)
+            ).stream()
+            .collect(Collectors.groupingBy(SysRoleMenu::getRoleId, Collectors.counting()));
+        return roleIds.stream().distinct().collect(Collectors.toMap(
+            roleId -> roleId,
+            roleId -> new RoleRelationStats(
+                Math.toIntExact(userCountMap.getOrDefault(roleId, 0L)),
+                Math.toIntExact(menuCountMap.getOrDefault(roleId, 0L))
+            )
+        ));
+    }
+
+    private RoleListVO toListVO(SysRole entity, Map<Long, RoleRelationStats> relationStatsMap) {
         RoleListVO vo = new RoleListVO();
         BeanUtils.copyProperties(entity, vo);
-        vo.setUserCount(Math.toIntExact(sysUserRoleMapper.countByRoleId(entity.getId())));
-        vo.setMenuCount(sysRoleMenuMapper.selectMenuIdsByRoleId(entity.getId()).size());
+        RoleRelationStats stats = relationStatsMap.getOrDefault(entity.getId(), RoleRelationStats.EMPTY);
+        vo.setUserCount(stats.userCount());
+        vo.setMenuCount(stats.menuCount());
         return vo;
     }
 
@@ -179,5 +215,10 @@ public class SystemRoleServiceImpl implements SystemRoleService {
         if (menuMap.size() != menuIds.stream().distinct().count()) {
             throw new BusinessException("Selected menus contain invalid data");
         }
+    }
+
+    private record RoleRelationStats(int userCount, int menuCount) {
+
+        private static final RoleRelationStats EMPTY = new RoleRelationStats(0, 0);
     }
 }

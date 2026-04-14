@@ -10,6 +10,7 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 public class Result<T> extends R<T> {
 
+    // Compatibility wrapper kept for existing controllers while reusing the shared response shape in R.
     public Result(Integer code, String message, T data) {
         super(code, message, data);
     }

@@ -8,6 +8,7 @@ import java.util.Map;
 @Getter
 public class BusinessException extends RuntimeException {
 
+    // Carry a business status code and optional field-level errors for unified API responses.
     private final Integer code;
     private final Map<String, String> errors;
 

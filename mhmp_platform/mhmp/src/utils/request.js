@@ -10,6 +10,7 @@ function getToken() {
 }
 
 function setToken(token) {
+  // Keep the login state bound to the current browser session.
   sessionStorage.setItem(TOKEN_KEY, token)
   localStorage.removeItem(TOKEN_KEY)
 }
@@ -24,6 +25,7 @@ function resolveResultMessage(result, fallback) {
 }
 
 function handleUnauthorized(message) {
+  // Clear stale credentials first so the router does not keep reusing an invalid token.
   clearToken()
   if (!redirecting) {
     redirecting = true
@@ -59,6 +61,7 @@ request.interceptors.request.use((config) => {
 request.interceptors.response.use(
   (response) => {
     const result = response.data
+    // Backend business APIs return a unified envelope with code/message/data.
     if (!result || typeof result !== 'object' || typeof result.code === 'undefined') {
       return result
     }

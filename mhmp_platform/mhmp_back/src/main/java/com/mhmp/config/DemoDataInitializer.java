@@ -123,6 +123,7 @@ public class DemoDataInitializer implements ApplicationRunner {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void run(ApplicationArguments args) throws Exception {
+        // Reuse enabled users as demo operators so the seeded records can be opened directly after startup.
         List<SysUser> users = sysUserMapper.selectList(
             Wrappers.<SysUser>lambdaQuery()
                 .eq(SysUser::getStatus, "ENABLED")
@@ -136,6 +137,7 @@ public class DemoDataInitializer implements ApplicationRunner {
         normalizeLegacyRelicData(primaryUserId);
         long relicCount = relicMapper.selectCount(null);
         if (relicCount >= 10) {
+            // When the database already has enough relic data, only top up the minimum demo records needed by key pages.
             ensureInboundPendingSampleRelic(primaryUserId, demoFiles);
             ensureToBeInboundSampleRelic(primaryUserId, demoFiles);
             ensurePendingInboundSampleOrder(primaryUserId);
@@ -1220,6 +1222,7 @@ public class DemoDataInitializer implements ApplicationRunner {
         Path attachmentFile = basePath.resolve("demo").resolve("reports").resolve("archive-note.txt");
         Path repairFile = basePath.resolve("demo").resolve("repair").resolve("repair-log-note.txt");
 
+        // Generate placeholder files on demand so demo data always points to valid attachments.
         createFileIfMissing(imageFile, Base64.getDecoder().decode(PLACEHOLDER_PNG_BASE64));
         createFileIfMissing(reportFile, "Demo appraisal report file.".getBytes(StandardCharsets.UTF_8));
         createFileIfMissing(attachmentFile, "Demo archive attachment file.".getBytes(StandardCharsets.UTF_8));

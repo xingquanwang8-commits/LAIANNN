@@ -1,10 +1,13 @@
 package com.mhmp.serviceImpl;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mhmp.common.exception.BusinessException;
 import com.mhmp.common.security.LoginUser;
+import com.mhmp.dto.InventoryTaskPageQueryDTO;
 import com.mhmp.dto.InventoryTaskDetailUpdateDTO;
 import com.mhmp.entity.InventoryTask;
 import com.mhmp.entity.InventoryTaskDetail;
+import com.mhmp.vo.InventoryTaskListVO;
 import com.mhmp.mapper.InventoryTaskDetailMapper;
 import com.mhmp.mapper.InventoryTaskMapper;
 import com.mhmp.mapper.RelicMapper;
@@ -22,6 +25,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -109,5 +113,52 @@ class InventoryServiceImplTest {
         assertThrows(BusinessException.class, () -> inventoryService.updateTaskDetail(1L, 2L, updateDTO));
         verify(inventoryTaskDetailMapper, never()).updateById(detail);
         verify(inventoryTaskMapper, never()).updateById(task);
+    }
+
+    @Test
+    void taskPageShouldBatchLoadTaskDetailsForCurrentPage() {
+        InventoryTask firstTask = new InventoryTask();
+        firstTask.setId(1L);
+        firstTask.setTaskNo("INV-20260414-001");
+        firstTask.setTaskName("A");
+
+        InventoryTask secondTask = new InventoryTask();
+        secondTask.setId(2L);
+        secondTask.setTaskNo("INV-20260414-002");
+        secondTask.setTaskName("B");
+
+        Page<InventoryTask> taskPage = new Page<>(1, 10);
+        taskPage.setRecords(List.of(firstTask, secondTask));
+        taskPage.setTotal(2);
+
+        InventoryTaskDetail firstPending = new InventoryTaskDetail();
+        firstPending.setTaskId(1L);
+        firstPending.setResultStatus("PENDING");
+
+        InventoryTaskDetail firstDiff = new InventoryTaskDetail();
+        firstDiff.setTaskId(1L);
+        firstDiff.setResultStatus("DIFF_FOUND");
+
+        InventoryTaskDetail secondChecked = new InventoryTaskDetail();
+        secondChecked.setTaskId(2L);
+        secondChecked.setResultStatus("CHECKED");
+
+        when(inventoryTaskMapper.selectPage(any(), any())).thenReturn(taskPage);
+        when(inventoryTaskDetailMapper.selectList(any())).thenReturn(List.of(firstPending, firstDiff, secondChecked));
+
+        InventoryTaskPageQueryDTO queryDTO = new InventoryTaskPageQueryDTO();
+        queryDTO.setPageNum(1L);
+        queryDTO.setPageSize(10L);
+
+        List<InventoryTaskListVO> records = inventoryService.taskPage(queryDTO).getRecords();
+
+        assertEquals(2, records.size());
+        assertEquals(Integer.valueOf(2), records.get(0).getTotalCount());
+        assertEquals(Integer.valueOf(1), records.get(0).getCheckedCount());
+        assertEquals(Integer.valueOf(1), records.get(0).getDiffCount());
+        assertEquals(Integer.valueOf(1), records.get(1).getTotalCount());
+        assertEquals(Integer.valueOf(1), records.get(1).getCheckedCount());
+        assertEquals(Integer.valueOf(0), records.get(1).getDiffCount());
+        verify(inventoryTaskDetailMapper).selectList(any());
     }
 }

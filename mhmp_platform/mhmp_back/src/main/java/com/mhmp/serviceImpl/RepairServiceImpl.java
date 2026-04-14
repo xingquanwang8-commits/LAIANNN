@@ -172,37 +172,15 @@ public class RepairServiceImpl implements RepairService {
         );
         vo.setApplyUserName(userNameMap.get(task.getApplyUserId()));
         vo.setApproveUserName(userNameMap.get(task.getApproveBy()));
-        vo.setPlan(toPlanVO(repairPlanMapper.selectOne(
-            Wrappers.<RepairPlan>lambdaQuery()
-                .eq(RepairPlan::getRepairTaskId, id)
-                .last("LIMIT 1")
-        )));
-        vo.setLogs(repairLogMapper.selectList(
-                Wrappers.<RepairLog>lambdaQuery()
-                    .eq(RepairLog::getRepairTaskId, id)
-                    .orderByDesc(RepairLog::getLogTime)
-            ).stream()
+        vo.setPlan(toPlanVO(loadPlan(id)));
+        vo.setLogs(listLogsByTaskId(id).stream()
             .map(this::toLogVO)
             .toList());
-        vo.setAcceptance(toAcceptanceVO(repairAcceptanceMapper.selectOne(
-            Wrappers.<RepairAcceptance>lambdaQuery()
-                .eq(RepairAcceptance::getRepairTaskId, id)
-                .last("LIMIT 1")
-        )));
-        vo.setHistoryTasks(repairTaskMapper.selectList(
-                Wrappers.<RepairTask>lambdaQuery()
-                    .eq(RepairTask::getRelicId, task.getRelicId())
-                    .orderByDesc(RepairTask::getApplyTime)
-                    .orderByDesc(RepairTask::getId)
-            ).stream()
+        vo.setAcceptance(toAcceptanceVO(loadAcceptanceByTaskId(id)));
+        vo.setHistoryTasks(listHistoryTasks(task.getRelicId()).stream()
             .map(this::toHistoryTaskVO)
             .toList());
-        vo.setAttachments(relicAttachmentMapper.selectList(
-                Wrappers.<RelicAttachment>lambdaQuery()
-                    .eq(RelicAttachment::getRelicId, task.getRelicId())
-                    .likeRight(RelicAttachment::getAttachmentType, "REPAIR_")
-                    .orderByAsc(RelicAttachment::getId)
-            ).stream()
+        vo.setAttachments(listRepairAttachments(task.getRelicId()).stream()
             .map(this::toAttachmentVO)
             .toList());
         return vo;
@@ -407,13 +385,7 @@ public class RepairServiceImpl implements RepairService {
             .in(fixedAcceptanceStatuses != null && !fixedAcceptanceStatuses.isEmpty(),
                 RepairTask::getAcceptanceStatus, fixedAcceptanceStatuses)
         );
-        Map<Long, String> userNameMap = loadUserNameMap(
-            resultPage.getRecords().stream().map(RepairTask::getApplyUserId).collect(Collectors.toSet())
-        );
-        List<RepairTaskListVO> records = resultPage.getRecords().stream()
-            .map(task -> toListVO(task, userNameMap.get(task.getApplyUserId())))
-            .toList();
-        return PageResponse.of(resultPage, records);
+        return toTaskPageResponse(resultPage);
     }
 
     private PageResponse<RepairTaskListVO> pageMyTasks(RepairPageQueryDTO queryDTO, Long applyUserId) {
@@ -425,13 +397,7 @@ public class RepairServiceImpl implements RepairService {
                     .eq(RepairTask::getTaskStatus, "COMPLETED")
                     .eq(RepairTask::getAcceptanceStatus, RelicBusinessRuleUtils.REPAIR_ACCEPTANCE_STATUS_UNACCEPTED)))
         );
-        Map<Long, String> userNameMap = loadUserNameMap(
-            resultPage.getRecords().stream().map(RepairTask::getApplyUserId).collect(Collectors.toSet())
-        );
-        List<RepairTaskListVO> records = resultPage.getRecords().stream()
-            .map(task -> toListVO(task, userNameMap.get(task.getApplyUserId())))
-            .toList();
-        return PageResponse.of(resultPage, records);
+        return toTaskPageResponse(resultPage);
     }
 
     private PageResponse<RepairTaskListVO> pageAcceptanceTasks(RepairPageQueryDTO queryDTO) {
@@ -444,13 +410,7 @@ public class RepairServiceImpl implements RepairService {
                     .eq(RepairTask::getTaskStatus, "ACCEPTED")
                     .eq(RepairTask::getAcceptanceStatus, RelicBusinessRuleUtils.REPAIR_ACCEPTANCE_STATUS_SUCCESS)))
         );
-        Map<Long, String> userNameMap = loadUserNameMap(
-            resultPage.getRecords().stream().map(RepairTask::getApplyUserId).collect(Collectors.toSet())
-        );
-        List<RepairTaskListVO> records = resultPage.getRecords().stream()
-            .map(task -> toListVO(task, userNameMap.get(task.getApplyUserId())))
-            .toList();
-        return PageResponse.of(resultPage, records);
+        return toTaskPageResponse(resultPage);
     }
 
     private com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<RepairTask> buildBaseTaskQuery(
@@ -478,6 +438,62 @@ public class RepairServiceImpl implements RepairService {
             throw new BusinessException("Repair task does not exist");
         }
         return task;
+    }
+
+    private RepairPlan loadPlan(Long taskId) {
+        return repairPlanMapper.selectOne(
+            Wrappers.<RepairPlan>lambdaQuery()
+                .eq(RepairPlan::getRepairTaskId, taskId)
+                .last("LIMIT 1")
+        );
+    }
+
+    private List<RepairLog> listLogsByTaskId(Long taskId) {
+        return repairLogMapper.selectList(
+            Wrappers.<RepairLog>lambdaQuery()
+                .eq(RepairLog::getRepairTaskId, taskId)
+                .orderByDesc(RepairLog::getLogTime)
+        );
+    }
+
+    private RepairAcceptance loadAcceptanceByTaskId(Long taskId) {
+        return repairAcceptanceMapper.selectOne(
+            Wrappers.<RepairAcceptance>lambdaQuery()
+                .eq(RepairAcceptance::getRepairTaskId, taskId)
+                .last("LIMIT 1")
+        );
+    }
+
+    private List<RepairTask> listHistoryTasks(Long relicId) {
+        return repairTaskMapper.selectList(
+            Wrappers.<RepairTask>lambdaQuery()
+                .eq(RepairTask::getRelicId, relicId)
+                .orderByDesc(RepairTask::getApplyTime)
+                .orderByDesc(RepairTask::getId)
+        );
+    }
+
+    private List<RelicAttachment> listRepairAttachments(Long relicId) {
+        return relicAttachmentMapper.selectList(
+            Wrappers.<RelicAttachment>lambdaQuery()
+                .eq(RelicAttachment::getRelicId, relicId)
+                .likeRight(RelicAttachment::getAttachmentType, "REPAIR_")
+                .orderByAsc(RelicAttachment::getId)
+        );
+    }
+
+    private PageResponse<RepairTaskListVO> toTaskPageResponse(Page<RepairTask> resultPage) {
+        Map<Long, String> userNameMap = loadApplyUserNameMap(resultPage.getRecords());
+        List<RepairTaskListVO> records = resultPage.getRecords().stream()
+            .map(task -> toListVO(task, userNameMap.get(task.getApplyUserId())))
+            .toList();
+        return PageResponse.of(resultPage, records);
+    }
+
+    private Map<Long, String> loadApplyUserNameMap(List<RepairTask> tasks) {
+        return loadUserNameMap(tasks.stream()
+            .map(RepairTask::getApplyUserId)
+            .collect(Collectors.toSet()));
     }
 
     private RepairTaskListVO toListVO(RepairTask task, String applyUserName) {

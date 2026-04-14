@@ -1,5 +1,6 @@
 package com.mhmp.serviceImpl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mhmp.common.exception.BusinessException;
@@ -56,6 +57,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -128,11 +130,12 @@ public class RelicServiceImpl implements RelicService {
     @Override
     public RelicDetailVO detail(Long id) {
         Relic relic = getRelicOrThrow(id);
+        RelicBusinessContext context = loadBusinessContext(id);
         RelicDetailVO vo = new RelicDetailVO();
         BeanUtils.copyProperties(relic, vo);
         vo.setAttachments(listAttachments(id));
-        vo.setPendingBusinesses(buildPendingBusinesses(relic));
-        vo.setBusinessTimeline(buildBusinessTimeline(relic));
+        vo.setPendingBusinesses(buildPendingBusinesses(context));
+        vo.setBusinessTimeline(buildBusinessTimeline(relic, context));
         return vo;
     }
 
@@ -216,11 +219,7 @@ public class RelicServiceImpl implements RelicService {
     @Override
     public List<RelicAttachmentVO> listAttachments(Long relicId) {
         return relicAttachmentMapper.selectList(
-                Wrappers.<RelicAttachment>lambdaQuery()
-                    .eq(RelicAttachment::getRelicId, relicId)
-                    .and(wrapper -> wrapper.isNull(RelicAttachment::getAttachmentType)
-                        .or()
-                        .notLikeRight(RelicAttachment::getAttachmentType, "REPAIR_"))
+                buildNonRepairAttachmentQuery(relicId)
                     .orderByAsc(RelicAttachment::getId)
             ).stream()
             .map(this::toAttachmentVO)
@@ -325,13 +324,7 @@ public class RelicServiceImpl implements RelicService {
     }
 
     private void saveAttachments(Long relicId, List<AttachmentSaveDTO> attachments, Long currentUserId) {
-        relicAttachmentMapper.delete(
-            Wrappers.<RelicAttachment>lambdaQuery()
-                .eq(RelicAttachment::getRelicId, relicId)
-                .and(wrapper -> wrapper.isNull(RelicAttachment::getAttachmentType)
-                    .or()
-                    .notLikeRight(RelicAttachment::getAttachmentType, "REPAIR_"))
-        );
+        relicAttachmentMapper.delete(buildNonRepairAttachmentQuery(relicId));
         if (attachments == null || attachments.isEmpty()) {
             return;
         }
@@ -354,18 +347,43 @@ public class RelicServiceImpl implements RelicService {
         }
     }
 
-    private List<RelicPendingBusinessVO> buildPendingBusinesses(Relic relic) {
-        List<RelicPendingBusinessVO> pendingBusinesses = new ArrayList<>();
-        Long relicId = relic.getId();
+    private LambdaQueryWrapper<RelicAttachment> buildNonRepairAttachmentQuery(Long relicId) {
+        return Wrappers.<RelicAttachment>lambdaQuery()
+            .eq(RelicAttachment::getRelicId, relicId)
+            .and(wrapper -> wrapper.isNull(RelicAttachment::getAttachmentType)
+                .or()
+                .notLikeRight(RelicAttachment::getAttachmentType, "REPAIR_"));
+    }
 
-        List<RelicInboundDetail> inboundDetails = relicInboundDetailMapper.selectList(
-            Wrappers.<RelicInboundDetail>lambdaQuery().eq(RelicInboundDetail::getRelicId, relicId)
+    private RelicBusinessContext loadBusinessContext(Long relicId) {
+        List<RelicInboundDetail> inboundDetails = listInboundDetailsByRelicId(relicId);
+        Map<Long, RelicInboundOrder> inboundOrderMap = loadInboundOrderMap(extractIds(inboundDetails, RelicInboundDetail::getOrderId));
+
+        List<RelicOutboundDetail> outboundDetails = listOutboundDetailsByRelicId(relicId);
+        Map<Long, RelicOutboundOrder> outboundOrderMap = loadOutboundOrderMap(extractIds(outboundDetails, RelicOutboundDetail::getOrderId));
+
+        List<InventoryTaskDetail> inventoryDetails = listInventoryDetailsByRelicId(relicId);
+        Map<Long, InventoryTask> inventoryTaskMap = loadInventoryTaskMap(extractIds(inventoryDetails, InventoryTaskDetail::getTaskId));
+
+        List<RepairTask> repairTasks = listRepairTasksByRelicId(relicId);
+        Set<Long> repairTaskIds = extractIds(repairTasks, RepairTask::getId);
+
+        return new RelicBusinessContext(
+            inboundDetails,
+            inboundOrderMap,
+            outboundDetails,
+            outboundOrderMap,
+            inventoryDetails,
+            inventoryTaskMap,
+            repairTasks,
+            loadRepairLogMap(repairTaskIds),
+            loadRepairAcceptanceMap(repairTaskIds)
         );
-        Map<Long, RelicInboundOrder> inboundOrderMap = loadInboundOrderMap(inboundDetails.stream()
-            .map(RelicInboundDetail::getOrderId)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toSet()));
-        inboundOrderMap.values().stream()
+    }
+
+    private List<RelicPendingBusinessVO> buildPendingBusinesses(RelicBusinessContext context) {
+        List<RelicPendingBusinessVO> pendingBusinesses = new ArrayList<>();
+        context.inboundOrderMap().values().stream()
             .filter(order -> "PENDING".equals(order.getStatus()))
             .sorted(Comparator.comparing(RelicInboundOrder::getInboundTime, Comparator.nullsLast(LocalDateTime::compareTo)).reversed())
             .forEach(order -> {
@@ -380,14 +398,7 @@ public class RelicServiceImpl implements RelicService {
                 pendingBusinesses.add(vo);
             });
 
-        List<RelicOutboundDetail> outboundDetails = relicOutboundDetailMapper.selectList(
-            Wrappers.<RelicOutboundDetail>lambdaQuery().eq(RelicOutboundDetail::getRelicId, relicId)
-        );
-        Map<Long, RelicOutboundOrder> outboundOrderMap = loadOutboundOrderMap(outboundDetails.stream()
-            .map(RelicOutboundDetail::getOrderId)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toSet()));
-        outboundOrderMap.values().stream()
+        context.outboundOrderMap().values().stream()
             .filter(order -> "PENDING".equals(order.getApproveStatus()) || "APPROVED".equals(order.getApproveStatus()))
             .sorted(Comparator.comparing(RelicOutboundOrder::getOutboundTime, Comparator.nullsLast(LocalDateTime::compareTo)).reversed())
             .forEach(order -> {
@@ -402,13 +413,11 @@ public class RelicServiceImpl implements RelicService {
                 pendingBusinesses.add(vo);
             });
 
-        repairTaskMapper.selectList(
-                Wrappers.<RepairTask>lambdaQuery()
-                    .eq(RepairTask::getRelicId, relicId)
-                    .eq(RepairTask::getTaskStatus, "COMPLETED")
-                    .eq(RepairTask::getAcceptanceStatus, RelicBusinessRuleUtils.REPAIR_ACCEPTANCE_STATUS_WAITING)
-                    .orderByDesc(RepairTask::getEndTime)
-            ).forEach(task -> {
+        context.repairTasks().stream()
+            .filter(task -> "COMPLETED".equals(task.getTaskStatus()))
+            .filter(task -> RelicBusinessRuleUtils.REPAIR_ACCEPTANCE_STATUS_WAITING.equals(task.getAcceptanceStatus()))
+            .sorted(Comparator.comparing(RepairTask::getEndTime, Comparator.nullsLast(LocalDateTime::compareTo)).reversed())
+            .forEach(task -> {
                 RelicPendingBusinessVO vo = new RelicPendingBusinessVO();
                 vo.setBusinessType("REPAIR_ACCEPTANCE");
                 vo.setRelatedId(task.getId());
@@ -423,9 +432,8 @@ public class RelicServiceImpl implements RelicService {
         return pendingBusinesses;
     }
 
-    private List<RelicBusinessTimelineVO> buildBusinessTimeline(Relic relic) {
+    private List<RelicBusinessTimelineVO> buildBusinessTimeline(Relic relic, RelicBusinessContext context) {
         List<RelicBusinessTimelineVO> timeline = new ArrayList<>();
-        Long relicId = relic.getId();
 
         timeline.add(createTimelineEvent(
             "ARCHIVE",
@@ -433,14 +441,14 @@ public class RelicServiceImpl implements RelicService {
             String.format("完成文物档案建档，当前状态：%s", relic.getCurrentStatus()),
             relic.getCurrentStatus(),
             relic.getCreateTime(),
-            relicId
+            relic.getId()
         ));
 
         appendTransferEvents(timeline, relic);
-        appendInboundEvents(timeline, relicId);
-        appendOutboundEvents(timeline, relicId);
-        appendInventoryEvents(timeline, relicId);
-        appendRepairEvents(timeline, relicId);
+        appendInboundEvents(timeline, context);
+        appendOutboundEvents(timeline, context);
+        appendInventoryEvents(timeline, context);
+        appendRepairEvents(timeline, context);
 
         return timeline.stream()
             .filter(item -> item.getEventTime() != null)
@@ -496,16 +504,9 @@ public class RelicServiceImpl implements RelicService {
         }
     }
 
-    private void appendInboundEvents(List<RelicBusinessTimelineVO> timeline, Long relicId) {
-        List<RelicInboundDetail> inboundDetails = relicInboundDetailMapper.selectList(
-            Wrappers.<RelicInboundDetail>lambdaQuery().eq(RelicInboundDetail::getRelicId, relicId)
-        );
-        Map<Long, RelicInboundOrder> orderMap = loadInboundOrderMap(inboundDetails.stream()
-            .map(RelicInboundDetail::getOrderId)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toSet()));
-        for (RelicInboundDetail detail : inboundDetails) {
-            RelicInboundOrder order = orderMap.get(detail.getOrderId());
+    private void appendInboundEvents(List<RelicBusinessTimelineVO> timeline, RelicBusinessContext context) {
+        for (RelicInboundDetail detail : context.inboundDetails()) {
+            RelicInboundOrder order = context.inboundOrderMap().get(detail.getOrderId());
             if (order == null) {
                 continue;
             }
@@ -520,16 +521,9 @@ public class RelicServiceImpl implements RelicService {
         }
     }
 
-    private void appendOutboundEvents(List<RelicBusinessTimelineVO> timeline, Long relicId) {
-        List<RelicOutboundDetail> outboundDetails = relicOutboundDetailMapper.selectList(
-            Wrappers.<RelicOutboundDetail>lambdaQuery().eq(RelicOutboundDetail::getRelicId, relicId)
-        );
-        Map<Long, RelicOutboundOrder> orderMap = loadOutboundOrderMap(outboundDetails.stream()
-            .map(RelicOutboundDetail::getOrderId)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toSet()));
-        for (RelicOutboundDetail detail : outboundDetails) {
-            RelicOutboundOrder order = orderMap.get(detail.getOrderId());
+    private void appendOutboundEvents(List<RelicBusinessTimelineVO> timeline, RelicBusinessContext context) {
+        for (RelicOutboundDetail detail : context.outboundDetails()) {
+            RelicOutboundOrder order = context.outboundOrderMap().get(detail.getOrderId());
             if (order == null) {
                 continue;
             }
@@ -564,16 +558,9 @@ public class RelicServiceImpl implements RelicService {
         }
     }
 
-    private void appendInventoryEvents(List<RelicBusinessTimelineVO> timeline, Long relicId) {
-        List<InventoryTaskDetail> inventoryDetails = inventoryTaskDetailMapper.selectList(
-            Wrappers.<InventoryTaskDetail>lambdaQuery().eq(InventoryTaskDetail::getRelicId, relicId)
-        );
-        Map<Long, InventoryTask> taskMap = loadInventoryTaskMap(inventoryDetails.stream()
-            .map(InventoryTaskDetail::getTaskId)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toSet()));
-        for (InventoryTaskDetail detail : inventoryDetails) {
-            InventoryTask task = taskMap.get(detail.getTaskId());
+    private void appendInventoryEvents(List<RelicBusinessTimelineVO> timeline, RelicBusinessContext context) {
+        for (InventoryTaskDetail detail : context.inventoryDetails()) {
+            InventoryTask task = context.inventoryTaskMap().get(detail.getTaskId());
             if (task == null) {
                 continue;
             }
@@ -598,29 +585,12 @@ public class RelicServiceImpl implements RelicService {
         }
     }
 
-    private void appendRepairEvents(List<RelicBusinessTimelineVO> timeline, Long relicId) {
-        List<RepairTask> repairTasks = repairTaskMapper.selectList(
-            Wrappers.<RepairTask>lambdaQuery()
-                .eq(RepairTask::getRelicId, relicId)
-                .orderByDesc(RepairTask::getApplyTime)
-        );
-        if (repairTasks.isEmpty()) {
+    private void appendRepairEvents(List<RelicBusinessTimelineVO> timeline, RelicBusinessContext context) {
+        if (context.repairTasks().isEmpty()) {
             return;
         }
 
-        Set<Long> taskIds = repairTasks.stream().map(RepairTask::getId).collect(Collectors.toSet());
-        Map<Long, List<RepairLog>> logMap = repairLogMapper.selectList(
-                Wrappers.<RepairLog>lambdaQuery()
-                    .in(RepairLog::getRepairTaskId, taskIds)
-                    .orderByAsc(RepairLog::getLogTime)
-            ).stream()
-            .collect(Collectors.groupingBy(RepairLog::getRepairTaskId));
-        Map<Long, RepairAcceptance> acceptanceMap = repairAcceptanceMapper.selectList(
-                Wrappers.<RepairAcceptance>lambdaQuery().in(RepairAcceptance::getRepairTaskId, taskIds)
-            ).stream()
-            .collect(Collectors.toMap(RepairAcceptance::getRepairTaskId, item -> item, (left, right) -> left));
-
-        for (RepairTask task : repairTasks) {
+        for (RepairTask task : context.repairTasks()) {
             timeline.add(createTimelineEvent(
                 "REPAIR_APPLY",
                 "提交修复申请",
@@ -649,7 +619,7 @@ public class RelicServiceImpl implements RelicService {
                     task.getId()
                 ));
             }
-            for (RepairLog log : logMap.getOrDefault(task.getId(), List.of())) {
+            for (RepairLog log : context.repairLogMap().getOrDefault(task.getId(), List.of())) {
                 timeline.add(createTimelineEvent(
                     "REPAIR_LOG",
                     StringUtils.hasText(log.getStepName()) ? log.getStepName() : "修复过程更新",
@@ -659,7 +629,7 @@ public class RelicServiceImpl implements RelicService {
                     task.getId()
                 ));
             }
-            RepairAcceptance acceptance = acceptanceMap.get(task.getId());
+            RepairAcceptance acceptance = context.repairAcceptanceMap().get(task.getId());
             if (acceptance != null && acceptance.getAcceptanceTime() != null) {
                 timeline.add(createTimelineEvent(
                     "REPAIR_ACCEPTANCE",
@@ -671,6 +641,54 @@ public class RelicServiceImpl implements RelicService {
                 ));
             }
         }
+    }
+
+    private List<RelicInboundDetail> listInboundDetailsByRelicId(Long relicId) {
+        return relicInboundDetailMapper.selectList(
+            Wrappers.<RelicInboundDetail>lambdaQuery().eq(RelicInboundDetail::getRelicId, relicId)
+        );
+    }
+
+    private List<RelicOutboundDetail> listOutboundDetailsByRelicId(Long relicId) {
+        return relicOutboundDetailMapper.selectList(
+            Wrappers.<RelicOutboundDetail>lambdaQuery().eq(RelicOutboundDetail::getRelicId, relicId)
+        );
+    }
+
+    private List<InventoryTaskDetail> listInventoryDetailsByRelicId(Long relicId) {
+        return inventoryTaskDetailMapper.selectList(
+            Wrappers.<InventoryTaskDetail>lambdaQuery().eq(InventoryTaskDetail::getRelicId, relicId)
+        );
+    }
+
+    private List<RepairTask> listRepairTasksByRelicId(Long relicId) {
+        return repairTaskMapper.selectList(
+            Wrappers.<RepairTask>lambdaQuery()
+                .eq(RepairTask::getRelicId, relicId)
+                .orderByDesc(RepairTask::getApplyTime)
+        );
+    }
+
+    private Map<Long, List<RepairLog>> loadRepairLogMap(Set<Long> taskIds) {
+        if (taskIds == null || taskIds.isEmpty()) {
+            return Map.of();
+        }
+        return repairLogMapper.selectList(
+                Wrappers.<RepairLog>lambdaQuery()
+                    .in(RepairLog::getRepairTaskId, taskIds)
+                    .orderByAsc(RepairLog::getLogTime)
+            ).stream()
+            .collect(Collectors.groupingBy(RepairLog::getRepairTaskId));
+    }
+
+    private Map<Long, RepairAcceptance> loadRepairAcceptanceMap(Set<Long> taskIds) {
+        if (taskIds == null || taskIds.isEmpty()) {
+            return Map.of();
+        }
+        return repairAcceptanceMapper.selectList(
+                Wrappers.<RepairAcceptance>lambdaQuery().in(RepairAcceptance::getRepairTaskId, taskIds)
+            ).stream()
+            .collect(Collectors.toMap(RepairAcceptance::getRepairTaskId, item -> item, (left, right) -> left));
     }
 
     private Map<Long, RelicInboundOrder> loadInboundOrderMap(Set<Long> orderIds) {
@@ -695,6 +713,16 @@ public class RelicServiceImpl implements RelicService {
         }
         return inventoryTaskMapper.selectBatchIds(taskIds).stream()
             .collect(Collectors.toMap(InventoryTask::getId, item -> item));
+    }
+
+    private <T> Set<Long> extractIds(List<T> entities, Function<T, Long> idExtractor) {
+        if (entities == null || entities.isEmpty()) {
+            return Set.of();
+        }
+        return entities.stream()
+            .map(idExtractor)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
     }
 
     private void validateRelicCanDelete(Long relicId) {
@@ -748,5 +776,16 @@ public class RelicServiceImpl implements RelicService {
             return noteLine;
         }
         return originalNote + System.lineSeparator() + noteLine;
+    }
+
+    private record RelicBusinessContext(List<RelicInboundDetail> inboundDetails,
+                                        Map<Long, RelicInboundOrder> inboundOrderMap,
+                                        List<RelicOutboundDetail> outboundDetails,
+                                        Map<Long, RelicOutboundOrder> outboundOrderMap,
+                                        List<InventoryTaskDetail> inventoryDetails,
+                                        Map<Long, InventoryTask> inventoryTaskMap,
+                                        List<RepairTask> repairTasks,
+                                        Map<Long, List<RepairLog>> repairLogMap,
+                                        Map<Long, RepairAcceptance> repairAcceptanceMap) {
     }
 }

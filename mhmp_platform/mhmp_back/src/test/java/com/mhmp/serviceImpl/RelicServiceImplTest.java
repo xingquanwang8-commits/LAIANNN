@@ -27,6 +27,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -110,5 +111,9 @@ class RelicServiceImplTest {
         assertEquals("WAITING", detail.getPendingBusinesses().get(0).getStatus());
         assertTrue(detail.getBusinessTimeline().stream().anyMatch(item ->
             "REPAIR_COMPLETE".equals(item.getEventType()) && "WAITING".equals(item.getStatus())));
+        verify(relicInboundDetailMapper).selectList(any());
+        verify(relicOutboundDetailMapper).selectList(any());
+        verify(inventoryTaskDetailMapper).selectList(any());
+        verify(repairTaskMapper).selectList(any());
     }
 }

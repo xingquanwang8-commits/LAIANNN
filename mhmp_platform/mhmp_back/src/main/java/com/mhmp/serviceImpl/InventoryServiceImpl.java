@@ -29,7 +29,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class InventoryServiceImpl implements InventoryService {
@@ -92,7 +95,12 @@ public class InventoryServiceImpl implements InventoryService {
                 .orderByDesc(InventoryTask::getStartTime)
                 .orderByDesc(InventoryTask::getId)
         );
-        List<InventoryTaskListVO> records = resultPage.getRecords().stream().map(this::toTaskListVO).toList();
+        Map<Long, List<InventoryTaskDetail>> detailMap = loadTaskDetailMap(resultPage.getRecords().stream()
+            .map(InventoryTask::getId)
+            .toList());
+        List<InventoryTaskListVO> records = resultPage.getRecords().stream()
+            .map(task -> toTaskListVO(task, detailMap.getOrDefault(task.getId(), List.of())))
+            .toList();
         return PageResponse.of(resultPage, records);
     }
 
@@ -101,11 +109,7 @@ public class InventoryServiceImpl implements InventoryService {
         InventoryTask task = getTaskOrThrow(id);
         InventoryTaskDetailVO vo = new InventoryTaskDetailVO();
         BeanUtils.copyProperties(task, vo);
-        vo.setDetails(inventoryTaskDetailMapper.selectList(
-                Wrappers.<InventoryTaskDetail>lambdaQuery()
-                    .eq(InventoryTaskDetail::getTaskId, id)
-                    .orderByAsc(InventoryTaskDetail::getId)
-            ).stream()
+        vo.setDetails(listTaskDetails(id).stream()
             .map(this::toTaskItemVO)
             .toList());
         return vo;
@@ -186,9 +190,7 @@ public class InventoryServiceImpl implements InventoryService {
     @Transactional(rollbackFor = Exception.class)
     public void submitTask(Long taskId) {
         InventoryTask task = getTaskOrThrow(taskId);
-        List<InventoryTaskDetail> details = inventoryTaskDetailMapper.selectList(
-            Wrappers.<InventoryTaskDetail>lambdaQuery().eq(InventoryTaskDetail::getTaskId, taskId)
-        );
+        List<InventoryTaskDetail> details = listTaskDetails(taskId);
         RelicBusinessRuleUtils.validateInventoryTaskSubmittable(task, details);
         Long currentUserId = SecurityUtils.getUserId();
         for (InventoryTaskDetail detail : details) {
@@ -212,18 +214,35 @@ public class InventoryServiceImpl implements InventoryService {
         return task;
     }
 
+    private Map<Long, List<InventoryTaskDetail>> loadTaskDetailMap(List<Long> taskIds) {
+        if (taskIds == null || taskIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        return inventoryTaskDetailMapper.selectList(
+                Wrappers.<InventoryTaskDetail>lambdaQuery()
+                    .in(InventoryTaskDetail::getTaskId, taskIds)
+                    .orderByAsc(InventoryTaskDetail::getId)
+            ).stream()
+            .collect(Collectors.groupingBy(InventoryTaskDetail::getTaskId));
+    }
+
+    private List<InventoryTaskDetail> listTaskDetails(Long taskId) {
+        return inventoryTaskDetailMapper.selectList(
+            Wrappers.<InventoryTaskDetail>lambdaQuery()
+                .eq(InventoryTaskDetail::getTaskId, taskId)
+                .orderByAsc(InventoryTaskDetail::getId)
+        );
+    }
+
     private RelicListVO toRelicListVO(Relic entity) {
         RelicListVO vo = new RelicListVO();
         BeanUtils.copyProperties(entity, vo);
         return vo;
     }
 
-    private InventoryTaskListVO toTaskListVO(InventoryTask entity) {
+    private InventoryTaskListVO toTaskListVO(InventoryTask entity, List<InventoryTaskDetail> details) {
         InventoryTaskListVO vo = new InventoryTaskListVO();
         BeanUtils.copyProperties(entity, vo);
-        List<InventoryTaskDetail> details = inventoryTaskDetailMapper.selectList(
-            Wrappers.<InventoryTaskDetail>lambdaQuery().eq(InventoryTaskDetail::getTaskId, entity.getId())
-        );
         vo.setTotalCount(details.size());
         vo.setCheckedCount((int) details.stream().filter(detail -> !"PENDING".equals(detail.getResultStatus())).count());
         vo.setDiffCount((int) details.stream().filter(detail -> "DIFF_FOUND".equals(detail.getResultStatus())).count());

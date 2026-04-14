@@ -1,6 +1,6 @@
 package com.mhmp.controller;
 
-import com.mhmp.common.result.Result;
+import com.mhmp.common.result.R;
 import com.mhmp.service.DictService;
 import com.mhmp.vo.DictItemVO;
 import com.mhmp.vo.DictTypeVO;
@@ -22,12 +22,12 @@ public class DictController {
     }
 
     @GetMapping("/types")
-    public Result<List<DictTypeVO>> types() {
-        return Result.success(dictService.listTypes());
+    public R<List<DictTypeVO>> types() {
+        return R.success(dictService.listTypes());
     }
 
     @GetMapping("/{dictTypeCode}/items")
-    public Result<List<DictItemVO>> items(@PathVariable String dictTypeCode) {
-        return Result.success(dictService.listItemsByType(dictTypeCode));
+    public R<List<DictItemVO>> items(@PathVariable String dictTypeCode) {
+        return R.success(dictService.listItemsByType(dictTypeCode));
     }
 }

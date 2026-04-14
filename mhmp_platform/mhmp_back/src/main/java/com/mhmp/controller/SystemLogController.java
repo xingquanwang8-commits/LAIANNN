@@ -1,7 +1,7 @@
 package com.mhmp.controller;
 
 import com.mhmp.common.result.PageResponse;
-import com.mhmp.common.result.Result;
+import com.mhmp.common.result.R;
 import com.mhmp.dto.LogPageQueryDTO;
 import com.mhmp.service.SystemLogService;
 import com.mhmp.vo.OperationLogDetailVO;
@@ -27,13 +27,13 @@ public class SystemLogController {
 
     @GetMapping("/page")
     @PreAuthorize("hasAuthority('sys:log:view')")
-    public Result<PageResponse<OperationLogListVO>> page(@Valid LogPageQueryDTO queryDTO) {
-        return Result.success(systemLogService.page(queryDTO));
+    public R<PageResponse<OperationLogListVO>> page(@Valid LogPageQueryDTO queryDTO) {
+        return R.success(systemLogService.page(queryDTO));
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('sys:log:view')")
-    public Result<OperationLogDetailVO> detail(@PathVariable Long id) {
-        return Result.success(systemLogService.detail(id));
+    public R<OperationLogDetailVO> detail(@PathVariable Long id) {
+        return R.success(systemLogService.detail(id));
     }
 }

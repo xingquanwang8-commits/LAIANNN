@@ -15,8 +15,6 @@ import com.mhmp.mapper.RelicInboundOrderMapper;
 import com.mhmp.mapper.RelicMapper;
 import com.mhmp.mapper.RelicOutboundDetailMapper;
 import com.mhmp.mapper.RelicOutboundOrderMapper;
-import com.mhmp.mapper.SysDictItemMapper;
-import com.mhmp.mapper.SysDictTypeMapper;
 import com.mhmp.mapper.SysUserMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,10 +37,6 @@ class DemoDataInitializerTest {
 
     @Mock
     private SysUserMapper sysUserMapper;
-    @Mock
-    private SysDictTypeMapper sysDictTypeMapper;
-    @Mock
-    private SysDictItemMapper sysDictItemMapper;
     @Mock
     private RelicMapper relicMapper;
     @Mock
@@ -76,8 +70,6 @@ class DemoDataInitializerTest {
         fileStorageProperties.setBasePath("target/test-uploads");
         initializer = new DemoDataInitializer(
             sysUserMapper,
-            sysDictTypeMapper,
-            sysDictItemMapper,
             relicMapper,
             relicAttachmentMapper,
             relicInboundOrderMapper,

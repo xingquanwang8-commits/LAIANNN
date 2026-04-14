@@ -2,7 +2,7 @@ package com.mhmp.controller;
 
 import com.mhmp.common.annotation.OperationLog;
 import com.mhmp.common.exception.BusinessException;
-import com.mhmp.common.result.Result;
+import com.mhmp.common.result.R;
 import com.mhmp.config.FileStorageProperties;
 import com.mhmp.vo.FileUploadVO;
 import org.springframework.http.MediaType;
@@ -38,7 +38,7 @@ public class FileController {
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @OperationLog(module = "File", businessType = "UPLOAD", description = "Upload business file")
-    public Result<FileUploadVO> upload(@RequestPart("file") MultipartFile file,
+    public R<FileUploadVO> upload(@RequestPart("file") MultipartFile file,
                                        @RequestParam(value = "bizType", required = false) String bizType) {
         if (file == null || file.isEmpty()) {
             throw new BusinessException("Uploaded file cannot be empty");
@@ -65,7 +65,7 @@ public class FileController {
         vo.setFileUrl(String.format("/uploads/%s/%s/%s", safeBizType, monthFolder, storedFileName));
         vo.setFileSize(file.getSize());
         vo.setFileSuffix(fileSuffix);
-        return Result.success(vo);
+        return R.success(vo);
     }
 
     private String normalizeBizType(String bizType) {

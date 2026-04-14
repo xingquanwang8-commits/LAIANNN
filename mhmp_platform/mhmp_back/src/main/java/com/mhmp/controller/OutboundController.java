@@ -2,7 +2,7 @@ package com.mhmp.controller;
 
 import com.mhmp.common.annotation.OperationLog;
 import com.mhmp.common.result.PageResponse;
-import com.mhmp.common.result.Result;
+import com.mhmp.common.result.R;
 import com.mhmp.dto.OutboundApproveDTO;
 import com.mhmp.dto.OutboundCreateDTO;
 import com.mhmp.dto.OutboundPageQueryDTO;
@@ -33,44 +33,44 @@ public class OutboundController {
 
     @GetMapping("/page")
     @PreAuthorize("hasAnyAuthority('inventory:outbound:apply:view','inventory:outbound:approve:view')")
-    public Result<PageResponse<OutboundListVO>> page(@Valid OutboundPageQueryDTO queryDTO) {
-        return Result.success(outboundService.page(queryDTO));
+    public R<PageResponse<OutboundListVO>> page(@Valid OutboundPageQueryDTO queryDTO) {
+        return R.success(outboundService.page(queryDTO));
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('inventory:outbound:apply:view','inventory:outbound:approve:view')")
-    public Result<OutboundDetailVO> detail(@PathVariable Long id) {
-        return Result.success(outboundService.detail(id));
+    public R<OutboundDetailVO> detail(@PathVariable Long id) {
+        return R.success(outboundService.detail(id));
     }
 
     @PostMapping
     @PreAuthorize("hasAuthority('inventory:outbound:submit')")
     @OperationLog(module = "Outbound", businessType = "INSERT", description = "Create outbound application")
-    public Result<Long> create(@Valid @RequestBody OutboundCreateDTO createDTO) {
-        return Result.success(outboundService.create(createDTO));
+    public R<Long> create(@Valid @RequestBody OutboundCreateDTO createDTO) {
+        return R.success(outboundService.create(createDTO));
     }
 
     @PostMapping("/approve/{id}")
     @PreAuthorize("hasAuthority('inventory:outbound:approve')")
     @OperationLog(module = "Outbound", businessType = "APPROVE", description = "Approve outbound application")
-    public Result<Void> approve(@PathVariable Long id, @RequestBody(required = false) OutboundApproveDTO approveDTO) {
+    public R<Void> approve(@PathVariable Long id, @RequestBody(required = false) OutboundApproveDTO approveDTO) {
         outboundService.approve(id, approveDTO == null ? new OutboundApproveDTO() : approveDTO);
-        return Result.success();
+        return R.success();
     }
 
     @PostMapping("/reject/{id}")
     @PreAuthorize("hasAuthority('inventory:outbound:reject')")
     @OperationLog(module = "Outbound", businessType = "REJECT", description = "Reject outbound application")
-    public Result<Void> reject(@PathVariable Long id, @RequestBody(required = false) OutboundApproveDTO approveDTO) {
+    public R<Void> reject(@PathVariable Long id, @RequestBody(required = false) OutboundApproveDTO approveDTO) {
         outboundService.reject(id, approveDTO == null ? new OutboundApproveDTO() : approveDTO);
-        return Result.success();
+        return R.success();
     }
 
     @PostMapping("/return/{id}")
     @PreAuthorize("hasAnyAuthority('inventory:outbound:approve','inventory:outbound:submit')")
     @OperationLog(module = "Outbound", businessType = "RETURN", description = "Register relic return")
-    public Result<Void> returnOrder(@PathVariable Long id, @RequestBody(required = false) OutboundReturnDTO returnDTO) {
+    public R<Void> returnOrder(@PathVariable Long id, @RequestBody(required = false) OutboundReturnDTO returnDTO) {
         outboundService.returnOrder(id, returnDTO == null ? new OutboundReturnDTO() : returnDTO);
-        return Result.success();
+        return R.success();
     }
 }

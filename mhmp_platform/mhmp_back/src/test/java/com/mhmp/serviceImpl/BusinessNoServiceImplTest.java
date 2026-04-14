@@ -7,7 +7,6 @@ import com.mhmp.entity.Relic;
 import com.mhmp.mapper.InventoryTaskMapper;
 import com.mhmp.mapper.RepairAcceptanceMapper;
 import com.mhmp.mapper.RepairLogMapper;
-import com.mhmp.mapper.RepairPlanMapper;
 import com.mhmp.mapper.RepairTaskMapper;
 import com.mhmp.mapper.RelicInboundOrderMapper;
 import com.mhmp.mapper.RelicMapper;
@@ -44,8 +43,6 @@ class BusinessNoServiceImplTest {
     @Mock
     private RepairTaskMapper repairTaskMapper;
     @Mock
-    private RepairPlanMapper repairPlanMapper;
-    @Mock
     private RepairLogMapper repairLogMapper;
     @Mock
     private RepairAcceptanceMapper repairAcceptanceMapper;
@@ -64,7 +61,6 @@ class BusinessNoServiceImplTest {
             relicOutboundOrderMapper,
             inventoryTaskMapper,
             repairTaskMapper,
-            repairPlanMapper,
             repairLogMapper,
             repairAcceptanceMapper,
             sysDictItemMapper

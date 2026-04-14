@@ -1,6 +1,6 @@
 package com.mhmp.controller;
 
-import com.mhmp.common.result.Result;
+import com.mhmp.common.result.R;
 import com.mhmp.service.DashboardService;
 import com.mhmp.vo.DashboardSummaryVO;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,7 +20,7 @@ public class DashboardController {
 
     @GetMapping("/summary")
     @PreAuthorize("hasAuthority('dashboard:view')")
-    public Result<DashboardSummaryVO> summary() {
-        return Result.success(dashboardService.summary());
+    public R<DashboardSummaryVO> summary() {
+        return R.success(dashboardService.summary());
     }
 }

@@ -14,8 +14,6 @@ public interface BusinessNoService {
 
     String nextRepairTaskNo();
 
-    String nextRepairPlanNo();
-
     String nextRepairLogNo();
 
     String nextRepairAcceptanceNo();

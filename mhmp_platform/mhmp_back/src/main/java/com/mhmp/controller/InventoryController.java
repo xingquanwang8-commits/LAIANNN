@@ -2,7 +2,7 @@ package com.mhmp.controller;
 
 import com.mhmp.common.annotation.OperationLog;
 import com.mhmp.common.result.PageResponse;
-import com.mhmp.common.result.Result;
+import com.mhmp.common.result.R;
 import com.mhmp.dto.InventoryQueryPageDTO;
 import com.mhmp.dto.InventoryTaskCreateDTO;
 import com.mhmp.dto.InventoryTaskDetailUpdateDTO;
@@ -36,51 +36,51 @@ public class InventoryController {
 
     @GetMapping("/query/summary")
     @PreAuthorize("hasAuthority('inventory:query:view')")
-    public Result<InventorySummaryVO> summary() {
-        return Result.success(inventoryService.summary());
+    public R<InventorySummaryVO> summary() {
+        return R.success(inventoryService.summary());
     }
 
     @GetMapping("/query/page")
     @PreAuthorize("hasAuthority('inventory:query:view')")
-    public Result<PageResponse<RelicListVO>> queryPage(@Valid InventoryQueryPageDTO queryDTO) {
-        return Result.success(inventoryService.queryPage(queryDTO));
+    public R<PageResponse<RelicListVO>> queryPage(@Valid InventoryQueryPageDTO queryDTO) {
+        return R.success(inventoryService.queryPage(queryDTO));
     }
 
     @GetMapping("/tasks/page")
     @PreAuthorize("hasAuthority('inventory:task:view')")
-    public Result<PageResponse<InventoryTaskListVO>> taskPage(@Valid InventoryTaskPageQueryDTO queryDTO) {
-        return Result.success(inventoryService.taskPage(queryDTO));
+    public R<PageResponse<InventoryTaskListVO>> taskPage(@Valid InventoryTaskPageQueryDTO queryDTO) {
+        return R.success(inventoryService.taskPage(queryDTO));
     }
 
     @GetMapping("/tasks/{id}")
     @PreAuthorize("hasAuthority('inventory:task:view')")
-    public Result<InventoryTaskDetailVO> taskDetail(@PathVariable Long id) {
-        return Result.success(inventoryService.taskDetail(id));
+    public R<InventoryTaskDetailVO> taskDetail(@PathVariable Long id) {
+        return R.success(inventoryService.taskDetail(id));
     }
 
     @PostMapping("/tasks")
     @PreAuthorize("hasAuthority('inventory:task:add')")
     @OperationLog(module = "Inventory Task", businessType = "INSERT", description = "Create inventory task")
-    public Result<Long> createTask(@Valid @RequestBody InventoryTaskCreateDTO createDTO) {
-        return Result.success(inventoryService.createTask(createDTO));
+    public R<Long> createTask(@Valid @RequestBody InventoryTaskCreateDTO createDTO) {
+        return R.success(inventoryService.createTask(createDTO));
     }
 
     @PutMapping("/tasks/{taskId}/details/{detailId}")
     @PreAuthorize("hasAuthority('inventory:task:submit')")
     @OperationLog(module = "Inventory Task", businessType = "UPDATE", description = "Update inventory detail")
-    public Result<Void> updateTaskDetail(@PathVariable Long taskId,
+    public R<Void> updateTaskDetail(@PathVariable Long taskId,
                                          @PathVariable Long detailId,
                                          @RequestBody(required = false) InventoryTaskDetailUpdateDTO updateDTO) {
         inventoryService.updateTaskDetail(taskId, detailId,
             updateDTO == null ? new InventoryTaskDetailUpdateDTO() : updateDTO);
-        return Result.success();
+        return R.success();
     }
 
     @PostMapping("/tasks/{taskId}/submit")
     @PreAuthorize("hasAuthority('inventory:task:submit')")
     @OperationLog(module = "Inventory Task", businessType = "SUBMIT", description = "Submit inventory task")
-    public Result<Void> submitTask(@PathVariable Long taskId) {
+    public R<Void> submitTask(@PathVariable Long taskId) {
         inventoryService.submitTask(taskId);
-        return Result.success();
+        return R.success();
     }
 }

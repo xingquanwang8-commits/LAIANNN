@@ -1,7 +1,7 @@
 package com.mhmp.controller;
 
 import com.mhmp.common.annotation.OperationLog;
-import com.mhmp.common.result.Result;
+import com.mhmp.common.result.R;
 import com.mhmp.common.security.JwtAuthenticationFilter;
 import com.mhmp.dto.PasswordUpdateDTO;
 import com.mhmp.dto.ProfileUpdateDTO;
@@ -28,23 +28,23 @@ public class ProfileController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('profile:view')")
-    public Result<ProfileVO> profile() {
-        return Result.success(profileService.getProfile());
+    public R<ProfileVO> profile() {
+        return R.success(profileService.getProfile());
     }
 
     @PutMapping
     @PreAuthorize("hasAuthority('profile:view')")
     @OperationLog(module = "个人中心", businessType = "UPDATE", description = "更新个人资料")
-    public Result<Void> updateProfile(@RequestBody ProfileUpdateDTO updateDTO) {
+    public R<Void> updateProfile(@RequestBody ProfileUpdateDTO updateDTO) {
         profileService.updateProfile(updateDTO);
-        return Result.success();
+        return R.success();
     }
 
     @PutMapping("/password")
     @PreAuthorize("hasAuthority('profile:view')")
     @OperationLog(module = "个人中心", businessType = "UPDATE", description = "修改个人密码")
-    public Result<Void> updatePassword(HttpServletRequest request, @Valid @RequestBody PasswordUpdateDTO updateDTO) {
+    public R<Void> updatePassword(HttpServletRequest request, @Valid @RequestBody PasswordUpdateDTO updateDTO) {
         profileService.updatePassword(JwtAuthenticationFilter.resolveToken(request), updateDTO);
-        return Result.success();
+        return R.success();
     }
 }

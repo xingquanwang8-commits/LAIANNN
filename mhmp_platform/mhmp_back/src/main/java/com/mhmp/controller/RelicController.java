@@ -2,7 +2,7 @@ package com.mhmp.controller;
 
 import com.mhmp.common.annotation.OperationLog;
 import com.mhmp.common.result.PageResponse;
-import com.mhmp.common.result.Result;
+import com.mhmp.common.result.R;
 import com.mhmp.dto.RelicBatchTransferDTO;
 import com.mhmp.dto.RelicCategoryCreateDTO;
 import com.mhmp.dto.RelicMaterialCreateDTO;
@@ -40,72 +40,72 @@ public class RelicController {
 
     @GetMapping("/page")
     @PreAuthorize("hasAnyAuthority('relic:list:view','relic:view')")
-    public Result<PageResponse<RelicListVO>> page(@Valid RelicPageQueryDTO queryDTO) {
-        return Result.success(relicService.page(queryDTO));
+    public R<PageResponse<RelicListVO>> page(@Valid RelicPageQueryDTO queryDTO) {
+        return R.success(relicService.page(queryDTO));
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('relic:detail:view','relic:view','relic:list:view')")
-    public Result<RelicDetailVO> detail(@PathVariable Long id) {
-        return Result.success(relicService.detail(id));
+    public R<RelicDetailVO> detail(@PathVariable Long id) {
+        return R.success(relicService.detail(id));
     }
 
     @GetMapping("/{id}/attachments")
     @PreAuthorize("hasAnyAuthority('relic:detail:view','relic:view','relic:list:view')")
-    public Result<List<RelicAttachmentVO>> attachments(@PathVariable Long id) {
-        return Result.success(relicService.listAttachments(id));
+    public R<List<RelicAttachmentVO>> attachments(@PathVariable Long id) {
+        return R.success(relicService.listAttachments(id));
     }
 
     @PostMapping
     @PreAuthorize("hasAuthority('relic:add')")
     @OperationLog(module = "Relic", businessType = "INSERT", description = "Create relic")
-    public Result<Long> create(@Valid @RequestBody RelicSaveDTO saveDTO) {
-        return Result.success(relicService.create(saveDTO));
+    public R<Long> create(@Valid @RequestBody RelicSaveDTO saveDTO) {
+        return R.success(relicService.create(saveDTO));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('relic:edit')")
     @OperationLog(module = "Relic", businessType = "UPDATE", description = "Update relic")
-    public Result<Void> update(@PathVariable Long id, @Valid @RequestBody RelicSaveDTO saveDTO) {
+    public R<Void> update(@PathVariable Long id, @Valid @RequestBody RelicSaveDTO saveDTO) {
         relicService.update(id, saveDTO);
-        return Result.success();
+        return R.success();
     }
 
     @PostMapping("/categories")
     @PreAuthorize("hasAnyAuthority('relic:add','relic:edit')")
     @OperationLog(module = "Relic", businessType = "INSERT", description = "Create relic category")
-    public Result<String> createCategory(@Valid @RequestBody RelicCategoryCreateDTO createDTO) {
-        return Result.success(relicService.createCategory(createDTO.getCategoryName()));
+    public R<String> createCategory(@Valid @RequestBody RelicCategoryCreateDTO createDTO) {
+        return R.success(relicService.createCategory(createDTO.getCategoryName()));
     }
 
     @PostMapping("/materials")
     @PreAuthorize("hasAnyAuthority('relic:add','relic:edit')")
     @OperationLog(module = "Relic", businessType = "INSERT", description = "Create relic material")
-    public Result<String> createMaterial(@Valid @RequestBody RelicMaterialCreateDTO createDTO) {
-        return Result.success(relicService.createMaterial(createDTO.getMaterialName()));
+    public R<String> createMaterial(@Valid @RequestBody RelicMaterialCreateDTO createDTO) {
+        return R.success(relicService.createMaterial(createDTO.getMaterialName()));
     }
 
     @PostMapping("/{id}/transfer")
     @PreAuthorize("hasAuthority('relic:edit')")
     @OperationLog(module = "Relic", businessType = "UPDATE", description = "Transfer relic location")
-    public Result<Void> transfer(@PathVariable Long id, @Valid @RequestBody RelicTransferDTO transferDTO) {
+    public R<Void> transfer(@PathVariable Long id, @Valid @RequestBody RelicTransferDTO transferDTO) {
         relicService.transfer(id, transferDTO);
-        return Result.success();
+        return R.success();
     }
 
     @PostMapping("/transfer/batch")
     @PreAuthorize("hasAuthority('relic:edit')")
     @OperationLog(module = "Relic", businessType = "UPDATE", description = "Batch transfer relic location")
-    public Result<Void> batchTransfer(@Valid @RequestBody RelicBatchTransferDTO transferDTO) {
+    public R<Void> batchTransfer(@Valid @RequestBody RelicBatchTransferDTO transferDTO) {
         relicService.batchTransfer(transferDTO);
-        return Result.success();
+        return R.success();
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('relic:delete')")
     @OperationLog(module = "Relic", businessType = "DELETE", description = "Delete relic")
-    public Result<Void> delete(@PathVariable Long id) {
+    public R<Void> delete(@PathVariable Long id) {
         relicService.delete(id);
-        return Result.success();
+        return R.success();
     }
 }

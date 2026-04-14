@@ -2,7 +2,7 @@ package com.mhmp.controller;
 
 import com.mhmp.common.annotation.OperationLog;
 import com.mhmp.common.result.PageResponse;
-import com.mhmp.common.result.Result;
+import com.mhmp.common.result.R;
 import com.mhmp.dto.InboundCreateDTO;
 import com.mhmp.dto.InboundPageQueryDTO;
 import com.mhmp.service.InboundService;
@@ -31,28 +31,28 @@ public class InboundController {
 
     @GetMapping("/page")
     @PreAuthorize("hasAuthority('inventory:inbound:view')")
-    public Result<PageResponse<InboundListVO>> page(@Valid InboundPageQueryDTO queryDTO) {
-        return Result.success(inboundService.page(queryDTO));
+    public R<PageResponse<InboundListVO>> page(@Valid InboundPageQueryDTO queryDTO) {
+        return R.success(inboundService.page(queryDTO));
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('inventory:inbound:view')")
-    public Result<InboundDetailVO> detail(@PathVariable Long id) {
-        return Result.success(inboundService.detail(id));
+    public R<InboundDetailVO> detail(@PathVariable Long id) {
+        return R.success(inboundService.detail(id));
     }
 
     @PostMapping
     @PreAuthorize("hasAuthority('inventory:inbound:add')")
     @OperationLog(module = "Inbound", businessType = "INSERT", description = "Create inbound order")
-    public Result<Long> create(@Valid @RequestBody InboundCreateDTO createDTO) {
-        return Result.success(inboundService.create(createDTO));
+    public R<Long> create(@Valid @RequestBody InboundCreateDTO createDTO) {
+        return R.success(inboundService.create(createDTO));
     }
 
     @PostMapping("/approve/{id}")
     @PreAuthorize("hasAuthority('inventory:inbound:approve')")
     @OperationLog(module = "Inbound", businessType = "APPROVE", description = "Approve inbound order")
-    public Result<Void> approve(@PathVariable Long id) {
+    public R<Void> approve(@PathVariable Long id) {
         inboundService.approve(id);
-        return Result.success();
+        return R.success();
     }
 }

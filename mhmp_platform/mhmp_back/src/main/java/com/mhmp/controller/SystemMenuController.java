@@ -1,7 +1,7 @@
 package com.mhmp.controller;
 
 import com.mhmp.common.annotation.OperationLog;
-import com.mhmp.common.result.Result;
+import com.mhmp.common.result.R;
 import com.mhmp.dto.MenuSaveDTO;
 import com.mhmp.service.SystemMenuService;
 import com.mhmp.vo.SystemMenuTreeVO;
@@ -32,36 +32,36 @@ public class SystemMenuController {
 
     @GetMapping("/tree")
     @PreAuthorize("hasAuthority('sys:menu:view')")
-    public Result<List<SystemMenuTreeVO>> tree() {
-        return Result.success(systemMenuService.tree());
+    public R<List<SystemMenuTreeVO>> tree() {
+        return R.success(systemMenuService.tree());
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('sys:menu:view')")
-    public Result<SystemMenuTreeVO> detail(@PathVariable Long id) {
-        return Result.success(systemMenuService.detail(id));
+    public R<SystemMenuTreeVO> detail(@PathVariable Long id) {
+        return R.success(systemMenuService.detail(id));
     }
 
     @PostMapping
     @PreAuthorize("hasAuthority('sys:menu:add')")
     @OperationLog(module = "菜单管理", businessType = "INSERT", description = "新增菜单")
-    public Result<Long> create(@Valid @RequestBody MenuSaveDTO saveDTO) {
-        return Result.success("新增成功", systemMenuService.create(saveDTO));
+    public R<Long> create(@Valid @RequestBody MenuSaveDTO saveDTO) {
+        return R.success("新增成功", systemMenuService.create(saveDTO));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('sys:menu:edit')")
     @OperationLog(module = "菜单管理", businessType = "UPDATE", description = "编辑菜单")
-    public Result<Void> update(@PathVariable Long id, @Valid @RequestBody MenuSaveDTO saveDTO) {
+    public R<Void> update(@PathVariable Long id, @Valid @RequestBody MenuSaveDTO saveDTO) {
         systemMenuService.update(id, saveDTO);
-        return Result.success();
+        return R.success();
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('sys:menu:delete')")
     @OperationLog(module = "菜单管理", businessType = "DELETE", description = "删除菜单")
-    public Result<Void> delete(@PathVariable Long id) {
+    public R<Void> delete(@PathVariable Long id) {
         systemMenuService.delete(id);
-        return Result.success();
+        return R.success();
     }
 }

@@ -1,7 +1,7 @@
 package com.mhmp.controller;
 
 import com.mhmp.common.annotation.OperationLog;
-import com.mhmp.common.result.Result;
+import com.mhmp.common.result.R;
 import com.mhmp.common.security.JwtAuthenticationFilter;
 import com.mhmp.dto.LoginDTO;
 import com.mhmp.service.AuthService;
@@ -30,24 +30,24 @@ public class AuthController {
 
     @PostMapping("/login")
     @OperationLog(module = "Auth", businessType = "LOGIN", description = "User login")
-    public Result<LoginVO> login(@Valid @RequestBody LoginDTO loginDTO) {
-        return Result.success(authService.login(loginDTO));
+    public R<LoginVO> login(@Valid @RequestBody LoginDTO loginDTO) {
+        return R.success(authService.login(loginDTO));
     }
 
     @PostMapping("/logout")
     @OperationLog(module = "Auth", businessType = "LOGOUT", description = "User logout")
-    public Result<Void> logout(HttpServletRequest request) {
+    public R<Void> logout(HttpServletRequest request) {
         authService.logout(JwtAuthenticationFilter.resolveToken(request));
-        return Result.success();
+        return R.success();
     }
 
     @GetMapping("/current-user")
-    public Result<CurrentUserVO> currentUser() {
-        return Result.success(authService.getCurrentUser());
+    public R<CurrentUserVO> currentUser() {
+        return R.success(authService.getCurrentUser());
     }
 
     @GetMapping("/menus")
-    public Result<List<MenuVO>> menus() {
-        return Result.success(authService.getCurrentMenus());
+    public R<List<MenuVO>> menus() {
+        return R.success(authService.getCurrentMenus());
     }
 }

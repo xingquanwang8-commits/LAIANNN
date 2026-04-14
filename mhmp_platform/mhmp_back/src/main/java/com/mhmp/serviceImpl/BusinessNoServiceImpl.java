@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.mhmp.entity.InventoryTask;
 import com.mhmp.entity.RepairAcceptance;
 import com.mhmp.entity.RepairLog;
-import com.mhmp.entity.RepairPlan;
 import com.mhmp.entity.RepairTask;
 import com.mhmp.entity.Relic;
 import com.mhmp.entity.RelicInboundOrder;
@@ -13,7 +12,6 @@ import com.mhmp.entity.SysDictItem;
 import com.mhmp.mapper.InventoryTaskMapper;
 import com.mhmp.mapper.RepairAcceptanceMapper;
 import com.mhmp.mapper.RepairLogMapper;
-import com.mhmp.mapper.RepairPlanMapper;
 import com.mhmp.mapper.RepairTaskMapper;
 import com.mhmp.mapper.RelicInboundOrderMapper;
 import com.mhmp.mapper.RelicMapper;
@@ -41,7 +39,6 @@ public class BusinessNoServiceImpl implements BusinessNoService {
     private final RelicOutboundOrderMapper relicOutboundOrderMapper;
     private final InventoryTaskMapper inventoryTaskMapper;
     private final RepairTaskMapper repairTaskMapper;
-    private final RepairPlanMapper repairPlanMapper;
     private final RepairLogMapper repairLogMapper;
     private final RepairAcceptanceMapper repairAcceptanceMapper;
     private final SysDictItemMapper sysDictItemMapper;
@@ -51,7 +48,6 @@ public class BusinessNoServiceImpl implements BusinessNoService {
                                  RelicOutboundOrderMapper relicOutboundOrderMapper,
                                  InventoryTaskMapper inventoryTaskMapper,
                                  RepairTaskMapper repairTaskMapper,
-                                 RepairPlanMapper repairPlanMapper,
                                  RepairLogMapper repairLogMapper,
                                  RepairAcceptanceMapper repairAcceptanceMapper,
                                  SysDictItemMapper sysDictItemMapper) {
@@ -60,7 +56,6 @@ public class BusinessNoServiceImpl implements BusinessNoService {
         this.relicOutboundOrderMapper = relicOutboundOrderMapper;
         this.inventoryTaskMapper = inventoryTaskMapper;
         this.repairTaskMapper = repairTaskMapper;
-        this.repairPlanMapper = repairPlanMapper;
         this.repairLogMapper = repairLogMapper;
         this.repairAcceptanceMapper = repairAcceptanceMapper;
         this.sysDictItemMapper = sysDictItemMapper;
@@ -68,7 +63,7 @@ public class BusinessNoServiceImpl implements BusinessNoService {
 
     @Override
     public synchronized String nextRelicNo() {
-        LocalDate currentDate = currentDate();
+        LocalDate currentDate = LocalDate.now();
         return buildDateSerialNo("REL", currentDate, relicMapper.selectList(
             Wrappers.<Relic>lambdaQuery()
                 .select(Relic::getRelicNo)
@@ -78,7 +73,7 @@ public class BusinessNoServiceImpl implements BusinessNoService {
 
     @Override
     public synchronized String nextInboundOrderNo() {
-        LocalDate currentDate = currentDate();
+        LocalDate currentDate = LocalDate.now();
         return buildDateSerialNo("IN", currentDate, relicInboundOrderMapper.selectList(
             Wrappers.<RelicInboundOrder>lambdaQuery()
                 .select(RelicInboundOrder::getOrderNo)
@@ -88,7 +83,7 @@ public class BusinessNoServiceImpl implements BusinessNoService {
 
     @Override
     public synchronized String nextInboundBatchNo() {
-        LocalDate currentDate = currentDate();
+        LocalDate currentDate = LocalDate.now();
         return buildDateSerialNo("BATCH", currentDate, relicInboundOrderMapper.selectList(
             Wrappers.<RelicInboundOrder>lambdaQuery()
                 .select(RelicInboundOrder::getBatchNo)
@@ -98,7 +93,7 @@ public class BusinessNoServiceImpl implements BusinessNoService {
 
     @Override
     public synchronized String nextOutboundOrderNo() {
-        LocalDate currentDate = currentDate();
+        LocalDate currentDate = LocalDate.now();
         return buildDateSerialNo("OUT", currentDate, relicOutboundOrderMapper.selectList(
             Wrappers.<RelicOutboundOrder>lambdaQuery()
                 .select(RelicOutboundOrder::getOrderNo)
@@ -108,7 +103,7 @@ public class BusinessNoServiceImpl implements BusinessNoService {
 
     @Override
     public synchronized String nextInventoryTaskNo() {
-        LocalDate currentDate = currentDate();
+        LocalDate currentDate = LocalDate.now();
         return buildDateSerialNo("INV", currentDate, inventoryTaskMapper.selectList(
             Wrappers.<InventoryTask>lambdaQuery()
                 .select(InventoryTask::getTaskNo)
@@ -118,7 +113,7 @@ public class BusinessNoServiceImpl implements BusinessNoService {
 
     @Override
     public synchronized String nextRepairTaskNo() {
-        LocalDate currentDate = currentDate();
+        LocalDate currentDate = LocalDate.now();
         return buildDateSerialNo("REP", currentDate, repairTaskMapper.selectList(
             Wrappers.<RepairTask>lambdaQuery()
                 .select(RepairTask::getTaskNo)
@@ -127,18 +122,8 @@ public class BusinessNoServiceImpl implements BusinessNoService {
     }
 
     @Override
-    public synchronized String nextRepairPlanNo() {
-        LocalDate currentDate = currentDate();
-        return buildDateSerialNo("PLAN", currentDate, repairPlanMapper.selectList(
-            Wrappers.<RepairPlan>lambdaQuery()
-                .select(RepairPlan::getPlanNo)
-                .likeRight(RepairPlan::getPlanNo, datePrefix("PLAN", currentDate))
-        ).stream().map(RepairPlan::getPlanNo).toList());
-    }
-
-    @Override
     public synchronized String nextRepairLogNo() {
-        LocalDate currentDate = currentDate();
+        LocalDate currentDate = LocalDate.now();
         return buildDateSerialNo("LOG", currentDate, repairLogMapper.selectList(
             Wrappers.<RepairLog>lambdaQuery()
                 .select(RepairLog::getLogNo)
@@ -148,7 +133,7 @@ public class BusinessNoServiceImpl implements BusinessNoService {
 
     @Override
     public synchronized String nextRepairAcceptanceNo() {
-        LocalDate currentDate = currentDate();
+        LocalDate currentDate = LocalDate.now();
         return buildDateSerialNo("ACC", currentDate, repairAcceptanceMapper.selectList(
             Wrappers.<RepairAcceptance>lambdaQuery()
                 .select(RepairAcceptance::getAcceptanceNo)
@@ -182,10 +167,6 @@ public class BusinessNoServiceImpl implements BusinessNoService {
             .max()
             .orElse(0);
         return String.format("MATERIAL_%03d", max + 1);
-    }
-
-    private LocalDate currentDate() {
-        return LocalDate.now();
     }
 
     private String datePrefix(String prefix, LocalDate currentDate) {

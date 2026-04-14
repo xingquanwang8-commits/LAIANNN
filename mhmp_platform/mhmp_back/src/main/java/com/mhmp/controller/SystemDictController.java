@@ -2,7 +2,7 @@ package com.mhmp.controller;
 
 import com.mhmp.common.annotation.OperationLog;
 import com.mhmp.common.result.PageResponse;
-import com.mhmp.common.result.Result;
+import com.mhmp.common.result.R;
 import com.mhmp.dto.DictImportDTO;
 import com.mhmp.dto.DictItemSaveDTO;
 import com.mhmp.dto.DictTypePageQueryDTO;
@@ -37,67 +37,67 @@ public class SystemDictController {
 
     @GetMapping("/types/page")
     @PreAuthorize("hasAuthority('sys:dict:view')")
-    public Result<PageResponse<DictTypeVO>> pageTypes(@Valid DictTypePageQueryDTO queryDTO) {
-        return Result.success(dictService.pageTypes(queryDTO));
+    public R<PageResponse<DictTypeVO>> pageTypes(@Valid DictTypePageQueryDTO queryDTO) {
+        return R.success(dictService.pageTypes(queryDTO));
     }
 
     @PostMapping("/types")
     @PreAuthorize("hasAuthority('sys:dict:view')")
     @OperationLog(module = "字典管理", businessType = "INSERT", description = "新增字典类型")
-    public Result<Long> createType(@Valid @RequestBody DictTypeSaveDTO saveDTO) {
-        return Result.success("新增成功", dictService.createType(saveDTO));
+    public R<Long> createType(@Valid @RequestBody DictTypeSaveDTO saveDTO) {
+        return R.success("新增成功", dictService.createType(saveDTO));
     }
 
     @PutMapping("/types/{id}")
     @PreAuthorize("hasAuthority('sys:dict:view')")
     @OperationLog(module = "字典管理", businessType = "UPDATE", description = "编辑字典类型")
-    public Result<Void> updateType(@PathVariable Long id, @Valid @RequestBody DictTypeSaveDTO saveDTO) {
+    public R<Void> updateType(@PathVariable Long id, @Valid @RequestBody DictTypeSaveDTO saveDTO) {
         dictService.updateType(id, saveDTO);
-        return Result.success();
+        return R.success();
     }
 
     @DeleteMapping("/types/{id}")
     @PreAuthorize("hasAuthority('sys:dict:view')")
     @OperationLog(module = "字典管理", businessType = "DELETE", description = "删除字典类型")
-    public Result<Void> deleteType(@PathVariable Long id) {
+    public R<Void> deleteType(@PathVariable Long id) {
         dictService.deleteType(id);
-        return Result.success();
+        return R.success();
     }
 
     @GetMapping("/{dictTypeCode}/items")
     @PreAuthorize("hasAuthority('sys:dict:view')")
-    public Result<List<DictItemVO>> allItems(@PathVariable String dictTypeCode) {
-        return Result.success(dictService.listAllItemsByType(dictTypeCode));
+    public R<List<DictItemVO>> allItems(@PathVariable String dictTypeCode) {
+        return R.success(dictService.listAllItemsByType(dictTypeCode));
     }
 
     @PostMapping("/items")
     @PreAuthorize("hasAuthority('sys:dict:view')")
     @OperationLog(module = "字典管理", businessType = "INSERT", description = "新增字典项")
-    public Result<Long> createItem(@Valid @RequestBody DictItemSaveDTO saveDTO) {
-        return Result.success("新增成功", dictService.createItem(saveDTO));
+    public R<Long> createItem(@Valid @RequestBody DictItemSaveDTO saveDTO) {
+        return R.success("新增成功", dictService.createItem(saveDTO));
     }
 
     @PutMapping("/items/{id}")
     @PreAuthorize("hasAuthority('sys:dict:view')")
     @OperationLog(module = "字典管理", businessType = "UPDATE", description = "编辑字典项")
-    public Result<Void> updateItem(@PathVariable Long id, @Valid @RequestBody DictItemSaveDTO saveDTO) {
+    public R<Void> updateItem(@PathVariable Long id, @Valid @RequestBody DictItemSaveDTO saveDTO) {
         dictService.updateItem(id, saveDTO);
-        return Result.success();
+        return R.success();
     }
 
     @DeleteMapping("/items/{id}")
     @PreAuthorize("hasAuthority('sys:dict:view')")
     @OperationLog(module = "字典管理", businessType = "DELETE", description = "删除字典项")
-    public Result<Void> deleteItem(@PathVariable Long id) {
+    public R<Void> deleteItem(@PathVariable Long id) {
         dictService.deleteItem(id);
-        return Result.success();
+        return R.success();
     }
 
     @PostMapping("/import")
     @PreAuthorize("hasAuthority('sys:dict:import')")
     @OperationLog(module = "字典管理", businessType = "IMPORT", description = "导入字典项")
-    public Result<Void> importItems(@Valid @RequestBody DictImportDTO importDTO) {
+    public R<Void> importItems(@Valid @RequestBody DictImportDTO importDTO) {
         dictService.importItems(importDTO);
-        return Result.success();
+        return R.success();
     }
 }

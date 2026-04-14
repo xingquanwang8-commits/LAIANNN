@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
-import java.util.Map;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -30,14 +28,13 @@ class RTest {
     }
 
     @Test
-    void legacyResultShouldRemainCompatibleWithUnifiedResponseShape() {
-        Result<Void> response = Result.fail(400, "参数错误", Map.of("name", "名称不能为空"));
+    void failResponseShouldKeepMessageAliasAndTimestamp() {
+        R<Void> response = R.fail(400, "参数错误");
 
         assertEquals(400, response.getCode());
         assertEquals("参数错误", response.getMessage());
         assertEquals("参数错误", response.getMsg());
         assertFalse(response.getSuccess());
-        assertEquals("名称不能为空", response.getErrors().get("name"));
         assertNotNull(response.getTimestamp());
     }
 }

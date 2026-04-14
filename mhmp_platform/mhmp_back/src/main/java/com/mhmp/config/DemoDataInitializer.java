@@ -14,8 +14,6 @@ import com.mhmp.entity.RelicInboundDetail;
 import com.mhmp.entity.RelicInboundOrder;
 import com.mhmp.entity.RelicOutboundDetail;
 import com.mhmp.entity.RelicOutboundOrder;
-import com.mhmp.entity.SysDictItem;
-import com.mhmp.entity.SysDictType;
 import com.mhmp.entity.SysUser;
 import com.mhmp.mapper.InventoryTaskDetailMapper;
 import com.mhmp.mapper.InventoryTaskMapper;
@@ -29,8 +27,6 @@ import com.mhmp.mapper.RelicInboundOrderMapper;
 import com.mhmp.mapper.RelicMapper;
 import com.mhmp.mapper.RelicOutboundDetailMapper;
 import com.mhmp.mapper.RelicOutboundOrderMapper;
-import com.mhmp.mapper.SysDictItemMapper;
-import com.mhmp.mapper.SysDictTypeMapper;
 import com.mhmp.mapper.SysUserMapper;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.ApplicationArguments;
@@ -47,13 +43,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashSet;
 import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -70,8 +64,6 @@ public class DemoDataInitializer implements ApplicationRunner {
     private static final LocalDateTime DEMO_BASE_TIME = LocalDateTime.of(2026, 4, 8, 10, 0);
 
     private final SysUserMapper sysUserMapper;
-    private final SysDictTypeMapper sysDictTypeMapper;
-    private final SysDictItemMapper sysDictItemMapper;
     private final RelicMapper relicMapper;
     private final RelicAttachmentMapper relicAttachmentMapper;
     private final RelicInboundOrderMapper relicInboundOrderMapper;
@@ -87,8 +79,6 @@ public class DemoDataInitializer implements ApplicationRunner {
     private final FileStorageProperties fileStorageProperties;
 
     public DemoDataInitializer(SysUserMapper sysUserMapper,
-                               SysDictTypeMapper sysDictTypeMapper,
-                               SysDictItemMapper sysDictItemMapper,
                                RelicMapper relicMapper,
                                RelicAttachmentMapper relicAttachmentMapper,
                                RelicInboundOrderMapper relicInboundOrderMapper,
@@ -103,8 +93,6 @@ public class DemoDataInitializer implements ApplicationRunner {
                                RepairAcceptanceMapper repairAcceptanceMapper,
                                FileStorageProperties fileStorageProperties) {
         this.sysUserMapper = sysUserMapper;
-        this.sysDictTypeMapper = sysDictTypeMapper;
-        this.sysDictItemMapper = sysDictItemMapper;
         this.relicMapper = relicMapper;
         this.relicAttachmentMapper = relicAttachmentMapper;
         this.relicInboundOrderMapper = relicInboundOrderMapper;
@@ -149,67 +137,6 @@ public class DemoDataInitializer implements ApplicationRunner {
         ensureOutboundData(relics, primaryUserId, secondaryUserId);
         ensureInventoryData(relics, primaryUserId);
         ensureRepairData(relics, primaryUserId, secondaryUserId, tertiaryUserId, demoFiles);
-    }
-
-    private void ensureDictData(Long operatorId) {
-        ensureDictType("relic_category", "文物类别", operatorId);
-        ensureDictType("relic_material", "文物材质", operatorId);
-        ensureDictType("relic_status", "文物状态", operatorId);
-        ensureDictType("storage_location", "藏品库位", operatorId);
-        ensureDictType("preservation_status", "保存状态", operatorId);
-        ensureDictType("outbound_status", "出库状态", operatorId);
-
-        ensureDictItem("relic_category", "青铜器", "BRONZE", 1, operatorId);
-        ensureDictItem("relic_category", "陶瓷器", "CERAMIC", 2, operatorId);
-        ensureDictItem("relic_category", "书画", "PAINTING", 3, operatorId);
-        ensureDictItem("relic_category", "石刻造像", "STONE", 4, operatorId);
-        ensureDictItem("relic_category", "玉器", "JADE", 5, operatorId);
-        ensureDictItem("relic_category", "漆器", "LACQUER", 6, operatorId);
-        ensureDictItem("relic_category", "陶俑", "POTTERY", 7, operatorId);
-        ensureDictItem("relic_category", "金器", "GOLD", 8, operatorId);
-        ensureDictItem("relic_category", "简牍", "BAMBOO", 9, operatorId);
-        ensureDictItem("relic_category", "木雕", "WOOD", 10, operatorId);
-
-        ensureDictItem("relic_material", "青铜", "BRONZE", 1, operatorId);
-        ensureDictItem("relic_material", "瓷", "PORCELAIN", 2, operatorId);
-        ensureDictItem("relic_material", "绢本", "SILK", 3, operatorId);
-        ensureDictItem("relic_material", "石材", "STONE", 4, operatorId);
-        ensureDictItem("relic_material", "玉石", "JADE", 5, operatorId);
-        ensureDictItem("relic_material", "漆木", "LACQUER_WOOD", 6, operatorId);
-        ensureDictItem("relic_material", "陶土", "CLAY", 7, operatorId);
-        ensureDictItem("relic_material", "金", "GOLD", 8, operatorId);
-        ensureDictItem("relic_material", "竹木", "BAMBOO_WOOD", 9, operatorId);
-
-        syncDictItems("relic_status", operatorId, new String[][]{
-            {"待入库", "TO_BE_INBOUND"},
-            {"在库", "IN_STOCK"},
-            {"入库待审批", "INBOUND_PENDING"},
-            {"出库待审批", "OUTBOUND_PENDING"},
-            {"已出库", "OUT_STOCK"},
-            {"修复中", "IN_REPAIR"}
-        });
-
-        ensureDictItem("storage_location", "一号综合库", "LOC_A", 1, operatorId);
-        ensureDictItem("storage_location", "二号恒温库", "LOC_B", 2, operatorId);
-        ensureDictItem("storage_location", "三号精品库", "LOC_C", 3, operatorId);
-        ensureDictItem("storage_location", "文保修复库", "LOC_D", 4, operatorId);
-        ensureDictItem("storage_location", "珍品专柜", "LOC_VIP", 5, operatorId);
-
-        syncDictItems("preservation_status", operatorId, new String[][]{
-            {"完整", "COMPLETE"},
-            {"基本完整", "BASIC_COMPLETE"},
-            {"残缺", "INCOMPLETE"},
-            {"严重残缺", "SEVERE_INCOMPLETE"},
-            {"残碎", "FRAGMENTED"},
-            {"物理机械损伤", "PHYSICAL_DAMAGE"},
-            {"化学劣化", "CHEMICAL_DEGRADATION"},
-            {"生物病害", "BIOLOGICAL_DISEASE"}
-        });
-
-        ensureDictItem("outbound_status", "待审批", "PENDING", 1, operatorId);
-        ensureDictItem("outbound_status", "已审批", "APPROVED", 2, operatorId);
-        ensureDictItem("outbound_status", "已归还", "RETURNED", 3, operatorId);
-        ensureDictItem("outbound_status", "已驳回", "REJECTED", 4, operatorId);
     }
 
     private void normalizeLegacyRelicData(Long operatorId) {
@@ -280,31 +207,6 @@ public class DemoDataInitializer implements ApplicationRunner {
             case "FRAGILE" -> "BIOLOGICAL_DISEASE";
             default -> preservationStatusCode;
         };
-    }
-
-    private void syncDictItems(String dictTypeCode, Long operatorId, String[][] items) {
-        Set<String> enabledValues = new HashSet<>();
-        for (int index = 0; index < items.length; index++) {
-            ensureDictItem(dictTypeCode, items[index][0], items[index][1], index + 1, operatorId);
-            enabledValues.add(items[index][1]);
-        }
-        disableMissingDictItems(dictTypeCode, enabledValues, operatorId);
-    }
-
-    private void disableMissingDictItems(String dictTypeCode, Set<String> enabledValues, Long operatorId) {
-        List<SysDictItem> dictItems = sysDictItemMapper.selectList(
-            Wrappers.<SysDictItem>lambdaQuery()
-                .eq(SysDictItem::getDictTypeCode, dictTypeCode)
-                .eq(SysDictItem::getStatus, "ENABLED")
-        );
-        for (SysDictItem dictItem : dictItems) {
-            if (enabledValues.contains(dictItem.getItemValue())) {
-                continue;
-            }
-            dictItem.setStatus("DISABLED");
-            dictItem.setUpdateBy(operatorId);
-            sysDictItemMapper.updateById(dictItem);
-        }
     }
 
     private Map<String, Relic> ensureRelicData(Long operatorId, DemoFileBundle demoFiles) {
@@ -489,52 +391,6 @@ public class DemoDataInitializer implements ApplicationRunner {
         upsertRepairTask("REP-2026-006", relics.get("REL-2026-008"), secondaryUserId,
             "金丝局部松动，希望做紧急加固", "REJECTED", "UNACCEPTED", now.minusDays(60), tertiaryUserId,
             now.minusDays(59), "先纳入年度计划，暂不单独立项", null, null, "示例驳回任务");
-    }
-
-    private SysDictType ensureDictType(String dictTypeCode, String dictName, Long operatorId) {
-        SysDictType entity = sysDictTypeMapper.selectOne(
-            Wrappers.<SysDictType>lambdaQuery()
-                .eq(SysDictType::getDictTypeCode, dictTypeCode)
-                .last("LIMIT 1")
-        );
-        if (entity == null) {
-            entity = new SysDictType();
-        }
-        entity.setDictTypeCode(dictTypeCode);
-        entity.setDictName(dictName);
-        entity.setStatus("ENABLED");
-        entity.setRemark("Demo generated dictionary data");
-        fillAuditFields(entity, operatorId, demoNow().minusDays(30), demoNow());
-        if (entity.getId() == null) {
-            sysDictTypeMapper.insert(entity);
-        } else {
-            sysDictTypeMapper.updateById(entity);
-        }
-        return entity;
-    }
-
-    private void ensureDictItem(String dictTypeCode, String itemLabel, String itemValue, int itemSort, Long operatorId) {
-        SysDictItem entity = sysDictItemMapper.selectOne(
-            Wrappers.<SysDictItem>lambdaQuery()
-                .eq(SysDictItem::getDictTypeCode, dictTypeCode)
-                .eq(SysDictItem::getItemValue, itemValue)
-                .last("LIMIT 1")
-        );
-        if (entity == null) {
-            entity = new SysDictItem();
-        }
-        entity.setDictTypeCode(dictTypeCode);
-        entity.setItemLabel(itemLabel);
-        entity.setItemValue(itemValue);
-        entity.setItemSort(itemSort);
-        entity.setStatus("ENABLED");
-        entity.setRemark("Demo generated dictionary item");
-        fillAuditFields(entity, operatorId, demoNow().minusDays(30), demoNow());
-        if (entity.getId() == null) {
-            sysDictItemMapper.insert(entity);
-        } else {
-            sysDictItemMapper.updateById(entity);
-        }
     }
 
     private Relic upsertRelic(String relicNo,

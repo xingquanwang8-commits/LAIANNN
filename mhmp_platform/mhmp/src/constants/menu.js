@@ -179,6 +179,16 @@ export const APP_ROUTE_DEFINITIONS = [
     }
   },
   {
+    path: 'inventory/task/my',
+    name: 'inventory-task-my',
+    component: () => import('@/views/inventory/InventoryMyView.vue'),
+    meta: {
+      title: '鎴戠殑鐩樼偣',
+      requiresAuth: true,
+      permission: 'inventory:task:view'
+    }
+  },
+  {
     path: 'repair/apply',
     name: 'repair-apply',
     component: () => import('@/views/repair/RepairApplyView.vue'),

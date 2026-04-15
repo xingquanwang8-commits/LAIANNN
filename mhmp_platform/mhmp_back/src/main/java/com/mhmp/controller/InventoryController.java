@@ -11,6 +11,7 @@ import com.mhmp.service.InventoryService;
 import com.mhmp.vo.InventorySummaryVO;
 import com.mhmp.vo.InventoryTaskDetailVO;
 import com.mhmp.vo.InventoryTaskListVO;
+import com.mhmp.vo.InventoryTaskPrincipalVO;
 import com.mhmp.vo.RelicListVO;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,6 +23,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @Validated
 @RestController
@@ -56,6 +59,12 @@ public class InventoryController {
     @PreAuthorize("hasAuthority('inventory:task:view')")
     public R<InventoryTaskDetailVO> taskDetail(@PathVariable Long id) {
         return R.success(inventoryService.taskDetail(id));
+    }
+
+    @GetMapping("/tasks/principals")
+    @PreAuthorize("hasAuthority('inventory:task:add')")
+    public R<List<InventoryTaskPrincipalVO>> taskPrincipals() {
+        return R.success(inventoryService.taskPrincipals());
     }
 
     @PostMapping("/tasks")

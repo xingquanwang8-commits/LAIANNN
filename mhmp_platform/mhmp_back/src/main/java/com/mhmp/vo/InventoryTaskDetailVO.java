@@ -16,6 +16,7 @@ public class InventoryTaskDetailVO {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private String principalName;
+    private Long principalUserId;
     private String remark;
     private List<InventoryTaskItemVO> details;
 }

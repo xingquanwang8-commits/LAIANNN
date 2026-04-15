@@ -38,5 +38,8 @@ public class InventoryTask extends BaseEntity {
     @TableField("principal_name")
     private String principalName;
 
+    @TableField("principal_user_id")
+    private Long principalUserId;
+
     private String remark;
 }

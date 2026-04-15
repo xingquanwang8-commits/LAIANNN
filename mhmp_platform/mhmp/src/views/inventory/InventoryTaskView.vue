@@ -48,7 +48,7 @@
       >
         <template #extra>
           <div v-if="authStore.hasPermission('inventory:task:add')" class="query-toolbar__actions">
-            <el-button type="primary" @click="openCreate">新增任务</el-button>
+            <el-button type="primary" @click="openCreate">发起盘点</el-button>
           </div>
         </template>
       </PageHeader>
@@ -88,7 +88,7 @@
         <div>
           <div class="list-section__title">盘点任务列表</div>
           <div class="list-section__desc">
-            当前展示 {{ currentPageCount }} 条盘点任务，可进入抽屉查看盘点明细、登记实际数量并提交盘点结果。
+            当前展示 {{ currentPageCount }} 条盘点任务，可进入抽屉查看盘点明细、登记实盘数量并提交盘点结果。
           </div>
         </div>
       </div>
@@ -133,7 +133,7 @@
       </div>
     </section>
 
-    <el-dialog v-model="dialogVisible" title="新增盘点任务" width="660px">
+    <el-dialog v-model="dialogVisible" title="发起盘点" width="660px">
       <div class="detail-stack">
         <div class="overview-panel overview-panel--compact dialog-overview">
           <div class="overview-panel__top">
@@ -141,12 +141,14 @@
               <div class="overview-panel__eyebrow">Inventory Create</div>
               <h3 class="overview-panel__title dialog-overview__title">发起盘点任务</h3>
               <p class="overview-panel__desc">
-                创建前系统会核对当前库位是否有可纳入盘点的在库文物，以及是否存在未完成盘点任务，避免重复发起。
+                创建前系统会校对当前库位是否有可纳入盘点的在库文物，以及是否存在未完成盘点任务，避免重复发起。
               </p>
             </div>
             <div class="overview-panel__meta">
               <span class="overview-chip">任务编号保存后自动生成</span>
-              <span class="overview-chip overview-chip--accent">{{ resolveDictLabel(locationOptions, formData.locationCode) || '未选择库位' }}</span>
+              <span class="overview-chip overview-chip--accent">
+                {{ resolveDictLabel(locationOptions, formData.locationCode) || '未选择库位' }}
+              </span>
             </div>
           </div>
         </div>
@@ -178,11 +180,7 @@
               </div>
               <div class="business-check__summary">{{ inventoryCheckSummary }}</div>
               <ul v-if="inventoryCheckDetails.length" class="business-check__list">
-                <li
-                  v-for="item in inventoryCheckDetails"
-                  :key="item"
-                  class="business-check__item"
-                >
+                <li v-for="item in inventoryCheckDetails" :key="item" class="business-check__item">
                   {{ item }}
                 </li>
               </ul>
@@ -191,11 +189,33 @@
           <el-form-item label="开始时间" prop="startTime">
             <el-date-picker v-model="formData.startTime" type="datetime" value-format="YYYY-MM-DDTHH:mm:ss" />
           </el-form-item>
-          <el-form-item label="负责人" prop="principalName">
-            <el-input v-model="formData.principalName" disabled />
+          <el-form-item label="负责人" prop="principalUserId">
+            <el-select
+              v-model="formData.principalUserId"
+              placeholder="请选择负责人"
+              filterable
+              :loading="principalLoading"
+            >
+              <el-option
+                v-for="item in principalOptions"
+                :key="item.id"
+                :label="item.displayName"
+                :value="item.id"
+              >
+                <div class="principal-option">
+                  <span class="principal-option__name">{{ item.displayName }}</span>
+                  <span class="principal-option__meta">{{ item.username }}</span>
+                </div>
+              </el-option>
+            </el-select>
           </el-form-item>
           <el-form-item label="备注">
-            <el-input v-model="formData.remark" type="textarea" :rows="3" placeholder="可填写盘点范围、重点关注事项或交接说明" />
+            <el-input
+              v-model="formData.remark"
+              type="textarea"
+              :rows="3"
+              placeholder="可填写盘点范围、重点关注事项或交接说明"
+            />
           </el-form-item>
         </el-form>
       </div>
@@ -205,104 +225,17 @@
       </template>
     </el-dialog>
 
-    <el-drawer v-model="drawerVisible" title="盘点任务详情" size="60%">
-      <div class="detail-stack">
-        <div class="overview-panel overview-panel--compact drawer-overview">
-          <div class="overview-panel__top">
-            <div>
-              <div class="overview-panel__eyebrow">Inventory Detail</div>
-              <h3 class="overview-panel__title drawer-overview__title">{{ detail.taskNo || '盘点任务详情' }}</h3>
-              <p class="overview-panel__desc">
-                查看当前盘点任务的库位、负责人、任务状态和盘点明细，可在任务未完成前持续登记实际数量与差异备注。
-              </p>
-            </div>
-            <div class="overview-panel__meta">
-              <span class="overview-chip">{{ resolveDictLabel(locationOptions, detail.locationCode) || '--' }}</span>
-              <span class="overview-chip overview-chip--accent">差异 {{ detail.diffCount || 0 }} 项</span>
-            </div>
-          </div>
-        </div>
-
-        <section class="info-section">
-          <div class="info-section__header">
-            <div>
-              <h3 class="info-section__title">任务信息</h3>
-              <p class="info-section__desc">汇总任务编号、任务名称、库位、负责人和开始时间，作为盘点主记录。</p>
-            </div>
-          </div>
-
-          <el-descriptions :column="2" border>
-            <el-descriptions-item label="任务编号">{{ detail.taskNo || '--' }}</el-descriptions-item>
-            <el-descriptions-item label="任务名称">{{ detail.taskName || '--' }}</el-descriptions-item>
-            <el-descriptions-item label="库位">{{ resolveDictLabel(locationOptions, detail.locationCode) }}</el-descriptions-item>
-            <el-descriptions-item label="负责人">{{ detail.principalName || '--' }}</el-descriptions-item>
-            <el-descriptions-item label="状态">{{ taskStatusLabelMap[detail.taskStatus] || detail.taskStatus || '--' }}</el-descriptions-item>
-            <el-descriptions-item label="开始时间">{{ formatDateTime(detail.startTime) }}</el-descriptions-item>
-          </el-descriptions>
-        </section>
-
-        <section class="info-section">
-          <PageHeader
-            title="盘点明细"
-            description="录入实际盘点数量并补充差异说明，系统将自动回写正常、已核对或存在差异等结果状态。"
-          />
-
-          <el-table :data="detail.details || []" class="drawer-table">
-            <template #empty>
-              <el-empty class="empty-block" description="当前盘点任务暂无明细数据。" />
-            </template>
-            <el-table-column prop="relicNo" label="文物编号" min-width="130" />
-            <el-table-column prop="relicName" label="文物名称" min-width="150" />
-            <el-table-column prop="systemQuantity" label="系统数量" width="100" />
-            <el-table-column label="实盘数量" width="130">
-              <template #default="{ row }">
-                <el-input-number
-                  v-model="row.actualQuantity"
-                  :min="0"
-                  :disabled="detail.taskStatus === 'COMPLETED' || !authStore.hasPermission('inventory:task:submit')"
-                />
-              </template>
-            </el-table-column>
-            <el-table-column label="差异备注" min-width="150">
-              <template #default="{ row }">
-                <el-input
-                  v-model="row.diffRemark"
-                  :disabled="detail.taskStatus === 'COMPLETED' || !authStore.hasPermission('inventory:task:submit')"
-                />
-              </template>
-            </el-table-column>
-            <el-table-column label="结果" width="120">
-              <template #default="{ row }">
-                <StatusTag :status="row.resultStatus" :label="resultLabelMap[row.resultStatus] || row.resultStatus" />
-              </template>
-            </el-table-column>
-            <el-table-column v-if="authStore.hasPermission('inventory:task:submit')" label="保存" width="100">
-              <template #default="{ row }">
-                <el-button
-                  text
-                  type="primary"
-                  :disabled="detail.taskStatus === 'COMPLETED'"
-                  @click="handleSaveDetail(row)"
-                >
-                  保存
-                </el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-        </section>
-
-        <div class="drawer-footer">
-          <el-button
-            v-if="authStore.hasPermission('inventory:task:submit')"
-            type="primary"
-            :disabled="detail.taskStatus === 'COMPLETED'"
-            @click="handleSubmitTask"
-          >
-            提交盘点结果
-          </el-button>
-        </div>
-      </div>
-    </el-drawer>
+    <InventoryTaskDrawer
+      v-model="drawerVisible"
+      :detail="detail"
+      :location-options="locationOptions"
+      :task-status-label-map="taskStatusLabelMap"
+      :result-label-map="resultLabelMap"
+      :can-edit="authStore.hasPermission('inventory:task:submit')"
+      :can-submit="authStore.hasPermission('inventory:task:submit')"
+      @save-detail="handleSaveDetail"
+      @submit-task="handleSubmitTask"
+    />
   </div>
 </template>
 
@@ -314,6 +247,7 @@ import {
   createInventoryTaskApi,
   getInventoryTaskDetailApi,
   getInventoryTaskPageApi,
+  getInventoryTaskPrincipalOptionsApi,
   submitInventoryTaskApi,
   updateInventoryTaskDetailApi
 } from '@/api/inventory'
@@ -324,10 +258,8 @@ import { useAuthStore } from '@/stores/auth'
 import { useDictStore } from '@/stores/dict'
 import { validateElForm } from '@/utils/form'
 import { formatDateTime, resolveDictLabel } from '@/utils/format'
-import {
-  checkInventoryRelicEligibility,
-  pickRelicBusinessFields
-} from '@/utils/relicBusinessRules'
+import { checkInventoryRelicEligibility, pickRelicBusinessFields } from '@/utils/relicBusinessRules'
+import InventoryTaskDrawer from './components/InventoryTaskDrawer.vue'
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -335,10 +267,12 @@ const dictStore = useDictStore()
 
 const loading = ref(false)
 const saving = ref(false)
+const principalLoading = ref(false)
 const dialogVisible = ref(false)
 const drawerVisible = ref(false)
 const formRef = ref()
 const detail = ref({})
+const principalOptions = ref([])
 const inventoryCheckLoading = ref(false)
 const inventoryLocationStats = ref({
   eligibleCount: 0,
@@ -364,7 +298,7 @@ const formData = reactive({
   taskName: '',
   locationCode: '',
   startTime: '',
-  principalName: '',
+  principalUserId: null,
   remark: ''
 })
 
@@ -372,7 +306,7 @@ const rules = {
   taskName: [{ required: true, message: '请输入任务名称', trigger: 'blur' }],
   locationCode: [{ required: true, message: '请选择库位', trigger: 'change' }],
   startTime: [{ required: true, message: '请选择开始时间', trigger: 'change' }],
-  principalName: [{ required: true, message: '请输入负责人', trigger: 'blur' }]
+  principalUserId: [{ required: true, message: '请选择负责人', trigger: 'change' }]
 }
 
 const taskStatusLabelMap = {
@@ -389,7 +323,6 @@ const resultLabelMap = {
 }
 
 const locationOptions = computed(() => dictStore.itemsMap.storage_location || [])
-const currentOperatorName = computed(() => authStore.displayName || authStore.user?.username || '褰撳墠鐢ㄦ埛')
 const inventoryCheckVisible = computed(() => dialogVisible.value && Boolean(formData.locationCode))
 const inventoryCheckPassed = computed(() =>
   Boolean(formData.locationCode)
@@ -398,16 +331,14 @@ const inventoryCheckPassed = computed(() =>
   && inventoryLocationStats.value.activeTaskNames.length === 0
 )
 const inventoryCheckTitle = computed(() => (
-  inventoryCheckPassed.value
-    ? '盘点发起前置校验已通过'
-    : '盘点发起前置校验未通过'
+  inventoryCheckPassed.value ? '盘点发起前置校验已通过' : '盘点发起前置校验未通过'
 ))
 const inventoryCheckSummary = computed(() => {
   if (!formData.locationCode) {
     return ''
   }
   if (inventoryCheckLoading.value) {
-    return '正在核对当前库位的在库文物和未完成盘点任务，请稍候。'
+    return '正在校对当前库位的在库文物和未完成盘点任务，请稍候。'
   }
   if (inventoryCheckPassed.value) {
     return `当前库位共有 ${inventoryLocationStats.value.eligibleCount} 件在库文物可纳入盘点，且没有未完成盘点任务，可直接创建。`
@@ -421,10 +352,11 @@ const inventoryCheckDetails = computed(() => {
   if (!formData.locationCode || inventoryCheckLoading.value) {
     return []
   }
-  const details = []
   const locationLabel = resolveDictLabel(locationOptions.value, formData.locationCode) || formData.locationCode
-  details.push(`盘点库位：${locationLabel}`)
-  details.push(`在库文物：${inventoryLocationStats.value.eligibleCount} 件`)
+  const details = [
+    `盘点库位：${locationLabel}`,
+    `在库文物：${inventoryLocationStats.value.eligibleCount} 件`
+  ]
   if (inventoryLocationStats.value.previewRelics.length) {
     details.push(`库位文物示例：${inventoryLocationStats.value.previewRelics.join('、')}`)
   }
@@ -455,9 +387,21 @@ function resetForm() {
     taskName: '',
     locationCode: '',
     startTime: currentDateTime(),
-    principalName: currentOperatorName.value,
+    principalUserId: null,
     remark: ''
   })
+}
+
+async function loadPrincipalOptions(force = false) {
+  if (principalOptions.value.length && !force) {
+    return
+  }
+  principalLoading.value = true
+  try {
+    principalOptions.value = await getInventoryTaskPrincipalOptionsApi()
+  } finally {
+    principalLoading.value = false
+  }
 }
 
 async function loadInventoryLocationStats(locationCode) {
@@ -491,14 +435,13 @@ async function loadInventoryLocationStats(locationCode) {
         taskStatus: 'IN_PROGRESS'
       })
     ])
-    const activeTaskNames = [
-      ...(createdTasks.records || []).map((item) => item.taskName || item.taskNo),
-      ...(progressTasks.records || []).map((item) => item.taskName || item.taskNo)
-    ]
     inventoryLocationStats.value = {
       eligibleCount: relicPage.total || 0,
       previewRelics: (relicPage.records || []).slice(0, 3).map((item) => item.name || item.relicNo),
-      activeTaskNames
+      activeTaskNames: [
+        ...(createdTasks.records || []).map((item) => item.taskName || item.taskNo),
+        ...(progressTasks.records || []).map((item) => item.taskName || item.taskNo)
+      ]
     }
   } finally {
     inventoryCheckLoading.value = false
@@ -526,14 +469,16 @@ function suggestTaskName(locationCode) {
 
 async function openCreate(prefill = {}) {
   if (!authStore.hasPermission('inventory:task:add')) {
-    ElMessage.warning('当前账号没有新增盘点任务的权限')
+    ElMessage.warning('当前账号没有发起盘点任务的权限')
     return
   }
   resetForm()
-  if (prefill.locationCode) {
-    formData.locationCode = prefill.locationCode
+  await loadPrincipalOptions()
+  if (principalOptions.value.length) {
+    formData.principalUserId = principalOptions.value[0].id
   }
   if (prefill.locationCode) {
+    formData.locationCode = prefill.locationCode
     formData.taskName = suggestTaskName(prefill.locationCode)
   }
   if (prefill.quickCreate) {
@@ -547,15 +492,15 @@ async function openCreate(prefill = {}) {
 
 async function handleSave() {
   if (!authStore.hasPermission('inventory:task:add')) {
-    ElMessage.warning('当前账号没有新增盘点任务的权限')
+    ElMessage.warning('当前账号没有发起盘点任务的权限')
     return
   }
-  const valid = await validateElForm(formRef, '璇峰厛瀹屽杽鐩樼偣浠诲姟淇℃伅鍚庡啀鎻愪氦')
+  const valid = await validateElForm(formRef, '请先完善盘点任务信息后再提交')
   if (!valid) {
     return
   }
   if (inventoryCheckLoading.value) {
-    ElMessage.warning('正在核对当前库位业务状态，请稍候后再提交')
+    ElMessage.warning('正在校对当前库位业务状态，请稍候后再提交')
     return
   }
   if (!inventoryCheckPassed.value) {
@@ -564,7 +509,7 @@ async function handleSave() {
   }
   saving.value = true
   try {
-    await createInventoryTaskApi(formData)
+    await createInventoryTaskApi({ ...formData })
     ElMessage.success('盘点任务已创建')
     dialogVisible.value = false
     await loadTasks()
@@ -623,24 +568,24 @@ async function handleQuickCreateFromRoute() {
   if (dialogVisible.value && formData.locationCode === route.query.locationCode) {
     return
   }
-
-  const detail = await getRelicDetailApi(route.query.relicId).catch(() => null)
-  if (!detail) {
+  const relicDetail = await getRelicDetailApi(route.query.relicId).catch(() => null)
+  if (!relicDetail) {
     ElMessage.warning('未找到当前文物档案，请刷新后重试')
     return
   }
-  const checkResult = checkInventoryRelicEligibility(pickRelicBusinessFields(detail))
+  const checkResult = checkInventoryRelicEligibility(pickRelicBusinessFields(relicDetail))
   if (!checkResult.passed) {
     ElMessage.warning(checkResult.message)
     return
   }
   await openCreate({
     quickCreate: true,
-    locationCode: detail.storageLocationCode
+    locationCode: relicDetail.storageLocationCode
   })
 }
 
 dictStore.ensureItems('storage_location')
+
 watch(
   () => formData.locationCode,
   (value) => {
@@ -653,6 +598,7 @@ watch(
     loadInventoryLocationStats(value)
   }
 )
+
 watch(
   () => route.fullPath,
   () => {
@@ -660,6 +606,7 @@ watch(
   },
   { immediate: true }
 )
+
 loadTasks()
 </script>
 
@@ -692,24 +639,30 @@ loadTasks()
   width: 100%;
 }
 
-.dialog-overview__title,
-.drawer-overview__title {
+.dialog-overview__title {
   font-size: 22px;
+}
+
+.principal-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.principal-option__name {
+  color: var(--text-main);
+}
+
+.principal-option__meta {
+  color: var(--text-second);
+  font-size: 12px;
 }
 
 .table-footer {
   display: flex;
   justify-content: flex-end;
   margin-top: 18px;
-}
-
-.drawer-table {
-  margin-top: 18px;
-}
-
-.drawer-footer {
-  display: flex;
-  justify-content: flex-end;
 }
 
 @media (max-width: 960px) {

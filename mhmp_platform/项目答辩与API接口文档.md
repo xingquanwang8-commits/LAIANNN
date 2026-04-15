@@ -144,7 +144,8 @@ mhmp_platform/
 - 当前内置角色固定为 4 类：
   - `admin` / 系统管理员：拥有全部菜单与按钮权限
   - `senior_researcher` / 高级研究员：负责入库审批、出库审批、修复审批和修复验收，同时保留研究员的业务办理权限
-  - `researcher` / 研究员：负责建档、入库登记、出库申请、盘点、修复申请和修复过程记录，不再保留审批类权限
+- `researcher` / 研究员：负责建档、入库登记、出库申请、盘点、修复申请和修复过程记录，不再保留审批类权限
+- 盘点任务支持“高级研究员发起并指派研究员负责人”，研究员进入“我的盘点”页面处理自己负责的盘点任务
   - `docent` / 讲解员：保持原只读讲解类权限不变
 - 演示库默认账号 `researcher` 已迁移为 `senior_researcher`，便于直接演示审批与修复验收流程
 - 用户管理目前按“单账号单主角色”维护，`roleIds` 仍为数组字段，但后端只允许提交 1 个角色 ID，前端表单也已改为单选主角色
@@ -185,6 +186,7 @@ mhmp_platform/
 | `/inventory/outbound/approve` | 出库审批 | `inventory:outbound:approve:view` |
 | `/inventory/query` | 库存查询 | `inventory:query:view` |
 | `/inventory/task` | 盘点任务 | `inventory:task:view` |
+| `/inventory/task/my` | 我的盘点 | `inventory:task:view` |
 | `/repair/apply` | 修复申请 | `repair:apply:view` |
 | `/repair/approve` | 修复审批 | `repair:approve:view` |
 | `/repair/process` | 修复过程 | `repair:process:view` |
@@ -212,7 +214,7 @@ mhmp_platform/
 - `relic_attachment`：文物附件
 - `relic_inbound_order` / `relic_inbound_detail`：入库单及明细
 - `relic_outbound_order` / `relic_outbound_detail`：出库单及明细
-- `inventory_task` / `inventory_task_detail`：盘点任务及明细
+- `inventory_task` / `inventory_task_detail`：盘点任务及明细，其中 `inventory_task.principal_user_id` 记录负责人用户 ID，`principal_name` 记录负责人展示名快照
 - `repair_task`：修复任务
 - `repair_plan`：修复方案
 - `repair_log`：修复过程日志
@@ -400,11 +402,16 @@ mhmp_platform/
 | --- | --- | --- | --- | --- |
 | GET | `/api/inventory/query/summary` | `inventory:query:view` | 库存统计概览 | 无 |
 | GET | `/api/inventory/query/page` | `inventory:query:view` | 库存分页查询 | `pageNum`、`pageSize`、`keyword`、`categoryCode`、`materialCode`、`storageLocationCode`、`preservationStatusCode`、`currentStatus` |
-| GET | `/api/inventory/tasks/page` | `inventory:task:view` | 盘点任务分页 | `pageNum`、`pageSize`、`keyword`、`locationCode`、`taskStatus` |
+| GET | `/api/inventory/tasks/page` | `inventory:task:view` | 盘点任务分页 | `pageNum`、`pageSize`、`keyword`、`locationCode`、`taskStatus`、`principalUserId` |
 | GET | `/api/inventory/tasks/{id}` | `inventory:task:view` | 盘点任务详情 | 路径参数 `id` |
-| POST | `/api/inventory/tasks` | `inventory:task:add` | 创建盘点任务 | `taskName`、`locationCode`、`startTime`、`principalName`、`remark` |
+| GET | `/api/inventory/tasks/principals` | `inventory:task:add` | 获取可选盘点负责人 | 无，返回当前账号可指派的研究员列表 |
+| POST | `/api/inventory/tasks` | `inventory:task:add` | 创建盘点任务 | `taskName`、`locationCode`、`startTime`、`principalUserId`、`remark` |
 | PUT | `/api/inventory/tasks/{taskId}/details/{detailId}` | `inventory:task:submit` | 更新盘点明细 | `actualQuantity`、`diffRemark` |
 | POST | `/api/inventory/tasks/{taskId}/submit` | `inventory:task:submit` | 提交盘点任务 | 路径参数 `taskId` |
+
+补充说明：
+- 高级研究员和系统管理员可以为任意“研究员”发起盘点任务。
+- 研究员只能为自己发起盘点任务，前端“我的盘点”页面通过 `principalUserId = 当前用户ID` 过滤任务。
 
 ### 9.6 修复管理
 | 方法 | 路径 | 权限 | 说明 | 关键参数 |
@@ -446,9 +453,9 @@ mhmp_platform/
 4. 如已出库，后续执行归还登记
 
 ### 10.4 盘点流程
-1. 针对指定库位创建盘点任务
+1. 高级研究员或研究员针对指定库位发起盘点任务，并选择研究员负责人
 2. 自动生成盘点明细
-3. 填写实际数量与差异备注
+3. 负责人在“我的盘点”页面填写实际数量与差异备注
 4. 提交盘点任务形成结果
 
 ### 10.5 修复流程

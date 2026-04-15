@@ -218,6 +218,32 @@ SET parent_id = 300,
     deleted = 0
 WHERE id = 305;
 
+INSERT INTO sys_menu (
+    parent_id, menu_name, menu_code, menu_type, path, component, permission_code,
+    sort_no, visible, status, icon, keep_alive, remark, create_by, create_time, update_by, update_time, deleted
+)
+SELECT
+    300, CONVERT(0xE68891E79A84E79B98E782B9 USING utf8mb4), 'inventory:task:my', 'MENU', '/inventory/task/my', NULL, 'inventory:task:view',
+    35, 1, 'ENABLED', 'List', 1, CONVERT(0xE79B98E782B9E4BEA7E8BEB9E8A18CE4BFAEE5A48D USING utf8mb4), @operator_id, NOW(), @operator_id, NOW(), 0
+FROM DUAL
+WHERE NOT EXISTS (
+    SELECT 1 FROM sys_menu WHERE menu_code = 'inventory:task:my' AND deleted = 0
+);
+
+UPDATE sys_menu
+SET parent_id = 300,
+    menu_name = CONVERT(0xE68891E79A84E79B98E782B9 USING utf8mb4),
+    path = '/inventory/task/my',
+    menu_type = 'MENU',
+    permission_code = 'inventory:task:view',
+    sort_no = 35,
+    visible = 1,
+    status = 'ENABLED',
+    icon = 'List',
+    update_by = @operator_id,
+    deleted = 0
+WHERE menu_code = 'inventory:task:my';
+
 UPDATE sys_menu
 SET parent_id = 306,
     menu_name = CONVERT(0xE585A5E5BA93E5AEA1E689B9 USING utf8mb4),
@@ -325,6 +351,17 @@ SELECT r.id, m.id, @operator_id, NOW(), @operator_id, NOW(), 0
 FROM sys_role r
 JOIN sys_menu m ON m.id = 306 AND m.deleted = 0
 WHERE r.role_code IN ('admin', 'senior_researcher')
+  AND r.deleted = 0
+  AND NOT EXISTS (
+      SELECT 1 FROM sys_role_menu srm
+      WHERE srm.role_id = r.id AND srm.menu_id = m.id AND srm.deleted = 0
+  );
+
+INSERT INTO sys_role_menu (role_id, menu_id, create_by, create_time, update_by, update_time, deleted)
+SELECT r.id, m.id, @operator_id, NOW(), @operator_id, NOW(), 0
+FROM sys_role r
+JOIN sys_menu m ON m.menu_code = 'inventory:task:my' AND m.deleted = 0
+WHERE r.role_code IN ('admin', 'researcher', 'senior_researcher')
   AND r.deleted = 0
   AND NOT EXISTS (
       SELECT 1 FROM sys_role_menu srm

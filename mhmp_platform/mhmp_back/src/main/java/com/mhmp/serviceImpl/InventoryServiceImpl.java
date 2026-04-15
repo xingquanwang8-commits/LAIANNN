@@ -13,25 +13,35 @@ import com.mhmp.dto.InventoryTaskPageQueryDTO;
 import com.mhmp.entity.InventoryTask;
 import com.mhmp.entity.InventoryTaskDetail;
 import com.mhmp.entity.Relic;
+import com.mhmp.entity.SysRole;
+import com.mhmp.entity.SysUser;
+import com.mhmp.entity.SysUserRole;
 import com.mhmp.mapper.InventoryTaskDetailMapper;
 import com.mhmp.mapper.InventoryTaskMapper;
 import com.mhmp.mapper.RelicMapper;
+import com.mhmp.mapper.SysRoleMapper;
+import com.mhmp.mapper.SysUserMapper;
+import com.mhmp.mapper.SysUserRoleMapper;
 import com.mhmp.service.BusinessNoService;
 import com.mhmp.service.InventoryService;
 import com.mhmp.vo.InventorySummaryVO;
 import com.mhmp.vo.InventoryTaskDetailVO;
 import com.mhmp.vo.InventoryTaskItemVO;
 import com.mhmp.vo.InventoryTaskListVO;
+import com.mhmp.vo.InventoryTaskPrincipalVO;
 import com.mhmp.vo.RelicListVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,15 +51,24 @@ public class InventoryServiceImpl implements InventoryService {
     private final InventoryTaskMapper inventoryTaskMapper;
     private final InventoryTaskDetailMapper inventoryTaskDetailMapper;
     private final BusinessNoService businessNoService;
+    private final SysUserMapper sysUserMapper;
+    private final SysRoleMapper sysRoleMapper;
+    private final SysUserRoleMapper sysUserRoleMapper;
 
     public InventoryServiceImpl(RelicMapper relicMapper,
                                 InventoryTaskMapper inventoryTaskMapper,
                                 InventoryTaskDetailMapper inventoryTaskDetailMapper,
-                                BusinessNoService businessNoService) {
+                                BusinessNoService businessNoService,
+                                SysUserMapper sysUserMapper,
+                                SysRoleMapper sysRoleMapper,
+                                SysUserRoleMapper sysUserRoleMapper) {
         this.relicMapper = relicMapper;
         this.inventoryTaskMapper = inventoryTaskMapper;
         this.inventoryTaskDetailMapper = inventoryTaskDetailMapper;
         this.businessNoService = businessNoService;
+        this.sysUserMapper = sysUserMapper;
+        this.sysRoleMapper = sysRoleMapper;
+        this.sysUserRoleMapper = sysUserRoleMapper;
     }
 
     @Override
@@ -92,6 +111,7 @@ public class InventoryServiceImpl implements InventoryService {
                         .or().like(InventoryTask::getTaskName, queryDTO.getKeyword()))
                 .eq(StringUtils.hasText(queryDTO.getLocationCode()), InventoryTask::getLocationCode, queryDTO.getLocationCode())
                 .eq(StringUtils.hasText(queryDTO.getTaskStatus()), InventoryTask::getTaskStatus, queryDTO.getTaskStatus())
+                .eq(queryDTO.getPrincipalUserId() != null, InventoryTask::getPrincipalUserId, queryDTO.getPrincipalUserId())
                 .orderByDesc(InventoryTask::getStartTime)
                 .orderByDesc(InventoryTask::getId)
         );
@@ -116,8 +136,29 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
+    public List<InventoryTaskPrincipalVO> taskPrincipals() {
+        Long currentUserId = SecurityUtils.getUserId();
+        if (currentUserId == null) {
+            return List.of();
+        }
+        List<String> currentRoleCodes = loadRoleCodes(currentUserId);
+        if (canDispatchToOtherResearchers(currentRoleCodes)) {
+            return listResearcherPrincipals();
+        }
+        if (!currentRoleCodes.contains("researcher")) {
+            return List.of();
+        }
+        SysUser currentUser = sysUserMapper.selectById(currentUserId);
+        if (currentUser == null || !"ENABLED".equals(currentUser.getStatus())) {
+            return List.of();
+        }
+        return List.of(toPrincipalVO(currentUser));
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public Long createTask(InventoryTaskCreateDTO createDTO) {
+        SysUser principal = resolvePrincipalUser(createDTO.getPrincipalUserId());
         List<Relic> relics = relicMapper.selectList(
             Wrappers.<Relic>lambdaQuery()
                 .eq(Relic::getStorageLocationCode, createDTO.getLocationCode())
@@ -130,6 +171,7 @@ public class InventoryServiceImpl implements InventoryService {
                 .in(InventoryTask::getTaskStatus, RelicBusinessRuleUtils.ACTIVE_INVENTORY_TASK_STATUSES)
         ) > 0;
         RelicBusinessRuleUtils.validateInventoryTaskCreatable(createDTO.getLocationCode(), relics, hasActiveTask);
+
         Long currentUserId = SecurityUtils.getUserId();
         InventoryTask task = new InventoryTask();
         task.setTaskNo(businessNoService.nextInventoryTaskNo());
@@ -137,7 +179,8 @@ public class InventoryServiceImpl implements InventoryService {
         task.setLocationCode(createDTO.getLocationCode());
         task.setTaskStatus("CREATED");
         task.setStartTime(createDTO.getStartTime());
-        task.setPrincipalName(resolveOperatorName(createDTO.getPrincipalName()));
+        task.setPrincipalUserId(principal.getId());
+        task.setPrincipalName(resolvePrincipalDisplayName(principal));
         task.setRemark(createDTO.getRemark());
         task.setCreateBy(currentUserId);
         task.setUpdateBy(currentUserId);
@@ -255,10 +298,85 @@ public class InventoryServiceImpl implements InventoryService {
         return vo;
     }
 
-    private String resolveOperatorName(String operatorName) {
-        if (StringUtils.hasText(operatorName)) {
-            return operatorName.trim();
+    private SysUser resolvePrincipalUser(Long principalUserId) {
+        if (principalUserId == null) {
+            throw new BusinessException("Principal researcher is required");
         }
-        return StringUtils.hasText(SecurityUtils.getUsername()) ? SecurityUtils.getUsername() : "当前用户";
+        SysUser principal = sysUserMapper.selectById(principalUserId);
+        if (principal == null || !"ENABLED".equals(principal.getStatus())) {
+            throw new BusinessException("Selected principal researcher does not exist or has been disabled");
+        }
+        List<String> principalRoleCodes = loadRoleCodes(principalUserId);
+        if (!principalRoleCodes.contains("researcher")) {
+            throw new BusinessException("Inventory task principal must be a researcher");
+        }
+
+        Long currentUserId = SecurityUtils.getUserId();
+        List<String> currentRoleCodes = loadRoleCodes(currentUserId);
+        if (!canDispatchToOtherResearchers(currentRoleCodes) && !Objects.equals(currentUserId, principalUserId)) {
+            throw new BusinessException("Researchers can only assign inventory tasks to themselves");
+        }
+        return principal;
+    }
+
+    private List<String> loadRoleCodes(Long userId) {
+        if (userId == null) {
+            return List.of();
+        }
+        return sysUserMapper.selectRoleCodesByUserId(userId);
+    }
+
+    private boolean canDispatchToOtherResearchers(List<String> roleCodes) {
+        return roleCodes.contains("admin") || roleCodes.contains("senior_researcher");
+    }
+
+    private List<InventoryTaskPrincipalVO> listResearcherPrincipals() {
+        SysRole researcherRole = sysRoleMapper.findByRoleCode("researcher");
+        if (researcherRole == null) {
+            return List.of();
+        }
+        List<Long> userIds = sysUserRoleMapper.selectList(
+                Wrappers.<SysUserRole>lambdaQuery()
+                    .eq(SysUserRole::getRoleId, researcherRole.getId())
+                    .orderByAsc(SysUserRole::getId)
+            ).stream()
+            .map(SysUserRole::getUserId)
+            .distinct()
+            .toList();
+        if (CollectionUtils.isEmpty(userIds)) {
+            return List.of();
+        }
+        return sysUserMapper.selectBatchIds(userIds).stream()
+            .filter(Objects::nonNull)
+            .filter(user -> "ENABLED".equals(user.getStatus()))
+            .sorted(Comparator.comparing(this::resolvePrincipalDisplayName))
+            .map(this::toPrincipalVO)
+            .toList();
+    }
+
+    private InventoryTaskPrincipalVO toPrincipalVO(SysUser user) {
+        InventoryTaskPrincipalVO vo = new InventoryTaskPrincipalVO();
+        vo.setId(user.getId());
+        vo.setUsername(user.getUsername());
+        vo.setNickName(user.getNickName());
+        vo.setRealName(user.getRealName());
+        vo.setDisplayName(resolvePrincipalDisplayName(user));
+        return vo;
+    }
+
+    private String resolvePrincipalDisplayName(SysUser user) {
+        if (user == null) {
+            return "";
+        }
+        if (StringUtils.hasText(user.getRealName())) {
+            return user.getRealName().trim();
+        }
+        if (StringUtils.hasText(user.getNickName())) {
+            return user.getNickName().trim();
+        }
+        if (StringUtils.hasText(user.getUsername())) {
+            return user.getUsername().trim();
+        }
+        return "Current User";
     }
 }

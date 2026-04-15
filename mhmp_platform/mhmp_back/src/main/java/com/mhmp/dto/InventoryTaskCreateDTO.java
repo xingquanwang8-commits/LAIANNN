@@ -18,7 +18,8 @@ public class InventoryTaskCreateDTO {
     @NotNull(message = "startTime is required")
     private LocalDateTime startTime;
 
-    private String principalName;
+    @NotNull(message = "principalUserId is required")
+    private Long principalUserId;
 
     private String remark;
 }

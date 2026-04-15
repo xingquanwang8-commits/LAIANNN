@@ -12057,10 +12057,10 @@ WHERE t.task_no = 'REP-DEMO-2026-040' AND t.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM repair_acceptance a WHERE a.repair_task_id = t.id AND a.deleted = 0);
 
 INSERT INTO inventory_task (
-  task_no, task_name, location_code, task_status, start_time, end_time, principal_name, principal_user_id, remark, create_by, create_time, update_by, update_time, deleted
+  task_no, task_name, location_code, task_status, start_time, end_time, principal_name, remark, create_by, create_time, update_by, update_time, deleted
 )
 SELECT 'INV-DEMO-2026-001', '一号综合库季度盘点', 'LOC_A', 'COMPLETED', '2026-03-07 09:00:00', '2026-03-07 17:00:00', '唐蕾',
-  COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id), '批量生成的盘点任务数据。', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-07 09:00:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-07 17:00:00', 0
+  '批量生成的盘点任务数据。', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-07 09:00:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-07 17:00:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM inventory_task WHERE task_no = 'INV-DEMO-2026-001' AND deleted = 0);
 
@@ -12197,10 +12197,10 @@ WHERE t.task_no = 'INV-DEMO-2026-001' AND t.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM inventory_task_detail d WHERE d.task_id = t.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO inventory_task (
-  task_no, task_name, location_code, task_status, start_time, end_time, principal_name, principal_user_id, remark, create_by, create_time, update_by, update_time, deleted
+  task_no, task_name, location_code, task_status, start_time, end_time, principal_name, remark, create_by, create_time, update_by, update_time, deleted
 )
 SELECT 'INV-DEMO-2026-002', '二号恒温库专项盘点', 'LOC_B', 'COMPLETED', '2026-03-11 09:00:00', '2026-03-11 17:00:00', '唐蕾',
-  COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id), '批量生成的盘点任务数据。', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-11 09:00:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-11 17:00:00', 0
+  '批量生成的盘点任务数据。', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-11 09:00:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-11 17:00:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM inventory_task WHERE task_no = 'INV-DEMO-2026-002' AND deleted = 0);
 
@@ -12337,10 +12337,10 @@ WHERE t.task_no = 'INV-DEMO-2026-002' AND t.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM inventory_task_detail d WHERE d.task_id = t.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO inventory_task (
-  task_no, task_name, location_code, task_status, start_time, end_time, principal_name, principal_user_id, remark, create_by, create_time, update_by, update_time, deleted
+  task_no, task_name, location_code, task_status, start_time, end_time, principal_name, remark, create_by, create_time, update_by, update_time, deleted
 )
 SELECT 'INV-DEMO-2026-003', '三号精品库重点盘点', 'LOC_C', 'IN_PROGRESS', '2026-03-15 09:00:00', NULL, '顾琳',
-  COALESCE((SELECT id FROM sys_user WHERE username = 'researcher12' AND deleted = 0 LIMIT 1), @seed_admin_id), '批量生成的盘点任务数据。', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher12' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-15 09:00:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher12' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-15 09:00:00', 0
+  '批量生成的盘点任务数据。', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher12' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-15 09:00:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher12' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-15 09:00:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM inventory_task WHERE task_no = 'INV-DEMO-2026-003' AND deleted = 0);
 
@@ -12477,10 +12477,10 @@ WHERE t.task_no = 'INV-DEMO-2026-003' AND t.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM inventory_task_detail d WHERE d.task_id = t.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO inventory_task (
-  task_no, task_name, location_code, task_status, start_time, end_time, principal_name, principal_user_id, remark, create_by, create_time, update_by, update_time, deleted
+  task_no, task_name, location_code, task_status, start_time, end_time, principal_name, remark, create_by, create_time, update_by, update_time, deleted
 )
 SELECT 'INV-DEMO-2026-004', '一号展厅春季盘点', 'EXHIBIT_HALL_1', 'COMPLETED', '2026-03-18 09:00:00', '2026-03-18 17:00:00', '王蕾',
-  COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id), '批量生成的盘点任务数据。', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-18 09:00:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-18 17:00:00', 0
+  '批量生成的盘点任务数据。', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-18 09:00:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-18 17:00:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM inventory_task WHERE task_no = 'INV-DEMO-2026-004' AND deleted = 0);
 
@@ -12617,10 +12617,10 @@ WHERE t.task_no = 'INV-DEMO-2026-004' AND t.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM inventory_task_detail d WHERE d.task_id = t.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO inventory_task (
-  task_no, task_name, location_code, task_status, start_time, end_time, principal_name, principal_user_id, remark, create_by, create_time, update_by, update_time, deleted
+  task_no, task_name, location_code, task_status, start_time, end_time, principal_name, remark, create_by, create_time, update_by, update_time, deleted
 )
 SELECT 'INV-DEMO-2026-005', '二号展厅月度盘点', 'EXHIBIT_HALL_2', 'CREATED', '2026-03-21 09:00:00', NULL, '周洋',
-  COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id), '批量生成的盘点任务数据。', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-21 09:00:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-21 09:00:00', 0
+  '批量生成的盘点任务数据。', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-21 09:00:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-21 09:00:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM inventory_task WHERE task_no = 'INV-DEMO-2026-005' AND deleted = 0);
 
@@ -12757,10 +12757,10 @@ WHERE t.task_no = 'INV-DEMO-2026-005' AND t.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM inventory_task_detail d WHERE d.task_id = t.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO inventory_task (
-  task_no, task_name, location_code, task_status, start_time, end_time, principal_name, principal_user_id, remark, create_by, create_time, update_by, update_time, deleted
+  task_no, task_name, location_code, task_status, start_time, end_time, principal_name, remark, create_by, create_time, update_by, update_time, deleted
 )
 SELECT 'INV-DEMO-2026-006', '三号库房保管复核', 'STORAGE_ROOM_3', 'IN_PROGRESS', '2026-03-22 09:00:00', NULL, '郑川',
-  COALESCE((SELECT id FROM sys_user WHERE username = 'researcher07' AND deleted = 0 LIMIT 1), @seed_admin_id), '批量生成的盘点任务数据。', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher07' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-22 09:00:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher07' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-22 09:00:00', 0
+  '批量生成的盘点任务数据。', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher07' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-22 09:00:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher07' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-22 09:00:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM inventory_task WHERE task_no = 'INV-DEMO-2026-006' AND deleted = 0);
 
@@ -12897,10 +12897,10 @@ WHERE t.task_no = 'INV-DEMO-2026-006' AND t.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM inventory_task_detail d WHERE d.task_id = t.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO inventory_task (
-  task_no, task_name, location_code, task_status, start_time, end_time, principal_name, principal_user_id, remark, create_by, create_time, update_by, update_time, deleted
+  task_no, task_name, location_code, task_status, start_time, end_time, principal_name, remark, create_by, create_time, update_by, update_time, deleted
 )
 SELECT 'INV-DEMO-2026-007', '修复库状态抽盘', 'LOC_D', 'COMPLETED', '2026-03-23 09:00:00', '2026-03-23 17:00:00', '韩卓',
-  COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id), '批量生成的盘点任务数据。', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-23 09:00:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-23 17:00:00', 0
+  '批量生成的盘点任务数据。', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-23 09:00:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-23 17:00:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM inventory_task WHERE task_no = 'INV-DEMO-2026-007' AND deleted = 0);
 
@@ -13037,10 +13037,10 @@ WHERE t.task_no = 'INV-DEMO-2026-007' AND t.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM inventory_task_detail d WHERE d.task_id = t.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO inventory_task (
-  task_no, task_name, location_code, task_status, start_time, end_time, principal_name, principal_user_id, remark, create_by, create_time, update_by, update_time, deleted
+  task_no, task_name, location_code, task_status, start_time, end_time, principal_name, remark, create_by, create_time, update_by, update_time, deleted
 )
 SELECT 'INV-DEMO-2026-008', '珍品专柜安全抽盘', 'LOC_VIP', 'COMPLETED', '2026-03-25 09:00:00', '2026-03-25 17:00:00', '苏瑶',
-  COALESCE((SELECT id FROM sys_user WHERE username = 'researcher06' AND deleted = 0 LIMIT 1), @seed_admin_id), '批量生成的盘点任务数据。', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher06' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-25 09:00:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher06' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-25 17:00:00', 0
+  '批量生成的盘点任务数据。', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher06' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-25 09:00:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher06' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-25 17:00:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM inventory_task WHERE task_no = 'INV-DEMO-2026-008' AND deleted = 0);
 
@@ -13177,10 +13177,10 @@ WHERE t.task_no = 'INV-DEMO-2026-008' AND t.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM inventory_task_detail d WHERE d.task_id = t.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO inventory_task (
-  task_no, task_name, location_code, task_status, start_time, end_time, principal_name, principal_user_id, remark, create_by, create_time, update_by, update_time, deleted
+  task_no, task_name, location_code, task_status, start_time, end_time, principal_name, remark, create_by, create_time, update_by, update_time, deleted
 )
 SELECT 'INV-DEMO-2026-009', '暂存区临时盘点', 'TEMP_STORAGE', 'CREATED', '2026-03-27 09:00:00', NULL, '姚菲',
-  COALESCE((SELECT id FROM sys_user WHERE username = 'researcher14' AND deleted = 0 LIMIT 1), @seed_admin_id), '批量生成的盘点任务数据。', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher14' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-27 09:00:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher14' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-27 09:00:00', 0
+  '批量生成的盘点任务数据。', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher14' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-27 09:00:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher14' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-27 09:00:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM inventory_task WHERE task_no = 'INV-DEMO-2026-009' AND deleted = 0);
 
@@ -13229,10 +13229,10 @@ WHERE t.task_no = 'INV-DEMO-2026-009' AND t.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM inventory_task_detail d WHERE d.task_id = t.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO inventory_task (
-  task_no, task_name, location_code, task_status, start_time, end_time, principal_name, principal_user_id, remark, create_by, create_time, update_by, update_time, deleted
+  task_no, task_name, location_code, task_status, start_time, end_time, principal_name, remark, create_by, create_time, update_by, update_time, deleted
 )
 SELECT 'INV-DEMO-2026-010', '修复室在修文物盘点', 'RESTORATION_ROOM', 'IN_PROGRESS', '2026-03-30 09:00:00', NULL, '韩卓',
-  COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id), '批量生成的盘点任务数据。', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-30 09:00:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-30 09:00:00', 0
+  '批量生成的盘点任务数据。', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-30 09:00:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id), '2026-03-30 09:00:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM inventory_task WHERE task_no = 'INV-DEMO-2026-010' AND deleted = 0);
 
@@ -13355,4 +13355,3 @@ COMMIT;
 -- SELECT COUNT(*) AS outbound_count FROM relic_outbound_order WHERE deleted = 0;
 -- SELECT COUNT(*) AS inventory_task_count FROM inventory_task WHERE deleted = 0;
 -- SELECT COUNT(*) AS repair_task_count FROM repair_task WHERE deleted = 0;
-

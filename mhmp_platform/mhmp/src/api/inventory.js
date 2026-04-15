@@ -30,6 +30,13 @@ export function getInventoryTaskDetailApi(id) {
   })
 }
 
+export function getInventoryTaskPrincipalOptionsApi() {
+  return request({
+    url: '/inventory/tasks/principals',
+    method: 'get'
+  })
+}
+
 export function createInventoryTaskApi(data) {
   return request({
     url: '/inventory/tasks',

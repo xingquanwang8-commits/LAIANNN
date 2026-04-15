@@ -7,10 +7,17 @@ import com.mhmp.dto.InventoryTaskPageQueryDTO;
 import com.mhmp.dto.InventoryTaskDetailUpdateDTO;
 import com.mhmp.entity.InventoryTask;
 import com.mhmp.entity.InventoryTaskDetail;
+import com.mhmp.entity.SysRole;
+import com.mhmp.entity.SysUser;
+import com.mhmp.entity.SysUserRole;
 import com.mhmp.vo.InventoryTaskListVO;
+import com.mhmp.vo.InventoryTaskPrincipalVO;
 import com.mhmp.mapper.InventoryTaskDetailMapper;
 import com.mhmp.mapper.InventoryTaskMapper;
 import com.mhmp.mapper.RelicMapper;
+import com.mhmp.mapper.SysRoleMapper;
+import com.mhmp.mapper.SysUserMapper;
+import com.mhmp.mapper.SysUserRoleMapper;
 import com.mhmp.service.BusinessNoService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +32,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -41,12 +49,26 @@ class InventoryServiceImplTest {
     private InventoryTaskDetailMapper inventoryTaskDetailMapper;
     @Mock
     private BusinessNoService businessNoService;
+    @Mock
+    private SysUserMapper sysUserMapper;
+    @Mock
+    private SysRoleMapper sysRoleMapper;
+    @Mock
+    private SysUserRoleMapper sysUserRoleMapper;
 
     private InventoryServiceImpl inventoryService;
 
     @BeforeEach
     void setUp() {
-        inventoryService = new InventoryServiceImpl(relicMapper, inventoryTaskMapper, inventoryTaskDetailMapper, businessNoService);
+        inventoryService = new InventoryServiceImpl(
+            relicMapper,
+            inventoryTaskMapper,
+            inventoryTaskDetailMapper,
+            businessNoService,
+            sysUserMapper,
+            sysRoleMapper,
+            sysUserRoleMapper
+        );
         LoginUser loginUser = LoginUser.builder()
             .id(100L)
             .username("tester")
@@ -62,6 +84,70 @@ class InventoryServiceImplTest {
     @AfterEach
     void tearDown() {
         SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void taskPrincipalsShouldReturnCurrentResearcherOnly() {
+        SysUser currentUser = new SysUser();
+        currentUser.setId(100L);
+        currentUser.setUsername("tester");
+        currentUser.setRealName("研究员甲");
+        currentUser.setStatus("ENABLED");
+
+        when(sysUserMapper.selectRoleCodesByUserId(100L)).thenReturn(List.of("researcher"));
+        when(sysUserMapper.selectById(100L)).thenReturn(currentUser);
+
+        List<InventoryTaskPrincipalVO> principals = inventoryService.taskPrincipals();
+
+        assertEquals(1, principals.size());
+        assertEquals(100L, principals.get(0).getId());
+        assertEquals("研究员甲", principals.get(0).getDisplayName());
+    }
+
+    @Test
+    void taskPrincipalsShouldReturnAllResearchersForSeniorResearcher() {
+        LoginUser loginUser = LoginUser.builder()
+            .id(200L)
+            .username("senior")
+            .password("secret")
+            .enabled(true)
+            .authorities(List.of())
+            .build();
+        SecurityContextHolder.getContext().setAuthentication(
+            new UsernamePasswordAuthenticationToken(loginUser, null, loginUser.getAuthorities())
+        );
+
+        SysRole researcherRole = new SysRole();
+        researcherRole.setId(10L);
+
+        SysUserRole firstRelation = new SysUserRole();
+        firstRelation.setUserId(301L);
+        SysUserRole secondRelation = new SysUserRole();
+        secondRelation.setUserId(302L);
+
+        SysUser firstUser = new SysUser();
+        firstUser.setId(301L);
+        firstUser.setUsername("researcher02");
+        firstUser.setRealName("李一");
+        firstUser.setStatus("ENABLED");
+
+        SysUser secondUser = new SysUser();
+        secondUser.setId(302L);
+        secondUser.setUsername("researcher03");
+        secondUser.setRealName("王二");
+        secondUser.setStatus("ENABLED");
+
+        when(sysUserMapper.selectRoleCodesByUserId(200L)).thenReturn(List.of("senior_researcher"));
+        when(sysRoleMapper.findByRoleCode("researcher")).thenReturn(researcherRole);
+        when(sysUserRoleMapper.selectList(any())).thenReturn(List.of(firstRelation, secondRelation));
+        when(sysUserMapper.selectBatchIds(any())).thenReturn(List.of(secondUser, firstUser));
+
+        List<InventoryTaskPrincipalVO> principals = inventoryService.taskPrincipals();
+
+        assertEquals(2, principals.size());
+        assertEquals("李一", principals.get(0).getDisplayName());
+        assertEquals("王二", principals.get(1).getDisplayName());
+        assertTrue(principals.stream().allMatch(item -> item.getId() != null));
     }
 
     @Test

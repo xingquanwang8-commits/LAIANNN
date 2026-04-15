@@ -12,4 +12,6 @@ public class InventoryTaskPageQueryDTO extends PageQueryDTO {
     private String locationCode;
 
     private String taskStatus;
+
+    private Long principalUserId;
 }

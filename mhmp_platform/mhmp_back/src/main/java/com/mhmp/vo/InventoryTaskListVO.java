@@ -15,6 +15,7 @@ public class InventoryTaskListVO {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private String principalName;
+    private Long principalUserId;
     private String remark;
     private Integer totalCount;
     private Integer checkedCount;

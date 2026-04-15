@@ -3,6 +3,7 @@ import path from 'node:path'
 
 const rootDir = path.resolve('d:/Vue_Workspace/mhmp_platform/mhmp_back')
 const templateFile = path.join(rootDir, 'scripts', 'templates', 'bulk_demo_seed_20260408.base.sql')
+const seniorResearchersSeedFile = path.join(rootDir, 'scripts', 'seed_demo_senior_researchers.sql')
 const outputFile = path.join(rootDir, 'scripts', 'generated', 'bulk_demo_seed_20260408.sql')
 
 function loadTemplate() {
@@ -10,6 +11,15 @@ function loadTemplate() {
     throw new Error(`Missing SQL template: ${templateFile}`)
   }
   return fs.readFileSync(templateFile, 'utf8').replace(/^\uFEFF/, '')
+}
+
+function loadSeniorResearchersSeed() {
+  if (!fs.existsSync(seniorResearchersSeedFile)) {
+    throw new Error(`Missing SQL seed file: ${seniorResearchersSeedFile}`)
+  }
+  return fs.readFileSync(seniorResearchersSeedFile, 'utf8')
+    .replace(/^\uFEFF/, '')
+    .trim()
 }
 
 function patchInventoryTaskBlocks(sqlText) {
@@ -69,13 +79,25 @@ function patchInventoryTaskBlocks(sqlText) {
   }
 }
 
+function injectSeniorResearchersSeed(sqlText, seedSqlText) {
+  const commitMarker = '\nCOMMIT;'
+  const commitIndex = sqlText.lastIndexOf(commitMarker)
+  if (commitIndex === -1) {
+    throw new Error('Unable to locate COMMIT marker in SQL template')
+  }
+  return `${sqlText.slice(0, commitIndex)}\n\n${seedSqlText}\n${sqlText.slice(commitIndex)}`
+}
+
 function main() {
   const template = loadTemplate()
+  const seniorResearchersSeed = loadSeniorResearchersSeed()
   const { content, inventoryTaskCount } = patchInventoryTaskBlocks(template)
+  const finalContent = injectSeniorResearchersSeed(content, seniorResearchersSeed)
   fs.mkdirSync(path.dirname(outputFile), { recursive: true })
-  fs.writeFileSync(outputFile, `\uFEFF${content}\n`, 'utf8')
+  fs.writeFileSync(outputFile, `\uFEFF${finalContent}\n`, 'utf8')
   console.log(`Generated ${outputFile}`)
   console.log(`Patched inventory_task blocks: ${inventoryTaskCount}`)
+  console.log('Injected extra senior researchers seed')
 }
 
 main()

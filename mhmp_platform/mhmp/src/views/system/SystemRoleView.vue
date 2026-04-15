@@ -194,6 +194,7 @@
           show-checkbox
           check-strictly
           default-expand-all
+          @check-change="handleGrantTreeCheckChange"
           :props="{ label: 'menuName', children: 'children' }"
         />
       </div>
@@ -235,6 +236,7 @@ const grantingId = ref(null)
 const formRef = ref()
 const treeRef = ref()
 const menuTree = ref([])
+const syncingGrantTree = ref(false)
 const pageData = ref({
   total: 0,
   pageNum: 1,
@@ -370,7 +372,41 @@ async function openGrant(row) {
   const detail = await getRoleDetailApi(row.id)
   grantDialogVisible.value = true
   await nextTick()
+  syncingGrantTree.value = true
   treeRef.value?.setCheckedKeys(detail.menuIds || [])
+  await nextTick()
+  syncingGrantTree.value = false
+}
+
+function collectDescendantMenuIds(node) {
+  if (!node?.children?.length) {
+    return []
+  }
+  return node.children.flatMap((child) => [child.id, ...collectDescendantMenuIds(child)])
+}
+
+function handleGrantTreeCheckChange(data, checked) {
+  if (syncingGrantTree.value || !data?.children?.length || !treeRef.value) {
+    return
+  }
+  const descendantIds = collectDescendantMenuIds(data)
+  if (!descendantIds.length) {
+    return
+  }
+  const checkedKeys = treeRef.value.getCheckedKeys(false) || []
+  const nextCheckedKeySet = new Set(checkedKeys)
+  descendantIds.forEach((id) => {
+    if (checked) {
+      nextCheckedKeySet.add(id)
+    } else {
+      nextCheckedKeySet.delete(id)
+    }
+  })
+  syncingGrantTree.value = true
+  treeRef.value.setCheckedKeys([...nextCheckedKeySet])
+  nextTick(() => {
+    syncingGrantTree.value = false
+  })
 }
 
 async function handleSaveGrant() {

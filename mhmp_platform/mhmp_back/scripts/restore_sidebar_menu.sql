@@ -302,7 +302,7 @@ INSERT INTO sys_role_menu (role_id, menu_id, create_by, create_time, update_by, 
 SELECT r.id, m.id, @operator_id, NOW(), @operator_id, NOW(), 0
 FROM sys_role r
 JOIN sys_menu m ON m.id = 203 AND m.deleted = 0
-WHERE r.role_code IN ('admin', 'researcher')
+WHERE r.role_code IN ('admin', 'researcher', 'senior_researcher')
   AND r.deleted = 0
   AND NOT EXISTS (
       SELECT 1 FROM sys_role_menu srm
@@ -313,7 +313,7 @@ INSERT INTO sys_role_menu (role_id, menu_id, create_by, create_time, update_by, 
 SELECT r.id, m.id, @operator_id, NOW(), @operator_id, NOW(), 0
 FROM sys_role r
 JOIN sys_menu m ON m.id = 204 AND m.deleted = 0
-WHERE r.role_code IN ('admin', 'researcher')
+WHERE r.role_code IN ('admin', 'researcher', 'senior_researcher')
   AND r.deleted = 0
   AND NOT EXISTS (
       SELECT 1 FROM sys_role_menu srm
@@ -324,7 +324,7 @@ INSERT INTO sys_role_menu (role_id, menu_id, create_by, create_time, update_by, 
 SELECT r.id, m.id, @operator_id, NOW(), @operator_id, NOW(), 0
 FROM sys_role r
 JOIN sys_menu m ON m.id = 306 AND m.deleted = 0
-WHERE r.role_code IN ('admin', 'researcher')
+WHERE r.role_code IN ('admin', 'senior_researcher')
   AND r.deleted = 0
   AND NOT EXISTS (
       SELECT 1 FROM sys_role_menu srm

@@ -3,7 +3,7 @@
 ## 文档说明
 - 文档用途：用于毕业答辩时快速理解本系统的技术栈、架构设计、业务模块和接口清单。
 - 适用范围：`mhmp` 前端 + `mhmp_back` 后端。
-- 基线版本：基于当前仓库代码整理，更新时间为 2026-04-14。
+- 基线版本：基于当前仓库代码整理，更新时间为 2026-04-15。
 - 维护规则：后续只要系统发生以下变化，必须同步更新本文档：
   - 新增、删除、重命名接口
   - 修改权限码、菜单结构、登录鉴权方式
@@ -141,6 +141,13 @@ mhmp_platform/
 - 权限来源：用户 -> 角色 -> 菜单/权限码
 - 控制方式：控制器方法上使用 `@PreAuthorize`
 - 前端页面路由也带有 `permission` 元信息，用于页面级访问限制
+- 当前内置角色固定为 4 类：
+  - `admin` / 系统管理员：拥有全部菜单与按钮权限
+  - `senior_researcher` / 高级研究员：负责入库审批、出库审批、修复审批和修复验收，同时保留研究员的业务办理权限
+  - `researcher` / 研究员：负责建档、入库登记、出库申请、盘点、修复申请和修复过程记录，不再保留审批类权限
+  - `docent` / 讲解员：保持原只读讲解类权限不变
+- 演示库默认账号 `researcher` 已迁移为 `senior_researcher`，便于直接演示审批与修复验收流程
+- 用户管理目前按“单账号单主角色”维护，`roleIds` 仍为数组字段，但后端只允许提交 1 个角色 ID，前端表单也已改为单选主角色
 
 ### 5.4 操作日志
 - 通过自定义注解 `@OperationLog` 标记重要业务方法
@@ -172,8 +179,8 @@ mhmp_platform/
 | `/relic/create` | 新增文物 | `relic:add` |
 | `/relic/edit/:id` | 编辑文物 | `relic:edit` |
 | `/relic/transfer` | 馆内转存 | `relic:edit` |
-| `/inventory/inbound` | 入库业务 | `inventory:inbound:approve` |
-| `/inventory/inbound/approve` | 入库审批查询 | `inventory:inbound:view` |
+| `/inventory/inbound` | 入库业务 | `inventory:inbound:view` |
+| `/inventory/inbound/approve` | 入库审批查询 | `inventory:inbound:approve` |
 | `/inventory/outbound/apply` | 出库申请 | `inventory:outbound:apply:view` |
 | `/inventory/outbound/approve` | 出库审批 | `inventory:outbound:approve:view` |
 | `/inventory/query` | 库存查询 | `inventory:query:view` |
@@ -299,8 +306,8 @@ mhmp_platform/
 | --- | --- | --- | --- | --- |
 | GET | `/api/system/users/page` | `sys:user:view` | 用户分页查询 | `pageNum`、`pageSize`、`keyword`、`status`、`roleId` |
 | GET | `/api/system/users/{id}` | `sys:user:view` | 用户详情 | 路径参数 `id` |
-| POST | `/api/system/users` | `sys:user:add` | 新增用户 | `username`、`password`、`nickName`、`realName`、`phone`、`email`、`gender`、`avatarUrl`、`status`、`remark`、`roleIds` |
-| PUT | `/api/system/users/{id}` | `sys:user:edit` | 编辑用户 | 同新增，编辑时密码可为空 |
+| POST | `/api/system/users` | `sys:user:add` | 新增用户 | `username`、`password`、`nickName`、`realName`、`phone`、`email`、`gender`、`avatarUrl`、`status`、`remark`、`roleIds`（仅允许 1 个主角色） |
+| PUT | `/api/system/users/{id}` | `sys:user:edit` | 编辑用户 | 同新增，编辑时密码可为空，`roleIds` 仍仅允许 1 个主角色 |
 | PUT | `/api/system/users/{id}/status` | `sys:user:edit` | 修改用户状态 | `status` |
 | DELETE | `/api/system/users/{id}` | `sys:user:delete` | 删除用户 | 路径参数 `id` |
 

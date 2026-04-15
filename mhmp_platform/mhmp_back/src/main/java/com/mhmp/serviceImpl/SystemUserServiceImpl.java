@@ -166,10 +166,17 @@ public class SystemUserServiceImpl implements SystemUserService {
 
     private List<SysRole> validateRoles(List<Long> roleIds) {
         if (CollectionUtils.isEmpty(roleIds)) {
-            return List.of();
+            throw new BusinessException("One primary role must be selected");
         }
-        List<SysRole> roles = sysRoleMapper.selectBatchIds(roleIds.stream().distinct().toList());
-        if (roles.size() != roleIds.stream().distinct().count()) {
+        List<Long> distinctRoleIds = roleIds.stream()
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+        if (distinctRoleIds.size() != 1) {
+            throw new BusinessException("Each user can only bind one primary role");
+        }
+        List<SysRole> roles = sysRoleMapper.selectBatchIds(distinctRoleIds);
+        if (roles.size() != distinctRoleIds.size()) {
             throw new BusinessException("Selected roles contain invalid data");
         }
         return roles;

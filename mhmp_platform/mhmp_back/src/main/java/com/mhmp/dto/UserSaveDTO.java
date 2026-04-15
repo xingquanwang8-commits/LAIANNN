@@ -1,6 +1,8 @@
 package com.mhmp.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
 import java.util.List;
@@ -29,5 +31,7 @@ public class UserSaveDTO {
 
     private String remark;
 
+    @NotEmpty(message = "roleIds is required")
+    @Size(max = 1, message = "roleIds supports only one primary role")
     private List<Long> roleIds;
 }

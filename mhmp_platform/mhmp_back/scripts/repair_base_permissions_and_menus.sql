@@ -3,6 +3,38 @@ START TRANSACTION;
 
 SET @operator_id = COALESCE((SELECT id FROM sys_user WHERE username = 'admin' AND deleted = 0 LIMIT 1), 1);
 
+DROP TEMPORARY TABLE IF EXISTS tmp_role_seed;
+CREATE TEMPORARY TABLE tmp_role_seed (
+    role_name VARCHAR(100) NOT NULL,
+    role_code VARCHAR(100) NOT NULL PRIMARY KEY,
+    status VARCHAR(20) NOT NULL,
+    remark VARCHAR(500) NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO tmp_role_seed (role_name, role_code, status, remark) VALUES
+    ('系统管理员', 'admin', 'ENABLED', 'Built-in role repair'),
+    ('高级研究员', 'senior_researcher', 'ENABLED', 'Built-in role repair'),
+    ('研究员', 'researcher', 'ENABLED', 'Built-in role repair'),
+    ('讲解员', 'docent', 'ENABLED', 'Built-in role repair');
+
+INSERT INTO sys_role (
+    role_name, role_code, status, remark, create_by, create_time, update_by, update_time, deleted
+)
+SELECT
+    s.role_name, s.role_code, s.status, s.remark, @operator_id, NOW(), @operator_id, NOW(), 0
+FROM tmp_role_seed s
+LEFT JOIN sys_role r ON r.role_code = s.role_code
+WHERE r.id IS NULL;
+
+UPDATE sys_role r
+JOIN tmp_role_seed s ON s.role_code = r.role_code
+SET r.role_name = s.role_name,
+    r.status = s.status,
+    r.remark = s.remark,
+    r.update_by = @operator_id,
+    r.update_time = NOW(),
+    r.deleted = 0;
+
 DROP TEMPORARY TABLE IF EXISTS tmp_menu_seed;
 CREATE TEMPORARY TABLE tmp_menu_seed (
     parent_menu_code VARCHAR(100) NULL,
@@ -24,7 +56,7 @@ INSERT INTO tmp_menu_seed (
     parent_menu_code, menu_name, menu_code, menu_type, path, component, permission_code,
     sort_no, visible, status, icon, keep_alive, remark
 ) VALUES
-    (NULL, CONVERT(0xE5B7A5E4BD9CE58FB0 USING utf8mb4), 'dashboard', 'MENU', '/dashboard', NULL, 'dashboard:view', 1, 1, 'ENABLED', 'House', 1, 'Base menu repair'),
+    (NULL, '工作台', 'dashboard', 'MENU', '/dashboard', NULL, 'dashboard:view', 1, 1, 'ENABLED', 'House', 1, 'Base menu repair'),
     (NULL, '系统管理', 'sys', 'DIR', '/system', NULL, NULL, 10, 1, 'ENABLED', 'Setting', 0, 'Base menu repair'),
     (NULL, '文物管理', 'relic', 'DIR', '/relic', NULL, NULL, 20, 1, 'ENABLED', 'Collection', 0, 'Base menu repair'),
     (NULL, '库存管理', 'inventory', 'DIR', '/inventory', NULL, NULL, 30, 1, 'ENABLED', 'Box', 0, 'Base menu repair'),
@@ -42,7 +74,7 @@ INSERT INTO tmp_menu_seed (
     ('sys:role', '角色授权', 'sys:role:assign', 'BUTTON', NULL, NULL, 'sys:role:assign', 1, 1, 'ENABLED', NULL, 0, 'Base permission repair'),
     ('sys:role', '角色新增', 'sys:role:add', 'BUTTON', NULL, NULL, 'sys:role:add', 2, 1, 'ENABLED', NULL, 0, 'Base permission repair'),
     ('sys:role', '角色编辑', 'sys:role:edit', 'BUTTON', NULL, NULL, 'sys:role:edit', 3, 1, 'ENABLED', NULL, 0, 'Base permission repair'),
-    ('sys:role', CONVERT(0xE8A792E889B2E78AB6E68081 USING utf8mb4), 'sys:role:status', 'BUTTON', NULL, NULL, 'sys:role:status', 4, 1, 'ENABLED', NULL, 0, 'Base permission repair'),
+    ('sys:role', '角色状态', 'sys:role:status', 'BUTTON', NULL, NULL, 'sys:role:status', 4, 1, 'ENABLED', NULL, 0, 'Base permission repair'),
     ('sys:role', '角色删除', 'sys:role:delete', 'BUTTON', NULL, NULL, 'sys:role:delete', 5, 1, 'ENABLED', NULL, 0, 'Base permission repair'),
     ('sys:menu', '菜单新增', 'sys:menu:add', 'BUTTON', NULL, NULL, 'sys:menu:add', 1, 1, 'ENABLED', NULL, 0, 'Base permission repair'),
     ('sys:menu', '菜单编辑', 'sys:menu:edit', 'BUTTON', NULL, NULL, 'sys:menu:edit', 2, 1, 'ENABLED', NULL, 0, 'Base permission repair'),
@@ -72,11 +104,11 @@ INSERT INTO tmp_menu_seed (
     ('inventory:task', '盘点结果提交', 'inventory:task:submit', 'BUTTON', NULL, NULL, 'inventory:task:submit', 1, 1, 'ENABLED', NULL, 0, 'Base permission repair'),
     ('inventory:inbound-approve', '入库审批', 'inventory:inbound:approve', 'BUTTON', NULL, NULL, 'inventory:inbound:approve', 1, 1, 'ENABLED', NULL, 0, 'Base permission repair'),
 
-    ('repair', CONVERT(0xE5BE85E4BFAEE5A48DE69687E789A9 USING utf8mb4), 'repair:apply', 'MENU', '/repair/apply', NULL, 'repair:apply:view', 41, 1, 'ENABLED', 'Clock', 1, 'Base menu repair'),
+    ('repair', '待修复文物', 'repair:apply', 'MENU', '/repair/apply', NULL, 'repair:apply:view', 41, 1, 'ENABLED', 'Clock', 1, 'Base menu repair'),
     ('repair', '修复审批', 'repair:approve', 'MENU', '/repair/approve', NULL, 'repair:approve:view', 42, 1, 'ENABLED', 'Document', 1, 'Base menu repair'),
     ('repair', '我的修复', 'repair:process', 'MENU', '/repair/process', NULL, 'repair:process:view', 43, 1, 'ENABLED', 'Files', 1, 'Base menu repair'),
     ('repair', '修复验收', 'repair:acceptance', 'MENU', '/repair/acceptance', NULL, 'repair:acceptance:view', 44, 1, 'ENABLED', 'Select', 1, 'Base menu repair'),
-    ('repair', CONVERT(0xE5B7B2E4BFAEE5A48D USING utf8mb4), 'repair:history', 'MENU', '/repair/history', NULL, 'repair:history:view', 45, 1, 'ENABLED', 'DocumentCopy', 1, 'Base menu repair'),
+    ('repair', '已修复', 'repair:history', 'MENU', '/repair/history', NULL, 'repair:history:view', 45, 1, 'ENABLED', 'DocumentCopy', 1, 'Base menu repair'),
     ('repair:apply', '修复申请提交', 'repair:apply:submit', 'BUTTON', NULL, NULL, 'repair:apply:submit', 1, 1, 'ENABLED', NULL, 0, 'Base permission repair'),
     ('repair:approve', '修复方案审批', 'repair:plan:approve', 'BUTTON', NULL, NULL, 'repair:plan:approve', 1, 1, 'ENABLED', NULL, 0, 'Base permission repair'),
     ('repair:process', '修复过程记录', 'repair:log:add', 'BUTTON', NULL, NULL, 'repair:log:add', 1, 1, 'ENABLED', NULL, 0, 'Base permission repair'),
@@ -122,7 +154,7 @@ CREATE TEMPORARY TABLE tmp_role_menu_seed (
 INSERT INTO tmp_role_menu_seed (role_code, menu_code)
 SELECT 'admin', menu_code FROM tmp_menu_seed;
 
-INSERT INTO tmp_role_menu_seed (role_code, menu_code) VALUES
+INSERT IGNORE INTO tmp_role_menu_seed (role_code, menu_code) VALUES
     ('researcher', 'dashboard'),
     ('researcher', 'relic'),
     ('researcher', 'inventory'),
@@ -138,19 +170,54 @@ INSERT INTO tmp_role_menu_seed (role_code, menu_code) VALUES
     ('researcher', 'relic:edit'),
     ('researcher', 'relic:view'),
     ('researcher', 'inventory:query'),
-    ('researcher', 'inventory:inbound-approve'),
     ('researcher', 'inventory:task'),
     ('researcher', 'inventory:inbound:add'),
     ('researcher', 'inventory:outbound:submit'),
     ('researcher', 'inventory:task:add'),
     ('researcher', 'inventory:task:submit'),
-    ('researcher', 'inventory:inbound:approve'),
     ('researcher', 'repair:apply'),
     ('researcher', 'repair:process'),
     ('researcher', 'repair:history'),
     ('researcher', 'repair:apply:submit'),
-    ('researcher', 'repair:log:add'),
+    ('researcher', 'repair:log:add');
 
+INSERT IGNORE INTO tmp_role_menu_seed (role_code, menu_code) VALUES
+    ('senior_researcher', 'dashboard'),
+    ('senior_researcher', 'relic'),
+    ('senior_researcher', 'inventory'),
+    ('senior_researcher', 'repair'),
+    ('senior_researcher', 'profile'),
+    ('senior_researcher', 'relic:list'),
+    ('senior_researcher', 'relic:create'),
+    ('senior_researcher', 'inventory:inbound'),
+    ('senior_researcher', 'inventory:outbound-apply'),
+    ('senior_researcher', 'relic:transfer'),
+    ('senior_researcher', 'relic:detail'),
+    ('senior_researcher', 'relic:add'),
+    ('senior_researcher', 'relic:edit'),
+    ('senior_researcher', 'relic:view'),
+    ('senior_researcher', 'inventory:query'),
+    ('senior_researcher', 'inventory:task'),
+    ('senior_researcher', 'inventory:inbound:add'),
+    ('senior_researcher', 'inventory:outbound:submit'),
+    ('senior_researcher', 'inventory:task:add'),
+    ('senior_researcher', 'inventory:task:submit'),
+    ('senior_researcher', 'repair:apply'),
+    ('senior_researcher', 'repair:process'),
+    ('senior_researcher', 'repair:history'),
+    ('senior_researcher', 'repair:apply:submit'),
+    ('senior_researcher', 'repair:log:add'),
+    ('senior_researcher', 'inventory:inbound-approve'),
+    ('senior_researcher', 'inventory:inbound:approve'),
+    ('senior_researcher', 'inventory:outbound-approve'),
+    ('senior_researcher', 'inventory:outbound:approve'),
+    ('senior_researcher', 'inventory:outbound:reject'),
+    ('senior_researcher', 'repair:approve'),
+    ('senior_researcher', 'repair:plan:approve'),
+    ('senior_researcher', 'repair:acceptance'),
+    ('senior_researcher', 'repair:acceptance:add');
+
+INSERT IGNORE INTO tmp_role_menu_seed (role_code, menu_code) VALUES
     ('docent', 'dashboard'),
     ('docent', 'relic'),
     ('docent', 'inventory'),
@@ -160,8 +227,19 @@ INSERT INTO tmp_role_menu_seed (role_code, menu_code) VALUES
     ('docent', 'relic:detail'),
     ('docent', 'relic:view'),
     ('docent', 'inventory:query'),
-    ('docent', 'repair:history')
-ON DUPLICATE KEY UPDATE menu_code = VALUES(menu_code);
+    ('docent', 'repair:history');
+
+UPDATE sys_role_menu rm
+JOIN sys_role r ON r.id = rm.role_id
+LEFT JOIN sys_menu m ON m.id = rm.menu_id
+LEFT JOIN tmp_role_menu_seed s ON s.role_code = r.role_code AND s.menu_code = m.menu_code
+SET rm.deleted = 1,
+    rm.update_by = @operator_id,
+    rm.update_time = NOW()
+WHERE r.deleted = 0
+  AND rm.deleted = 0
+  AND r.role_code IN (SELECT role_code FROM tmp_role_seed)
+  AND s.role_code IS NULL;
 
 UPDATE sys_role_menu rm
 JOIN sys_role r ON r.id = rm.role_id
@@ -181,10 +259,62 @@ SELECT
 FROM tmp_role_menu_seed s
 JOIN sys_role r ON r.role_code = s.role_code AND r.deleted = 0 AND r.status = 'ENABLED'
 JOIN sys_menu m ON m.menu_code = s.menu_code AND m.deleted = 0
-LEFT JOIN sys_role_menu rm ON rm.role_id = r.id AND rm.menu_id = m.id AND rm.deleted = 0
+LEFT JOIN sys_role_menu rm ON rm.role_id = r.id AND rm.menu_id = m.id
 WHERE rm.id IS NULL;
+
+SET @default_researcher_user_id = (
+    SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1
+);
+SET @senior_researcher_role_id = (
+    SELECT id FROM sys_role WHERE role_code = 'senior_researcher' AND deleted = 0 LIMIT 1
+);
+
+UPDATE sys_user
+SET nick_name = CASE
+        WHEN nick_name IS NULL OR nick_name = '' OR nick_name = '馆藏研究员' THEN '高级研究员'
+        ELSE nick_name
+    END,
+    remark = CASE
+        WHEN remark IS NULL OR remark = '' THEN '默认高级研究员演示账号，负责业务审批与修复验收。'
+        ELSE remark
+    END,
+    update_by = @operator_id,
+    update_time = NOW()
+WHERE id = @default_researcher_user_id;
+
+UPDATE sys_user_role
+SET deleted = 1,
+    update_by = @operator_id,
+    update_time = NOW()
+WHERE user_id = @default_researcher_user_id
+  AND deleted = 0
+  AND role_id <> @senior_researcher_role_id;
+
+UPDATE sys_user_role
+SET deleted = 0,
+    update_by = @operator_id,
+    update_time = NOW()
+WHERE user_id = @default_researcher_user_id
+  AND role_id = @senior_researcher_role_id;
+
+INSERT INTO sys_user_role (
+    user_id, role_id, create_by, create_time, update_by, update_time, deleted
+)
+SELECT
+    @default_researcher_user_id, @senior_researcher_role_id, @operator_id, NOW(), @operator_id, NOW(), 0
+FROM DUAL
+WHERE @default_researcher_user_id IS NOT NULL
+  AND @senior_researcher_role_id IS NOT NULL
+  AND NOT EXISTS (
+      SELECT 1
+      FROM sys_user_role
+      WHERE user_id = @default_researcher_user_id
+        AND role_id = @senior_researcher_role_id
+        AND deleted = 0
+  );
 
 DROP TEMPORARY TABLE IF EXISTS tmp_role_menu_seed;
 DROP TEMPORARY TABLE IF EXISTS tmp_menu_seed;
+DROP TEMPORARY TABLE IF EXISTS tmp_role_seed;
 
 COMMIT;

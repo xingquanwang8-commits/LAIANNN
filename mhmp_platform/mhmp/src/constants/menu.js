@@ -125,7 +125,7 @@ export const APP_ROUTE_DEFINITIONS = [
     meta: {
       title: '文物入库',
       requiresAuth: true,
-      permission: 'inventory:inbound:approve'
+      permission: 'inventory:inbound:view'
     }
   },
   {
@@ -165,7 +165,7 @@ export const APP_ROUTE_DEFINITIONS = [
     meta: {
       title: '入库审批',
       requiresAuth: true,
-      permission: 'inventory:inbound:view'
+      permission: 'inventory:inbound:approve'
     }
   },
   {

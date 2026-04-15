@@ -217,8 +217,8 @@
               </el-form-item>
             </el-col>
             <el-col :span="24">
-              <el-form-item label="角色">
-                <el-select v-model="formData.roleIds" multiple clearable placeholder="请选择角色">
+              <el-form-item label="主角色" prop="roleId">
+                <el-select v-model="formData.roleId" clearable placeholder="请选择主角色">
                   <el-option v-for="role in roleOptions" :key="role.id" :label="role.roleName" :value="role.id" />
                 </el-select>
               </el-form-item>
@@ -296,13 +296,14 @@ const formData = reactive({
   avatarUrl: '',
   status: 'ENABLED',
   remark: '',
-  roleIds: []
+  roleId: ''
 })
 
 const rules = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   nickName: [{ required: true, message: '请输入显示名', trigger: 'blur' }],
-  realName: [{ required: true, message: '请输入姓名', trigger: 'blur' }]
+  realName: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
+  roleId: [{ required: true, message: '请选择主角色', trigger: 'change' }]
 }
 
 const currentPageCount = computed(() => pageData.value.records.length)
@@ -330,7 +331,7 @@ function resetForm() {
     avatarUrl: '',
     status: 'ENABLED',
     remark: '',
-    roleIds: []
+    roleId: ''
   })
 }
 
@@ -369,10 +370,18 @@ async function openEdit(id) {
     avatarUrl: detail.avatarUrl || '',
     status: detail.status || 'ENABLED',
     remark: detail.remark || '',
-    roleIds: detail.roleIds || []
+    roleId: detail.roleIds?.[0] || ''
   })
   dialogVisible.value = true
   nextTick(() => formRef.value?.clearValidate())
+}
+
+function buildSavePayload() {
+  const { roleId, ...payload } = formData
+  return {
+    ...payload,
+    roleIds: roleId ? [roleId] : []
+  }
 }
 
 async function handleSave() {
@@ -380,13 +389,14 @@ async function handleSave() {
   if (!valid) {
     return
   }
+  const payload = buildSavePayload()
   saving.value = true
   try {
     if (editingId.value) {
-      await updateUserApi(editingId.value, formData)
+      await updateUserApi(editingId.value, payload)
       ElMessage.success('账号已更新')
     } else {
-      await createUserApi(formData)
+      await createUserApi(payload)
       ElMessage.success('账号已创建')
     }
     dialogVisible.value = false

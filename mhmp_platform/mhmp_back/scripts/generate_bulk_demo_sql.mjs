@@ -65,7 +65,8 @@ const users = [
   ['docent09', '社教讲解员', '袁青', '女', 'docent', '13988040008', 'docent09@mhmp.local', '负责馆校合作讲解服务。']
 ].map(([username, nickName, realName, gender, roleCode, phone, email, remark]) => ({ username, nickName, realName, gender, roleCode, phone, email, remark }));
 
-const researchers = ['researcher', ...users.filter((item) => item.roleCode === 'researcher').map((item) => item.username)];
+const researchers = users.filter((item) => item.roleCode === 'researcher').map((item) => item.username);
+const seniorResearchers = ['researcher'];
 const admins = ['admin', ...users.filter((item) => item.roleCode === 'admin').map((item) => item.username)];
 const nameMap = {
   admin: '管理员',
@@ -215,7 +216,7 @@ chunk(relics.filter((r) => r.scenario === 'OUTBOUND_REJECTED'), 2).forEach((g) =
 
 const outboundOrders = outboundGroups.map((group, index) => {
   const applyUsername = researchers[index % researchers.length];
-  const approveUsername = admins[index % admins.length];
+  const approveUsername = seniorResearchers[index % seniorResearchers.length];
   const applyTime = new Date(group.relics[0].createTime.getTime() + 1000 * 60 * 60 * 24 * 18);
   const approveTime = group.status === 'PENDING' ? null : new Date(applyTime.getTime() + 1000 * 60 * 60 * 24);
   const returnTime = group.status === 'RETURNED' ? new Date(applyTime.getTime() + 1000 * 60 * 60 * 24 * 18) : null;
@@ -258,7 +259,7 @@ for (const [status, bucket] of Object.entries(repairBuckets)) {
       taskNo: `REP-DEMO-2026-${pad(repairIndex, 3)}`,
       relic,
       applyUsername: researchers[(repairIndex + 2) % researchers.length],
-      approveUsername: admins[(repairIndex + 1) % admins.length],
+      approveUsername: seniorResearchers[(repairIndex + 1) % seniorResearchers.length],
       taskStatus: status,
       acceptanceStatus: status === 'ACCEPTED' ? 'SUCCESS' : status === 'COMPLETED' ? 'WAITING' : 'UNACCEPTED',
       applyReason: repairReasons[repairIndex % repairReasons.length],
@@ -303,7 +304,7 @@ repairTasks.filter((t) => ['IN_PROGRESS', 'COMPLETED', 'ACCEPTED'].includes(t.ta
 const repairAcceptances = repairTasks.filter((t) => t.taskStatus === 'ACCEPTED').map((task, index) => ({
   taskNo: task.taskNo,
   acceptanceNo: `ACC-DEMO-2026-${pad(index + 1, 3)}`,
-  acceptanceBy: admins[index % admins.length],
+  acceptanceBy: seniorResearchers[index % seniorResearchers.length],
   acceptanceTime: new Date(task.endTime.getTime() + 1000 * 60 * 60 * 6),
   acceptanceRemark: '修复质量符合馆藏验收要求，可转入常规保管。',
   followUpSuggestion: '建议三个月后复核病害稳定性并补录阶段性照片。'

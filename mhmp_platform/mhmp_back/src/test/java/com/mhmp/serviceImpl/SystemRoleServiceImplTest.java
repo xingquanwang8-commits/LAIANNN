@@ -2,6 +2,7 @@ package com.mhmp.serviceImpl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mhmp.dto.RolePageQueryDTO;
+import com.mhmp.entity.SysMenu;
 import com.mhmp.entity.SysRole;
 import com.mhmp.entity.SysRoleMenu;
 import com.mhmp.entity.SysUserRole;
@@ -16,11 +17,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -80,6 +85,35 @@ class SystemRoleServiceImplTest {
         verify(sysRoleMenuMapper, never()).selectMenuIdsByRoleId(anyLong());
     }
 
+    @Test
+    void grantMenusShouldReuseExistingRelationsInsteadOfReinsertingDuplicates() {
+        SysRole role = buildRole(1L, "senior_researcher", "SENIOR_RESEARCHER");
+        when(sysRoleMapper.selectById(1L)).thenReturn(role);
+        when(sysRoleMenuMapper.selectAllByRoleId(1L)).thenReturn(List.of(
+            buildRoleMenu(1L, 101L, 0),
+            buildRoleMenu(1L, 102L, 0),
+            buildRoleMenu(1L, 103L, 1)
+        ));
+        when(sysMenuMapper.selectBatchIds(List.of(101L, 103L, 104L))).thenReturn(List.of(
+            buildMenu(101L),
+            buildMenu(103L),
+            buildMenu(104L)
+        ));
+
+        systemRoleService.grantMenus(1L, Arrays.asList(101L, 103L, 104L, 104L, null));
+
+        verify(sysRoleMenuMapper).updateDeletedStatus(1L, 102L, 1, null);
+        verify(sysRoleMenuMapper).updateDeletedStatus(1L, 103L, 0, null);
+        verify(sysRoleMenuMapper, never()).delete(any());
+        verify(sysRoleMenuMapper).insert(argThat((SysRoleMenu relation) ->
+            relation != null
+                && relation.getRoleId().equals(1L)
+                && relation.getMenuId().equals(104L)
+                && Integer.valueOf(0).equals(relation.getDeleted())
+        ));
+        verify(sysRoleMenuMapper, never()).updateDeletedStatus(eq(1L), eq(101L), any(), isNull());
+    }
+
     private SysRole buildRole(Long id, String roleName, String roleCode) {
         SysRole role = new SysRole();
         role.setId(id);
@@ -96,10 +130,21 @@ class SystemRoleServiceImplTest {
     }
 
     private SysRoleMenu buildRoleMenu(Long roleId, Long menuId) {
+        return buildRoleMenu(roleId, menuId, 0);
+    }
+
+    private SysRoleMenu buildRoleMenu(Long roleId, Long menuId, Integer deleted) {
         SysRoleMenu roleMenu = new SysRoleMenu();
         roleMenu.setRoleId(roleId);
         roleMenu.setMenuId(menuId);
+        roleMenu.setDeleted(deleted);
         return roleMenu;
+    }
+
+    private SysMenu buildMenu(Long id) {
+        SysMenu menu = new SysMenu();
+        menu.setId(id);
+        return menu;
     }
 
     private void assertRoleCount(RoleListVO role, int userCount, int menuCount) {

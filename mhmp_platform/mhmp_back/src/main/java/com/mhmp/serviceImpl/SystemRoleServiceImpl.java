@@ -25,9 +25,11 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -140,13 +142,33 @@ public class SystemRoleServiceImpl implements SystemRoleService {
     @Transactional(rollbackFor = Exception.class)
     public void grantMenus(Long id, List<Long> menuIds) {
         getRoleOrThrow(id);
-        validateMenus(menuIds);
-        sysRoleMenuMapper.delete(Wrappers.<SysRoleMenu>lambdaQuery().eq(SysRoleMenu::getRoleId, id));
-        if (CollectionUtils.isEmpty(menuIds)) {
-            return;
-        }
+        List<Long> targetMenuIds = CollectionUtils.isEmpty(menuIds)
+            ? List.of()
+            : menuIds.stream()
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+        validateMenus(targetMenuIds);
         Long currentUserId = SecurityUtils.getUserId();
-        for (Long menuId : menuIds.stream().distinct().toList()) {
+        Set<Long> targetMenuIdSet = new LinkedHashSet<>(targetMenuIds);
+        // sys_role_menu uses logical deletion and a unique(role_id, menu_id) key, so grant updates
+        // must reactivate existing rows instead of delete-then-insert.
+        Map<Long, SysRoleMenu> existingRelationMap = sysRoleMenuMapper.selectAllByRoleId(id).stream()
+            .collect(Collectors.toMap(SysRoleMenu::getMenuId, relation -> relation, (left, right) -> left));
+
+        for (SysRoleMenu relation : existingRelationMap.values()) {
+            int nextDeleted = targetMenuIdSet.contains(relation.getMenuId()) ? 0 : 1;
+            int currentDeleted = relation.getDeleted() == null ? 0 : relation.getDeleted();
+            if (currentDeleted == nextDeleted) {
+                continue;
+            }
+            sysRoleMenuMapper.updateDeletedStatus(id, relation.getMenuId(), nextDeleted, currentUserId);
+        }
+
+        for (Long menuId : targetMenuIdSet) {
+            if (existingRelationMap.containsKey(menuId)) {
+                continue;
+            }
             SysRoleMenu relation = new SysRoleMenu();
             relation.setRoleId(id);
             relation.setMenuId(menuId);

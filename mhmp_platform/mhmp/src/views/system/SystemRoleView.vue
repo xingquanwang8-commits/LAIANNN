@@ -192,6 +192,7 @@
           :data="menuTree"
           node-key="id"
           show-checkbox
+          check-strictly
           default-expand-all
           :props="{ label: 'menuName', children: 'children' }"
         />

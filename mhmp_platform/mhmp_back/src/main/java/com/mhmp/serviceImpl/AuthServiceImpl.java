@@ -181,6 +181,12 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private boolean matchesPassword(String rawPassword, String encodedPassword) {
-        return StringUtils.hasText(encodedPassword) && passwordEncoder.matches(rawPassword, encodedPassword);
+        if (!StringUtils.hasText(encodedPassword)) {
+            return false;
+        }
+        String normalizedPassword = encodedPassword.startsWith("$2y$")
+            ? "$2a$" + encodedPassword.substring(4)
+            : encodedPassword;
+        return passwordEncoder.matches(rawPassword, normalizedPassword);
     }
 }

@@ -126,10 +126,6 @@ mhmp_platform/
    - `GET /api/auth/menus` 获取当前账号可见菜单
 6. 前端路由根据权限控制页面访问。
 
-#### 5.1.1 密码存储说明
-- 当前演示版本已取消 BCrypt 加密，sys_user.password 直接保存明文密码。
-- 登录校验、用户新增、用户改密、个人中心改密现在都按明文密码处理。
-- 为了便于答辩演示和数据库重建，当前演示账号默认密码统一为 123456。
 ### 5.2 鉴权机制
 - 请求头格式：`Authorization: Bearer {token}`
 - 后端过滤器：`JwtAuthenticationFilter`
@@ -199,7 +195,7 @@ mhmp_platform/
 | `/repair/process` | 修复过程 | `repair:process:view` |
 | `/repair/acceptance` | 修复验收 | `repair:acceptance:view` |
 | `/repair/history` | 修复历史 | `repair:history:view` |
-| `/profile` | 个人中心 | `profile:view` |
+| `/profile` | 个人中心（资料维护、头像上传、密码修改） | `profile:view` |
 
 ## 7. 核心数据表/实体
 答辩时可以按下面的业务分组讲数据库设计：
@@ -216,7 +212,6 @@ mhmp_platform/
 - `sys_dict_type`：字典类型
 - `sys_dict_item`：字典项
 
-- sys_user.password：当前演示库直接保存明文密码，不再保存 BCrypt 哈希；默认演示密码统一为 123456
 ### 7.2 文物业务相关
 - `relic`：文物主档案
 - `relic_attachment`：文物附件

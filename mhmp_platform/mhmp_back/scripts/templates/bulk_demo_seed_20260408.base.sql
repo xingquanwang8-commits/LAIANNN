@@ -4,15 +4,15 @@
 
 SET NAMES utf8mb4;
 START TRANSACTION;
-SET @seed_admin_password = COALESCE((SELECT password FROM sys_user WHERE username = 'admin' AND deleted = 0 LIMIT 1), '123456');
-SET @seed_researcher_password = COALESCE((SELECT password FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), '123456');
-SET @seed_docent_password = COALESCE((SELECT password FROM sys_user WHERE username = 'docent' AND deleted = 0 LIMIT 1), '123456');
+SET @seed_admin_hash = COALESCE((SELECT password FROM sys_user WHERE username = 'admin' AND deleted = 0 LIMIT 1), '$2y$10$CHHfXNbJcqtXHp32oZjtVuRzV33SygS0Fk2WAENwh3oma0vlfW5om');
+SET @seed_researcher_hash = COALESCE((SELECT password FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), '$2y$10$3zq.H2DXJWc5OwLT7wApWeXx2zaWizO3M/49Bt5eHgGF8RSnsjIv.');
+SET @seed_docent_hash = COALESCE((SELECT password FROM sys_user WHERE username = 'docent' AND deleted = 0 LIMIT 1), '$2y$10$MjM/t.BlshSizvSU2lq48OkA1y/1IFnZP2HPBGjnh7bB2MN3LieQ6');
 SET @seed_admin_id = COALESCE((SELECT id FROM sys_user WHERE username = 'admin' AND deleted = 0 LIMIT 1), 1);
 
 INSERT INTO sys_user (
   username, password, nick_name, real_name, phone, email, gender, avatar_url, status, last_login_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'admin02', @seed_admin_password, '馆务平台主管', '赵楠', '13988020001', 'admin02@mhmp.local', '女',
+SELECT 'admin02', @seed_admin_hash, '馆务平台主管', '赵楠', '13988020001', 'admin02@mhmp.local', '女',
   NULL, 'ENABLED', '2026-03-19 08:20:00', '批量生成的admin测试账号。分管馆务统筹与跨部门协同。', @seed_admin_id, '2026-01-08 10:15:00', @seed_admin_id, '2026-03-19 08:20:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM sys_user WHERE username = 'admin02' AND deleted = 0);
@@ -27,7 +27,7 @@ WHERE u.username = 'admin02' AND u.deleted = 0
 INSERT INTO sys_user (
   username, password, nick_name, real_name, phone, email, gender, avatar_url, status, last_login_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'admin03', @seed_admin_password, '藏品安全主管', '陈昊', '13988020002', 'admin03@mhmp.local', '男',
+SELECT 'admin03', @seed_admin_hash, '藏品安全主管', '陈昊', '13988020002', 'admin03@mhmp.local', '男',
   NULL, 'ENABLED', '2026-03-20 09:20:00', '批量生成的admin测试账号。分管安全巡检、库房调度与外借审核。', @seed_admin_id, '2026-01-09 11:15:00', @seed_admin_id, '2026-03-20 09:20:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM sys_user WHERE username = 'admin03' AND deleted = 0);
@@ -42,7 +42,7 @@ WHERE u.username = 'admin03' AND u.deleted = 0
 INSERT INTO sys_user (
   username, password, nick_name, real_name, phone, email, gender, avatar_url, status, last_login_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'admin04', @seed_admin_password, '系统运维主管', '许薇', '13988020003', 'admin04@mhmp.local', '女',
+SELECT 'admin04', @seed_admin_hash, '系统运维主管', '许薇', '13988020003', 'admin04@mhmp.local', '女',
   NULL, 'ENABLED', '2026-03-21 10:20:00', '批量生成的admin测试账号。负责系统巡检、账号协同与异常处理。', @seed_admin_id, '2026-01-10 12:15:00', @seed_admin_id, '2026-03-21 10:20:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM sys_user WHERE username = 'admin04' AND deleted = 0);
@@ -57,7 +57,7 @@ WHERE u.username = 'admin04' AND u.deleted = 0
 INSERT INTO sys_user (
   username, password, nick_name, real_name, phone, email, gender, avatar_url, status, last_login_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'admin05', @seed_admin_password, '业务协同主管', '刘舟', '13988020004', 'admin05@mhmp.local', '男',
+SELECT 'admin05', @seed_admin_hash, '业务协同主管', '刘舟', '13988020004', 'admin05@mhmp.local', '男',
   NULL, 'ENABLED', '2026-03-22 08:20:00', '批量生成的admin测试账号。负责流程复核、馆际交流与台账抽查。', @seed_admin_id, '2026-01-11 13:15:00', @seed_admin_id, '2026-03-22 08:20:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM sys_user WHERE username = 'admin05' AND deleted = 0);
@@ -72,7 +72,7 @@ WHERE u.username = 'admin05' AND u.deleted = 0
 INSERT INTO sys_user (
   username, password, nick_name, real_name, phone, email, gender, avatar_url, status, last_login_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'researcher02', @seed_researcher_password, '青铜研究员', '王蕾', '13988030001', 'researcher02@mhmp.local', '女',
+SELECT 'researcher02', @seed_researcher_hash, '青铜研究员', '王蕾', '13988030001', 'researcher02@mhmp.local', '女',
   NULL, 'ENABLED', '2026-03-23 09:20:00', '批量生成的researcher测试账号。负责青铜器建档与病害研判。', @seed_admin_id, '2026-01-12 10:15:00', @seed_admin_id, '2026-03-23 09:20:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM sys_user WHERE username = 'researcher02' AND deleted = 0);
@@ -87,7 +87,7 @@ WHERE u.username = 'researcher02' AND u.deleted = 0
 INSERT INTO sys_user (
   username, password, nick_name, real_name, phone, email, gender, avatar_url, status, last_login_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'researcher03', @seed_researcher_password, '陶瓷研究员', '周洋', '13988030002', 'researcher03@mhmp.local', '男',
+SELECT 'researcher03', @seed_researcher_hash, '陶瓷研究员', '周洋', '13988030002', 'researcher03@mhmp.local', '男',
   NULL, 'ENABLED', '2026-03-24 10:20:00', '批量生成的researcher测试账号。负责陶瓷器分类与外借复核。', @seed_admin_id, '2026-01-13 11:15:00', @seed_admin_id, '2026-03-24 10:20:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM sys_user WHERE username = 'researcher03' AND deleted = 0);
@@ -102,7 +102,7 @@ WHERE u.username = 'researcher03' AND u.deleted = 0
 INSERT INTO sys_user (
   username, password, nick_name, real_name, phone, email, gender, avatar_url, status, last_login_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'researcher04', @seed_researcher_password, '书画研究员', '林清', '13988030003', 'researcher04@mhmp.local', '女',
+SELECT 'researcher04', @seed_researcher_hash, '书画研究员', '林清', '13988030003', 'researcher04@mhmp.local', '女',
   NULL, 'ENABLED', '2026-03-25 08:20:00', '批量生成的researcher测试账号。负责书画类文物建档与修复申请。', @seed_admin_id, '2026-01-14 12:15:00', @seed_admin_id, '2026-03-25 08:20:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM sys_user WHERE username = 'researcher04' AND deleted = 0);
@@ -117,7 +117,7 @@ WHERE u.username = 'researcher04' AND u.deleted = 0
 INSERT INTO sys_user (
   username, password, nick_name, real_name, phone, email, gender, avatar_url, status, last_login_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'researcher05', @seed_researcher_password, '玉器研究员', '何远', '13988030004', 'researcher05@mhmp.local', '男',
+SELECT 'researcher05', @seed_researcher_hash, '玉器研究员', '何远', '13988030004', 'researcher05@mhmp.local', '男',
   NULL, 'ENABLED', '2026-03-19 09:20:00', '批量生成的researcher测试账号。负责玉器状态评估与调拨复核。', @seed_admin_id, '2026-01-15 13:15:00', @seed_admin_id, '2026-03-19 09:20:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM sys_user WHERE username = 'researcher05' AND deleted = 0);
@@ -132,7 +132,7 @@ WHERE u.username = 'researcher05' AND u.deleted = 0
 INSERT INTO sys_user (
   username, password, nick_name, real_name, phone, email, gender, avatar_url, status, last_login_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'researcher06', @seed_researcher_password, '金银器研究员', '苏瑶', '13988030005', 'researcher06@mhmp.local', '女',
+SELECT 'researcher06', @seed_researcher_hash, '金银器研究员', '苏瑶', '13988030005', 'researcher06@mhmp.local', '女',
   NULL, 'ENABLED', '2026-03-20 10:20:00', '批量生成的researcher测试账号。负责金银器病害观察与展陈准备。', @seed_admin_id, '2026-01-16 10:15:00', @seed_admin_id, '2026-03-20 10:20:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM sys_user WHERE username = 'researcher06' AND deleted = 0);
@@ -147,7 +147,7 @@ WHERE u.username = 'researcher06' AND u.deleted = 0
 INSERT INTO sys_user (
   username, password, nick_name, real_name, phone, email, gender, avatar_url, status, last_login_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'researcher07', @seed_researcher_password, '木器研究员', '郑川', '13988030006', 'researcher07@mhmp.local', '男',
+SELECT 'researcher07', @seed_researcher_hash, '木器研究员', '郑川', '13988030006', 'researcher07@mhmp.local', '男',
   NULL, 'ENABLED', '2026-03-21 08:20:00', '批量生成的researcher测试账号。负责木器与竹木器类建档复核。', @seed_admin_id, '2026-01-17 11:15:00', @seed_admin_id, '2026-03-21 08:20:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM sys_user WHERE username = 'researcher07' AND deleted = 0);
@@ -162,7 +162,7 @@ WHERE u.username = 'researcher07' AND u.deleted = 0
 INSERT INTO sys_user (
   username, password, nick_name, real_name, phone, email, gender, avatar_url, status, last_login_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'researcher08', @seed_researcher_password, '漆器研究员', '宋宁', '13988030007', 'researcher08@mhmp.local', '女',
+SELECT 'researcher08', @seed_researcher_hash, '漆器研究员', '宋宁', '13988030007', 'researcher08@mhmp.local', '女',
   NULL, 'ENABLED', '2026-03-22 09:20:00', '批量生成的researcher测试账号。负责漆器病害复核与修复跟踪。', @seed_admin_id, '2026-01-18 12:15:00', @seed_admin_id, '2026-03-22 09:20:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM sys_user WHERE username = 'researcher08' AND deleted = 0);
@@ -177,7 +177,7 @@ WHERE u.username = 'researcher08' AND u.deleted = 0
 INSERT INTO sys_user (
   username, password, nick_name, real_name, phone, email, gender, avatar_url, status, last_login_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'researcher09', @seed_researcher_password, '石刻研究员', '魏安', '13988030008', 'researcher09@mhmp.local', '男',
+SELECT 'researcher09', @seed_researcher_hash, '石刻研究员', '魏安', '13988030008', 'researcher09@mhmp.local', '男',
   NULL, 'ENABLED', '2026-03-23 10:20:00', '批量生成的researcher测试账号。负责石刻与造像类文物台账整理。', @seed_admin_id, '2026-01-19 13:15:00', @seed_admin_id, '2026-03-23 10:20:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM sys_user WHERE username = 'researcher09' AND deleted = 0);
@@ -192,7 +192,7 @@ WHERE u.username = 'researcher09' AND u.deleted = 0
 INSERT INTO sys_user (
   username, password, nick_name, real_name, phone, email, gender, avatar_url, status, last_login_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'researcher10', @seed_researcher_password, '保管研究员', '唐蕾', '13988030009', 'researcher10@mhmp.local', '女',
+SELECT 'researcher10', @seed_researcher_hash, '保管研究员', '唐蕾', '13988030009', 'researcher10@mhmp.local', '女',
   NULL, 'ENABLED', '2026-03-24 08:20:00', '批量生成的researcher测试账号。负责库位复核与盘点任务执行。', @seed_admin_id, '2026-01-20 10:15:00', @seed_admin_id, '2026-03-24 08:20:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM sys_user WHERE username = 'researcher10' AND deleted = 0);
@@ -207,7 +207,7 @@ WHERE u.username = 'researcher10' AND u.deleted = 0
 INSERT INTO sys_user (
   username, password, nick_name, real_name, phone, email, gender, avatar_url, status, last_login_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'researcher11', @seed_researcher_password, '修复研究员', '韩卓', '13988030010', 'researcher11@mhmp.local', '男',
+SELECT 'researcher11', @seed_researcher_hash, '修复研究员', '韩卓', '13988030010', 'researcher11@mhmp.local', '男',
   NULL, 'ENABLED', '2026-03-25 09:20:00', '批量生成的researcher测试账号。负责修复方案编制与工序记录。', @seed_admin_id, '2026-01-21 11:15:00', @seed_admin_id, '2026-03-25 09:20:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM sys_user WHERE username = 'researcher11' AND deleted = 0);
@@ -222,7 +222,7 @@ WHERE u.username = 'researcher11' AND u.deleted = 0
 INSERT INTO sys_user (
   username, password, nick_name, real_name, phone, email, gender, avatar_url, status, last_login_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'researcher12', @seed_researcher_password, '陈列研究员', '顾琳', '13988030011', 'researcher12@mhmp.local', '女',
+SELECT 'researcher12', @seed_researcher_hash, '陈列研究员', '顾琳', '13988030011', 'researcher12@mhmp.local', '女',
   NULL, 'ENABLED', '2026-03-19 10:20:00', '批量生成的researcher测试账号。负责展陈借展与回库复核。', @seed_admin_id, '2026-01-22 12:15:00', @seed_admin_id, '2026-03-19 10:20:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM sys_user WHERE username = 'researcher12' AND deleted = 0);
@@ -237,7 +237,7 @@ WHERE u.username = 'researcher12' AND u.deleted = 0
 INSERT INTO sys_user (
   username, password, nick_name, real_name, phone, email, gender, avatar_url, status, last_login_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'researcher13', @seed_researcher_password, '档案研究员', '罗宁', '13988030012', 'researcher13@mhmp.local', '男',
+SELECT 'researcher13', @seed_researcher_hash, '档案研究员', '罗宁', '13988030012', 'researcher13@mhmp.local', '男',
   NULL, 'ENABLED', '2026-03-20 08:20:00', '批量生成的researcher测试账号。负责档案补录与附件整理。', @seed_admin_id, '2026-01-23 13:15:00', @seed_admin_id, '2026-03-20 08:20:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM sys_user WHERE username = 'researcher13' AND deleted = 0);
@@ -252,7 +252,7 @@ WHERE u.username = 'researcher13' AND u.deleted = 0
 INSERT INTO sys_user (
   username, password, nick_name, real_name, phone, email, gender, avatar_url, status, last_login_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'researcher14', @seed_researcher_password, '馆藏研究员', '姚菲', '13988030013', 'researcher14@mhmp.local', '女',
+SELECT 'researcher14', @seed_researcher_hash, '馆藏研究员', '姚菲', '13988030013', 'researcher14@mhmp.local', '女',
   NULL, 'ENABLED', '2026-03-21 09:20:00', '批量生成的researcher测试账号。负责综合建档与业务联调。', @seed_admin_id, '2026-01-24 10:15:00', @seed_admin_id, '2026-03-21 09:20:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM sys_user WHERE username = 'researcher14' AND deleted = 0);
@@ -267,7 +267,7 @@ WHERE u.username = 'researcher14' AND u.deleted = 0
 INSERT INTO sys_user (
   username, password, nick_name, real_name, phone, email, gender, avatar_url, status, last_login_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'docent02', @seed_docent_password, '资深讲解员', '王倩', '13988040001', 'docent02@mhmp.local', '女',
+SELECT 'docent02', @seed_docent_hash, '资深讲解员', '王倩', '13988040001', 'docent02@mhmp.local', '女',
   NULL, 'ENABLED', '2026-03-22 10:20:00', '批量生成的docent测试账号。负责固定陈列讲解与公众咨询。', @seed_admin_id, '2026-01-25 11:15:00', @seed_admin_id, '2026-03-22 10:20:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM sys_user WHERE username = 'docent02' AND deleted = 0);
@@ -282,7 +282,7 @@ WHERE u.username = 'docent02' AND u.deleted = 0
 INSERT INTO sys_user (
   username, password, nick_name, real_name, phone, email, gender, avatar_url, status, last_login_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'docent03', @seed_docent_password, '展厅讲解员', '沈越', '13988040002', 'docent03@mhmp.local', '男',
+SELECT 'docent03', @seed_docent_hash, '展厅讲解员', '沈越', '13988040002', 'docent03@mhmp.local', '男',
   NULL, 'ENABLED', '2026-03-23 08:20:00', '批量生成的docent测试账号。负责青铜与陶瓷展区讲解。', @seed_admin_id, '2026-01-26 12:15:00', @seed_admin_id, '2026-03-23 08:20:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM sys_user WHERE username = 'docent03' AND deleted = 0);
@@ -297,7 +297,7 @@ WHERE u.username = 'docent03' AND u.deleted = 0
 INSERT INTO sys_user (
   username, password, nick_name, real_name, phone, email, gender, avatar_url, status, last_login_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'docent04', @seed_docent_password, '社教专员', '夏妍', '13988040003', 'docent04@mhmp.local', '女',
+SELECT 'docent04', @seed_docent_hash, '社教专员', '夏妍', '13988040003', 'docent04@mhmp.local', '女',
   NULL, 'ENABLED', '2026-03-24 09:20:00', '批量生成的docent测试账号。负责公众教育与活动协助。', @seed_admin_id, '2026-01-27 13:15:00', @seed_admin_id, '2026-03-24 09:20:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM sys_user WHERE username = 'docent04' AND deleted = 0);
@@ -312,7 +312,7 @@ WHERE u.username = 'docent04' AND u.deleted = 0
 INSERT INTO sys_user (
   username, password, nick_name, real_name, phone, email, gender, avatar_url, status, last_login_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'docent05', @seed_docent_password, '临展讲解员', '蒋晨', '13988040004', 'docent05@mhmp.local', '男',
+SELECT 'docent05', @seed_docent_hash, '临展讲解员', '蒋晨', '13988040004', 'docent05@mhmp.local', '男',
   NULL, 'ENABLED', '2026-03-25 10:20:00', '批量生成的docent测试账号。负责临展接待与借展辅助。', @seed_admin_id, '2026-01-28 10:15:00', @seed_admin_id, '2026-03-25 10:20:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM sys_user WHERE username = 'docent05' AND deleted = 0);
@@ -327,7 +327,7 @@ WHERE u.username = 'docent05' AND u.deleted = 0
 INSERT INTO sys_user (
   username, password, nick_name, real_name, phone, email, gender, avatar_url, status, last_login_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'docent06', @seed_docent_password, '讲解助理', '傅泽', '13988040005', 'docent06@mhmp.local', '男',
+SELECT 'docent06', @seed_docent_hash, '讲解助理', '傅泽', '13988040005', 'docent06@mhmp.local', '男',
   NULL, 'ENABLED', '2026-03-19 08:20:00', '批量生成的docent测试账号。负责讲解排班与参观导引。', @seed_admin_id, '2026-01-29 11:15:00', @seed_admin_id, '2026-03-19 08:20:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM sys_user WHERE username = 'docent06' AND deleted = 0);
@@ -342,7 +342,7 @@ WHERE u.username = 'docent06' AND u.deleted = 0
 INSERT INTO sys_user (
   username, password, nick_name, real_name, phone, email, gender, avatar_url, status, last_login_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'docent07', @seed_docent_password, '公众服务专员', '梁悦', '13988040006', 'docent07@mhmp.local', '女',
+SELECT 'docent07', @seed_docent_hash, '公众服务专员', '梁悦', '13988040006', 'docent07@mhmp.local', '女',
   NULL, 'ENABLED', '2026-03-20 09:20:00', '批量生成的docent测试账号。负责展厅秩序与观众问询。', @seed_admin_id, '2026-01-30 12:15:00', @seed_admin_id, '2026-03-20 09:20:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM sys_user WHERE username = 'docent07' AND deleted = 0);
@@ -357,7 +357,7 @@ WHERE u.username = 'docent07' AND u.deleted = 0
 INSERT INTO sys_user (
   username, password, nick_name, real_name, phone, email, gender, avatar_url, status, last_login_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'docent08', @seed_docent_password, '展陈讲解员', '高杉', '13988040007', 'docent08@mhmp.local', '男',
+SELECT 'docent08', @seed_docent_hash, '展陈讲解员', '高杉', '13988040007', 'docent08@mhmp.local', '男',
   NULL, 'ENABLED', '2026-03-21 10:20:00', '批量生成的docent测试账号。负责专题展讲解与观众接待。', @seed_admin_id, '2026-01-31 13:15:00', @seed_admin_id, '2026-03-21 10:20:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM sys_user WHERE username = 'docent08' AND deleted = 0);
@@ -372,7 +372,7 @@ WHERE u.username = 'docent08' AND u.deleted = 0
 INSERT INTO sys_user (
   username, password, nick_name, real_name, phone, email, gender, avatar_url, status, last_login_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'docent09', @seed_docent_password, '社教讲解员', '袁青', '13988040008', 'docent09@mhmp.local', '女',
+SELECT 'docent09', @seed_docent_hash, '社教讲解员', '袁青', '13988040008', 'docent09@mhmp.local', '女',
   NULL, 'ENABLED', '2026-03-22 08:20:00', '批量生成的docent测试账号。负责馆校合作讲解服务。', @seed_admin_id, '2026-02-01 10:15:00', @seed_admin_id, '2026-03-22 08:20:00', 0
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM sys_user WHERE username = 'docent09' AND deleted = 0);

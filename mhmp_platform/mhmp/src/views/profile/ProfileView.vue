@@ -11,7 +11,8 @@
           <div class="profile-hero__eyebrow">MHMP Personal Profile</div>
           <h2 class="profile-hero__title">{{ profile.realName || profile.nickName || profile.username || '--' }}</h2>
           <p class="profile-hero__desc">
-            当前平台身份：{{ profile.roles?.join(' / ') || '未分配角色' }}。可在此维护个人档案与头像，平台会同步用于业务经办、审批留痕、操作日志和页面展示。
+            当前平台身份：{{ profile.roles?.join(' / ') || '未分配角色' }}。可在此维护个人档案、头像与登录密码，平台会同步用于业务经办、
+            审批留痕、操作日志和页面展示。
           </p>
         </div>
       </div>
@@ -68,6 +69,36 @@
           </div>
         </div>
       </article>
+
+      <article class="page-card page-card--section profile-panel profile-panel--wide profile-security">
+        <div class="profile-panel__header">
+          <div>
+            <div class="profile-panel__title">账号安全</div>
+            <div class="profile-panel__desc">
+              登录密码用于保护当前账号的业务处理、审批记录和操作日志。修改密码后，系统会要求重新登录以确保会话安全。
+            </div>
+          </div>
+          <el-button type="primary" plain @click="openPasswordDialog">修改密码</el-button>
+        </div>
+
+        <div class="profile-security__grid">
+          <div class="profile-security__item">
+            <div class="profile-security__label">当前账号</div>
+            <div class="profile-security__value">{{ profile.username || '--' }}</div>
+            <div class="profile-security__remark">建议仅本人持有并使用。</div>
+          </div>
+          <div class="profile-security__item">
+            <div class="profile-security__label">安全提示</div>
+            <div class="profile-security__value">修改后需重新登录</div>
+            <div class="profile-security__remark">提交成功后会自动清理当前登录状态。</div>
+          </div>
+          <div class="profile-security__item">
+            <div class="profile-security__label">密码建议</div>
+            <div class="profile-security__value">不少于 6 位</div>
+            <div class="profile-security__remark">建议使用字母、数字组合，避免与旧密码重复。</div>
+          </div>
+        </div>
+      </article>
     </section>
 
     <el-dialog v-model="dialogVisible" title="编辑个人档案" width="520px">
@@ -111,24 +142,70 @@
         <el-button type="primary" :loading="saving" @click="handleSaveProfile">保存档案</el-button>
       </template>
     </el-dialog>
+
+    <el-dialog
+      v-model="passwordDialogVisible"
+      title="修改登录密码"
+      width="460px"
+      @closed="resetPasswordForm"
+    >
+      <el-form ref="passwordFormRef" :model="passwordForm" :rules="passwordRules" label-width="96px" status-icon>
+        <el-form-item label="旧密码" prop="oldPassword">
+          <el-input
+            v-model="passwordForm.oldPassword"
+            type="password"
+            show-password
+            autocomplete="current-password"
+            placeholder="请输入当前登录密码"
+          />
+        </el-form-item>
+        <el-form-item label="新密码" prop="newPassword">
+          <el-input
+            v-model="passwordForm.newPassword"
+            type="password"
+            show-password
+            autocomplete="new-password"
+            placeholder="请输入新的登录密码"
+          />
+        </el-form-item>
+        <el-form-item label="确认新密码" prop="confirmPassword">
+          <el-input
+            v-model="passwordForm.confirmPassword"
+            type="password"
+            show-password
+            autocomplete="new-password"
+            placeholder="请再次输入新密码"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="passwordDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="passwordSaving" @click="handleSavePassword">确认修改</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { computed, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useRouter } from 'vue-router'
 import { uploadFileApi } from '@/api/file'
-import { getProfileApi, updateProfileApi } from '@/api/profile'
+import { getProfileApi, updatePasswordApi, updateProfileApi } from '@/api/profile'
 import { useAuthStore } from '@/stores/auth'
 import { validateElForm } from '@/utils/form'
 
 const authStore = useAuthStore()
+const router = useRouter()
 
 const profile = ref({})
 const saving = ref(false)
+const passwordSaving = ref(false)
 const dialogVisible = ref(false)
+const passwordDialogVisible = ref(false)
 const uploadingAvatar = ref(false)
 const profileFormRef = ref()
+const passwordFormRef = ref()
 
 const profileForm = reactive({
   nickName: '',
@@ -140,6 +217,12 @@ const profileForm = reactive({
   remark: ''
 })
 
+const passwordForm = reactive({
+  oldPassword: '',
+  newPassword: '',
+  confirmPassword: ''
+})
+
 const genderLabelMap = {
   MALE: '男',
   FEMALE: '女',
@@ -149,6 +232,40 @@ const genderLabelMap = {
 const profileRules = {
   nickName: [{ required: true, message: '请输入显示名', trigger: 'blur' }],
   realName: [{ required: true, message: '请输入姓名', trigger: 'blur' }]
+}
+
+function validateNewPassword(rule, value, callback) {
+  if (!value) {
+    callback(new Error('请输入新密码'))
+    return
+  }
+  if (value.length < 6) {
+    callback(new Error('新密码不少于 6 位'))
+    return
+  }
+  if (value === passwordForm.oldPassword) {
+    callback(new Error('新密码不能与旧密码相同'))
+    return
+  }
+  callback()
+}
+
+function validateConfirmPassword(rule, value, callback) {
+  if (!value) {
+    callback(new Error('请再次输入新密码'))
+    return
+  }
+  if (value !== passwordForm.newPassword) {
+    callback(new Error('两次输入的新密码不一致'))
+    return
+  }
+  callback()
+}
+
+const passwordRules = {
+  oldPassword: [{ required: true, message: '请输入旧密码', trigger: 'blur' }],
+  newPassword: [{ validator: validateNewPassword, trigger: ['blur', 'change'] }],
+  confirmPassword: [{ validator: validateConfirmPassword, trigger: ['blur', 'change'] }]
 }
 
 const userInitial = computed(() => (profile.value.realName || profile.value.nickName || profile.value.username || '馆').slice(0, 1))
@@ -165,6 +282,15 @@ function fillProfileForm(data) {
   })
 }
 
+function resetPasswordForm() {
+  Object.assign(passwordForm, {
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  })
+  passwordFormRef.value?.clearValidate?.()
+}
+
 async function loadProfile() {
   const data = await getProfileApi()
   profile.value = data
@@ -174,6 +300,11 @@ async function loadProfile() {
 function openEditDialog() {
   fillProfileForm(profile.value)
   dialogVisible.value = true
+}
+
+function openPasswordDialog() {
+  resetPasswordForm()
+  passwordDialogVisible.value = true
 }
 
 async function handleAvatarUpload(option) {
@@ -199,7 +330,7 @@ async function handleAvatarUpload(option) {
 }
 
 async function handleSaveProfile() {
-  const valid = await validateElForm(profileFormRef, '璇峰厛瀹屽杽涓汉淇℃伅鍚庡啀淇濆瓨')
+  const valid = await validateElForm(profileFormRef, '请先完善必填信息后再保存')
   if (!valid) {
     return
   }
@@ -212,6 +343,26 @@ async function handleSaveProfile() {
     await authStore.initializeSession(true)
   } finally {
     saving.value = false
+  }
+}
+
+async function handleSavePassword() {
+  const valid = await validateElForm(passwordFormRef, '请先正确填写旧密码和新密码')
+  if (!valid) {
+    return
+  }
+  passwordSaving.value = true
+  try {
+    await updatePasswordApi({
+      oldPassword: passwordForm.oldPassword,
+      newPassword: passwordForm.newPassword
+    })
+    passwordDialogVisible.value = false
+    await authStore.logout(false)
+    ElMessage.success('密码已修改，请重新登录')
+    router.replace('/login')
+  } finally {
+    passwordSaving.value = false
   }
 }
 
@@ -289,10 +440,27 @@ loadProfile()
   grid-template-columns: 1fr 1fr;
 }
 
+.profile-panel--wide {
+  grid-column: 1 / -1;
+}
+
+.profile-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
 .profile-panel__title {
   margin-bottom: 16px;
   font-size: 16px;
   font-weight: 700;
+}
+
+.profile-panel__desc {
+  color: var(--text-second);
+  line-height: 1.8;
 }
 
 .profile-meta {
@@ -316,6 +484,43 @@ loadProfile()
   color: var(--text-second);
 }
 
+.profile-security {
+  background:
+    linear-gradient(180deg, rgba(123, 44, 42, 0.04), rgba(123, 44, 42, 0)),
+    #fff;
+}
+
+.profile-security__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.profile-security__item {
+  padding: 16px 18px;
+  border: 1px solid rgba(123, 44, 42, 0.12);
+  border-radius: 18px;
+  background: rgba(250, 247, 244, 0.92);
+}
+
+.profile-security__label {
+  color: var(--text-second);
+  font-size: 13px;
+}
+
+.profile-security__value {
+  margin-top: 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.profile-security__remark {
+  margin-top: 8px;
+  color: var(--text-second);
+  line-height: 1.7;
+}
+
 .dialog-avatar {
   display: flex;
   align-items: center;
@@ -335,6 +540,19 @@ loadProfile()
   .profile-hero__main {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .profile-panel--wide {
+    grid-column: auto;
+  }
+
+  .profile-panel__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .profile-security__grid {
+    grid-template-columns: 1fr;
   }
 
   .dialog-avatar {

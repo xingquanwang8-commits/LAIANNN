@@ -13,6 +13,7 @@ import com.mhmp.mapper.RelicInboundOrderMapper;
 import com.mhmp.mapper.RelicMapper;
 import com.mhmp.mapper.RelicOutboundDetailMapper;
 import com.mhmp.mapper.RelicOutboundOrderMapper;
+import com.mhmp.mapper.RelicTransferTaskMapper;
 import com.mhmp.mapper.SysDictItemMapper;
 import com.mhmp.service.BusinessNoService;
 import com.mhmp.vo.RelicDetailVO;
@@ -46,6 +47,8 @@ class RelicServiceImplTest {
     @Mock
     private RelicOutboundOrderMapper relicOutboundOrderMapper;
     @Mock
+    private RelicTransferTaskMapper relicTransferTaskMapper;
+    @Mock
     private InventoryTaskDetailMapper inventoryTaskDetailMapper;
     @Mock
     private InventoryTaskMapper inventoryTaskMapper;
@@ -69,6 +72,7 @@ class RelicServiceImplTest {
             relicInboundOrderMapper,
             relicOutboundDetailMapper,
             relicOutboundOrderMapper,
+            relicTransferTaskMapper,
             inventoryTaskDetailMapper,
             inventoryTaskMapper,
             repairTaskMapper,
@@ -99,6 +103,7 @@ class RelicServiceImplTest {
         when(relicAttachmentMapper.selectList(any())).thenReturn(List.of());
         when(relicInboundDetailMapper.selectList(any())).thenReturn(List.of());
         when(relicOutboundDetailMapper.selectList(any())).thenReturn(List.of());
+        when(relicTransferTaskMapper.selectList(any())).thenReturn(List.of());
         when(inventoryTaskDetailMapper.selectList(any())).thenReturn(List.of());
         when(repairTaskMapper.selectList(any())).thenReturn(List.of(task));
         when(repairLogMapper.selectList(any())).thenReturn(List.of());

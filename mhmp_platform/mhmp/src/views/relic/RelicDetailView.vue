@@ -377,6 +377,7 @@ const businessStatusLabelMap = {
   REJECTED: '已驳回',
   RETURNED: '已归还',
   APPLIED: '待审批',
+  ASSIGNED: '待确认',
   IN_PROGRESS: '进行中',
   COMPLETED: '已完成',
   ACCEPTED: '已验收',
@@ -535,9 +536,9 @@ const launchActions = computed(() => {
       title: '发起馆内转存',
       check: checkTransferRelicEligibility(relic),
       successText: '馆内转存条件校验通过，正在进入转存表单',
-      visible: authStore.hasPermission('relic:edit'),
+      visible: authStore.hasPermission('inventory:transfer:add'),
       route: {
-        path: '/relic/transfer',
+        path: '/inventory/transfer',
         query: {
           quickCreate: '1',
           relicId
@@ -707,6 +708,10 @@ function formatFileSize(fileSize) {
 function handleBusinessPageJump(item) {
   if (item.businessType === 'INBOUND_APPROVAL') {
     router.push('/inventory/inbound/approve')
+    return
+  }
+  if (item.businessType === 'TRANSFER_CONFIRM') {
+    router.push('/inventory/transfer/my')
     return
   }
   if (item.businessType === 'REPAIR_ACCEPTANCE') {

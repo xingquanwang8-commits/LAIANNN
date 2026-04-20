@@ -8,10 +8,8 @@ import com.mhmp.common.result.PageResponse;
 import com.mhmp.common.util.RelicBusinessRuleUtils;
 import com.mhmp.common.util.SecurityUtils;
 import com.mhmp.dto.AttachmentSaveDTO;
-import com.mhmp.dto.RelicBatchTransferDTO;
 import com.mhmp.dto.RelicPageQueryDTO;
 import com.mhmp.dto.RelicSaveDTO;
-import com.mhmp.dto.RelicTransferDTO;
 import com.mhmp.entity.InventoryTask;
 import com.mhmp.entity.InventoryTaskDetail;
 import com.mhmp.entity.RepairAcceptance;
@@ -23,6 +21,7 @@ import com.mhmp.entity.RelicInboundDetail;
 import com.mhmp.entity.RelicInboundOrder;
 import com.mhmp.entity.RelicOutboundDetail;
 import com.mhmp.entity.RelicOutboundOrder;
+import com.mhmp.entity.RelicTransferTask;
 import com.mhmp.entity.SysDictItem;
 import com.mhmp.mapper.InventoryTaskDetailMapper;
 import com.mhmp.mapper.InventoryTaskMapper;
@@ -35,6 +34,7 @@ import com.mhmp.mapper.RelicInboundOrderMapper;
 import com.mhmp.mapper.RelicMapper;
 import com.mhmp.mapper.RelicOutboundDetailMapper;
 import com.mhmp.mapper.RelicOutboundOrderMapper;
+import com.mhmp.mapper.RelicTransferTaskMapper;
 import com.mhmp.mapper.SysDictItemMapper;
 import com.mhmp.service.BusinessNoService;
 import com.mhmp.service.RelicService;
@@ -52,7 +52,6 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -71,6 +70,7 @@ public class RelicServiceImpl implements RelicService {
     private final RelicInboundOrderMapper relicInboundOrderMapper;
     private final RelicOutboundDetailMapper relicOutboundDetailMapper;
     private final RelicOutboundOrderMapper relicOutboundOrderMapper;
+    private final RelicTransferTaskMapper relicTransferTaskMapper;
     private final InventoryTaskDetailMapper inventoryTaskDetailMapper;
     private final InventoryTaskMapper inventoryTaskMapper;
     private final RepairTaskMapper repairTaskMapper;
@@ -85,6 +85,7 @@ public class RelicServiceImpl implements RelicService {
                             RelicInboundOrderMapper relicInboundOrderMapper,
                             RelicOutboundDetailMapper relicOutboundDetailMapper,
                             RelicOutboundOrderMapper relicOutboundOrderMapper,
+                            RelicTransferTaskMapper relicTransferTaskMapper,
                             InventoryTaskDetailMapper inventoryTaskDetailMapper,
                             InventoryTaskMapper inventoryTaskMapper,
                             RepairTaskMapper repairTaskMapper,
@@ -98,6 +99,7 @@ public class RelicServiceImpl implements RelicService {
         this.relicInboundOrderMapper = relicInboundOrderMapper;
         this.relicOutboundDetailMapper = relicOutboundDetailMapper;
         this.relicOutboundOrderMapper = relicOutboundOrderMapper;
+        this.relicTransferTaskMapper = relicTransferTaskMapper;
         this.inventoryTaskDetailMapper = inventoryTaskDetailMapper;
         this.inventoryTaskMapper = inventoryTaskMapper;
         this.repairTaskMapper = repairTaskMapper;
@@ -171,42 +173,6 @@ public class RelicServiceImpl implements RelicService {
     @Override
     public String createMaterial(String materialName) {
         return createDictItem("relic_material", materialName, businessNoService.nextRelicMaterialValue(), "Created material from relic form");
-    }
-
-    @Override
-    public void transfer(Long id, RelicTransferDTO transferDTO) {
-        Relic relic = getRelicOrThrow(id);
-        Long currentUserId = SecurityUtils.getUserId();
-        LocalDateTime transferTime = transferDTO.getTransferTime() == null ? LocalDateTime.now() : transferDTO.getTransferTime();
-        validateTransferable(relic, transferDTO.getStorageLocationCode());
-        applyTransfer(relic, transferDTO.getStorageLocationCode(), transferDTO.getTransferReason(), transferTime, currentUserId);
-    }
-
-    @Override
-    public void batchTransfer(RelicBatchTransferDTO transferDTO) {
-        List<Long> relicIds = transferDTO.getRelicIds() == null
-            ? List.of()
-            : new ArrayList<>(new LinkedHashSet<>(transferDTO.getRelicIds().stream()
-                .filter(Objects::nonNull)
-                .toList()));
-        if (relicIds.isEmpty()) {
-            throw new BusinessException("Please select relics to transfer");
-        }
-
-        List<Relic> relics = relicMapper.selectBatchIds(relicIds);
-        if (relics.size() != relicIds.size()) {
-            throw new BusinessException("Some relics do not exist or have been deleted");
-        }
-
-        for (Relic relic : relics) {
-            validateTransferable(relic, transferDTO.getStorageLocationCode());
-        }
-
-        Long currentUserId = SecurityUtils.getUserId();
-        LocalDateTime transferTime = transferDTO.getTransferTime() == null ? LocalDateTime.now() : transferDTO.getTransferTime();
-        for (Relic relic : relics) {
-            applyTransfer(relic, transferDTO.getStorageLocationCode(), transferDTO.getTransferReason(), transferTime, currentUserId);
-        }
     }
 
     @Override
@@ -299,30 +265,6 @@ public class RelicServiceImpl implements RelicService {
         return entity.getItemValue();
     }
 
-    private void validateTransferable(Relic relic, String targetLocationCode) {
-        RelicBusinessRuleUtils.validateTransferCreatable(relic, targetLocationCode);
-    }
-
-    private void applyTransfer(Relic relic,
-                               String targetLocationCode,
-                               String transferReason,
-                               LocalDateTime transferTime,
-                               Long currentUserId) {
-        String previousLocationCode = relic.getStorageLocationCode();
-        relic.setStorageLocationCode(targetLocationCode);
-        relic.setNote(appendBusinessNote(
-            relic.getNote(),
-            String.format("%s[%s] from=%s;to=%s;reason=%s",
-                TRANSFER_PREFIX,
-                transferTime,
-                StringUtils.hasText(previousLocationCode) ? previousLocationCode : "UNKNOWN",
-                targetLocationCode,
-                StringUtils.hasText(transferReason) ? transferReason : "No reason")
-        ));
-        relic.setUpdateBy(currentUserId);
-        relicMapper.updateById(relic);
-    }
-
     private void saveAttachments(Long relicId, List<AttachmentSaveDTO> attachments, Long currentUserId) {
         relicAttachmentMapper.delete(buildNonRepairAttachmentQuery(relicId));
         if (attachments == null || attachments.isEmpty()) {
@@ -365,6 +307,7 @@ public class RelicServiceImpl implements RelicService {
         List<InventoryTaskDetail> inventoryDetails = listInventoryDetailsByRelicId(relicId);
         Map<Long, InventoryTask> inventoryTaskMap = loadInventoryTaskMap(extractIds(inventoryDetails, InventoryTaskDetail::getTaskId));
 
+        List<RelicTransferTask> transferTasks = listTransferTasksByRelicId(relicId);
         List<RepairTask> repairTasks = listRepairTasksByRelicId(relicId);
         Set<Long> repairTaskIds = extractIds(repairTasks, RepairTask::getId);
 
@@ -375,6 +318,7 @@ public class RelicServiceImpl implements RelicService {
             outboundOrderMap,
             inventoryDetails,
             inventoryTaskMap,
+            transferTasks,
             repairTasks,
             loadRepairLogMap(repairTaskIds),
             loadRepairAcceptanceMap(repairTaskIds)
@@ -383,6 +327,21 @@ public class RelicServiceImpl implements RelicService {
 
     private List<RelicPendingBusinessVO> buildPendingBusinesses(RelicBusinessContext context) {
         List<RelicPendingBusinessVO> pendingBusinesses = new ArrayList<>();
+        context.transferTasks().stream()
+            .filter(task -> RelicBusinessRuleUtils.ACTIVE_TRANSFER_TASK_STATUSES.contains(task.getTaskStatus()))
+            .sorted(Comparator.comparing(RelicTransferTask::getAssignTime, Comparator.nullsLast(LocalDateTime::compareTo)).reversed())
+            .forEach(task -> {
+                RelicPendingBusinessVO vo = new RelicPendingBusinessVO();
+                vo.setBusinessType("TRANSFER_CONFIRM");
+                vo.setRelatedId(task.getId());
+                vo.setTitle("待确认转存");
+                vo.setDescription(String.format("转存任务 %s，库位：%s -> %s，负责人：%s",
+                    task.getTaskNo(), task.getFromLocationCode(), task.getTargetLocationCode(), task.getPrincipalName()));
+                vo.setStatus(task.getTaskStatus());
+                vo.setEventTime(task.getAssignTime());
+                pendingBusinesses.add(vo);
+            });
+
         context.inboundOrderMap().values().stream()
             .filter(order -> "PENDING".equals(order.getStatus()))
             .sorted(Comparator.comparing(RelicInboundOrder::getInboundTime, Comparator.nullsLast(LocalDateTime::compareTo)).reversed())
@@ -661,6 +620,15 @@ public class RelicServiceImpl implements RelicService {
         );
     }
 
+    private List<RelicTransferTask> listTransferTasksByRelicId(Long relicId) {
+        return relicTransferTaskMapper.selectList(
+            Wrappers.<RelicTransferTask>lambdaQuery()
+                .eq(RelicTransferTask::getRelicId, relicId)
+                .orderByDesc(RelicTransferTask::getAssignTime)
+                .orderByDesc(RelicTransferTask::getId)
+        );
+    }
+
     private List<RepairTask> listRepairTasksByRelicId(Long relicId) {
         return repairTaskMapper.selectList(
             Wrappers.<RepairTask>lambdaQuery()
@@ -735,10 +703,13 @@ public class RelicServiceImpl implements RelicService {
         long inventoryCount = inventoryTaskDetailMapper.selectCount(
             Wrappers.<InventoryTaskDetail>lambdaQuery().eq(InventoryTaskDetail::getRelicId, relicId)
         );
+        long transferCount = relicTransferTaskMapper.selectCount(
+            Wrappers.<RelicTransferTask>lambdaQuery().eq(RelicTransferTask::getRelicId, relicId)
+        );
         long repairCount = repairTaskMapper.selectCount(
             Wrappers.<RepairTask>lambdaQuery().eq(RepairTask::getRelicId, relicId)
         );
-        if (inboundCount + outboundCount + inventoryCount + repairCount > 0) {
+        if (inboundCount + outboundCount + inventoryCount + transferCount + repairCount > 0) {
             throw new BusinessException("This relic has related business records and cannot be deleted");
         }
     }
@@ -784,6 +755,7 @@ public class RelicServiceImpl implements RelicService {
                                         Map<Long, RelicOutboundOrder> outboundOrderMap,
                                         List<InventoryTaskDetail> inventoryDetails,
                                         Map<Long, InventoryTask> inventoryTaskMap,
+                                        List<RelicTransferTask> transferTasks,
                                         List<RepairTask> repairTasks,
                                         Map<Long, List<RepairLog>> repairLogMap,
                                         Map<Long, RepairAcceptance> repairAcceptanceMap) {

@@ -99,13 +99,13 @@ export const APP_ROUTE_DEFINITIONS = [
     }
   },
   {
-    path: 'relic/transfer',
-    name: 'relic-transfer',
+    path: 'inventory/transfer',
+    name: 'inventory-transfer',
     component: () => import('@/views/relic/RelicTransferView.vue'),
     meta: {
-      title: '馆内转存',
+      title: '发起转存',
       requiresAuth: true,
-      permission: 'relic:edit'
+      permission: 'inventory:transfer:view'
     }
   },
   {
@@ -166,6 +166,16 @@ export const APP_ROUTE_DEFINITIONS = [
       title: '入库审批',
       requiresAuth: true,
       permission: 'inventory:inbound:approve'
+    }
+  },
+  {
+    path: 'inventory/transfer/my',
+    name: 'inventory-transfer-my',
+    component: () => import('@/views/inventory/InventoryTransferMyView.vue'),
+    meta: {
+      title: '我的转存',
+      requiresAuth: true,
+      permission: 'inventory:transfer:my:view'
     }
   },
   {

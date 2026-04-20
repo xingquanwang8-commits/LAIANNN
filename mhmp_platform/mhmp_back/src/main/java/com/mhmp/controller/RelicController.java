@@ -3,12 +3,10 @@ package com.mhmp.controller;
 import com.mhmp.common.annotation.OperationLog;
 import com.mhmp.common.result.PageResponse;
 import com.mhmp.common.result.R;
-import com.mhmp.dto.RelicBatchTransferDTO;
 import com.mhmp.dto.RelicCategoryCreateDTO;
 import com.mhmp.dto.RelicMaterialCreateDTO;
 import com.mhmp.dto.RelicPageQueryDTO;
 import com.mhmp.dto.RelicSaveDTO;
-import com.mhmp.dto.RelicTransferDTO;
 import com.mhmp.service.RelicService;
 import com.mhmp.vo.RelicAttachmentVO;
 import com.mhmp.vo.RelicDetailVO;
@@ -83,22 +81,6 @@ public class RelicController {
     @OperationLog(module = "Relic", businessType = "INSERT", description = "Create relic material")
     public R<String> createMaterial(@Valid @RequestBody RelicMaterialCreateDTO createDTO) {
         return R.success(relicService.createMaterial(createDTO.getMaterialName()));
-    }
-
-    @PostMapping("/{id}/transfer")
-    @PreAuthorize("hasAuthority('relic:edit')")
-    @OperationLog(module = "Relic", businessType = "UPDATE", description = "Transfer relic location")
-    public R<Void> transfer(@PathVariable Long id, @Valid @RequestBody RelicTransferDTO transferDTO) {
-        relicService.transfer(id, transferDTO);
-        return R.success();
-    }
-
-    @PostMapping("/transfer/batch")
-    @PreAuthorize("hasAuthority('relic:edit')")
-    @OperationLog(module = "Relic", businessType = "UPDATE", description = "Batch transfer relic location")
-    public R<Void> batchTransfer(@Valid @RequestBody RelicBatchTransferDTO transferDTO) {
-        relicService.batchTransfer(transferDTO);
-        return R.success();
     }
 
     @DeleteMapping("/{id}")

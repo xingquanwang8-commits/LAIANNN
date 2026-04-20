@@ -59,3 +59,49 @@ export function submitInventoryTaskApi(taskId) {
     method: 'post'
   })
 }
+
+export function getTransferTaskPrincipalOptionsApi() {
+  return request({
+    url: '/inventory/transfer-tasks/principals',
+    method: 'get'
+  })
+}
+
+export function createTransferTaskApi(data) {
+  return request({
+    url: '/inventory/transfer-tasks',
+    method: 'post',
+    data
+  })
+}
+
+export function createTransferBatchTasksApi(data) {
+  return request({
+    url: '/inventory/transfer-tasks/batch',
+    method: 'post',
+    data
+  })
+}
+
+export function getMyTransferTaskPageApi(params) {
+  return request({
+    url: '/inventory/transfer-tasks/my/page',
+    method: 'get',
+    params
+  })
+}
+
+export function getTransferTaskDetailApi(id) {
+  return request({
+    url: `/inventory/transfer-tasks/${id}`,
+    method: 'get'
+  })
+}
+
+export function confirmTransferTaskApi(id, data) {
+  return request({
+    url: `/inventory/transfer-tasks/${id}/confirm`,
+    method: 'post',
+    data
+  })
+}

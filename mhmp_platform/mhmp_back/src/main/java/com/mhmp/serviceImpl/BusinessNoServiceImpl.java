@@ -8,6 +8,7 @@ import com.mhmp.entity.RepairTask;
 import com.mhmp.entity.Relic;
 import com.mhmp.entity.RelicInboundOrder;
 import com.mhmp.entity.RelicOutboundOrder;
+import com.mhmp.entity.RelicTransferTask;
 import com.mhmp.entity.SysDictItem;
 import com.mhmp.mapper.InventoryTaskMapper;
 import com.mhmp.mapper.RepairAcceptanceMapper;
@@ -16,6 +17,7 @@ import com.mhmp.mapper.RepairTaskMapper;
 import com.mhmp.mapper.RelicInboundOrderMapper;
 import com.mhmp.mapper.RelicMapper;
 import com.mhmp.mapper.RelicOutboundOrderMapper;
+import com.mhmp.mapper.RelicTransferTaskMapper;
 import com.mhmp.mapper.SysDictItemMapper;
 import com.mhmp.service.BusinessNoService;
 import org.springframework.stereotype.Service;
@@ -38,6 +40,7 @@ public class BusinessNoServiceImpl implements BusinessNoService {
     private final RelicInboundOrderMapper relicInboundOrderMapper;
     private final RelicOutboundOrderMapper relicOutboundOrderMapper;
     private final InventoryTaskMapper inventoryTaskMapper;
+    private final RelicTransferTaskMapper relicTransferTaskMapper;
     private final RepairTaskMapper repairTaskMapper;
     private final RepairLogMapper repairLogMapper;
     private final RepairAcceptanceMapper repairAcceptanceMapper;
@@ -47,6 +50,7 @@ public class BusinessNoServiceImpl implements BusinessNoService {
                                  RelicInboundOrderMapper relicInboundOrderMapper,
                                  RelicOutboundOrderMapper relicOutboundOrderMapper,
                                  InventoryTaskMapper inventoryTaskMapper,
+                                 RelicTransferTaskMapper relicTransferTaskMapper,
                                  RepairTaskMapper repairTaskMapper,
                                  RepairLogMapper repairLogMapper,
                                  RepairAcceptanceMapper repairAcceptanceMapper,
@@ -55,6 +59,7 @@ public class BusinessNoServiceImpl implements BusinessNoService {
         this.relicInboundOrderMapper = relicInboundOrderMapper;
         this.relicOutboundOrderMapper = relicOutboundOrderMapper;
         this.inventoryTaskMapper = inventoryTaskMapper;
+        this.relicTransferTaskMapper = relicTransferTaskMapper;
         this.repairTaskMapper = repairTaskMapper;
         this.repairLogMapper = repairLogMapper;
         this.repairAcceptanceMapper = repairAcceptanceMapper;
@@ -109,6 +114,16 @@ public class BusinessNoServiceImpl implements BusinessNoService {
                 .select(InventoryTask::getTaskNo)
                 .likeRight(InventoryTask::getTaskNo, datePrefix("INV", currentDate))
         ).stream().map(InventoryTask::getTaskNo).toList());
+    }
+
+    @Override
+    public synchronized String nextTransferTaskNo() {
+        LocalDate currentDate = LocalDate.now();
+        return buildDateSerialNo("TRF", currentDate, relicTransferTaskMapper.selectList(
+            Wrappers.<RelicTransferTask>lambdaQuery()
+                .select(RelicTransferTask::getTaskNo)
+                .likeRight(RelicTransferTask::getTaskNo, datePrefix("TRF", currentDate))
+        ).stream().map(RelicTransferTask::getTaskNo).toList());
     }
 
     @Override

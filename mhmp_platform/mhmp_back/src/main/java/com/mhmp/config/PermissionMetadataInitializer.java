@@ -39,6 +39,8 @@ public class PermissionMetadataInitializer implements ApplicationRunner {
         new ButtonPermissionDefinition("inventory:inbound-approve", "Inbound Approve", "inventory:inbound:approve", "inventory:inbound:approve", 1, "Inbound approval permission"),
         new ButtonPermissionDefinition("inventory:outbound-approve", "Outbound Approve", "inventory:outbound:approve", "inventory:outbound:approve", 1, "Outbound approval permission"),
         new ButtonPermissionDefinition("inventory:outbound-approve", "Outbound Reject", "inventory:outbound:reject", "inventory:outbound:reject", 2, "Outbound reject permission"),
+        new ButtonPermissionDefinition("inventory:transfer", "Transfer Task Create", "inventory:transfer:add", "inventory:transfer:add", 1, "Transfer task create permission"),
+        new ButtonPermissionDefinition("inventory:transfer:my", "Transfer Task Confirm", "inventory:transfer:confirm", "inventory:transfer:confirm", 1, "Transfer task confirm permission"),
         new ButtonPermissionDefinition("inventory:task", "Inventory Task Create", "inventory:task:add", "inventory:task:add", 0, "Inventory task create permission"),
         new ButtonPermissionDefinition("repair:approve", "Repair Plan Approve", "repair:plan:approve", "repair:plan:approve", 1, "Repair approval permission"),
         new ButtonPermissionDefinition("repair:acceptance", "Repair Acceptance Submit", "repair:acceptance:add", "repair:acceptance:add", 1, "Repair acceptance permission")
@@ -55,6 +57,8 @@ public class PermissionMetadataInitializer implements ApplicationRunner {
             "inventory:inbound:approve",
             "inventory:outbound:approve",
             "inventory:outbound:reject",
+            "inventory:transfer:add",
+            "inventory:transfer:confirm",
             "inventory:task:add",
             "repair:plan:approve",
             "repair:acceptance:add"
@@ -63,12 +67,14 @@ public class PermissionMetadataInitializer implements ApplicationRunner {
             "inventory:inbound:approve",
             "inventory:outbound:approve",
             "inventory:outbound:reject",
+            "inventory:transfer:add",
             "inventory:task:add",
             "repair:plan:approve",
             "repair:acceptance:add"
         ),
         "researcher", List.of(
-            "inventory:task:add"
+            "inventory:task:add",
+            "inventory:transfer:confirm"
         )
     );
 

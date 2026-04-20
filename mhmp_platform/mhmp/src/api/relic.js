@@ -54,22 +54,6 @@ export function createRelicMaterialApi(data) {
   })
 }
 
-export function transferRelicApi(id, data) {
-  return request({
-    url: `/relic/${id}/transfer`,
-    method: 'post',
-    data
-  })
-}
-
-export function batchTransferRelicApi(data) {
-  return request({
-    url: '/relic/transfer/batch',
-    method: 'post',
-    data
-  })
-}
-
 export function deleteRelicApi(id) {
   return request({
     url: `/relic/${id}`,

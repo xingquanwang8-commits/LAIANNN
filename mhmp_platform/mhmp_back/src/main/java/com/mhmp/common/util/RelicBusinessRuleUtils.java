@@ -28,6 +28,7 @@ public final class RelicBusinessRuleUtils {
     );
 
     public static final List<String> ACTIVE_INVENTORY_TASK_STATUSES = List.of("CREATED", "IN_PROGRESS");
+    public static final List<String> ACTIVE_TRANSFER_TASK_STATUSES = List.of("ASSIGNED");
     public static final List<String> REPAIR_LOGGABLE_TASK_STATUSES = List.of("APPROVED", "IN_PROGRESS", "COMPLETED");
     public static final List<String> REPAIR_LOG_PROGRESS_STATUSES = List.of("IN_PROGRESS", "COMPLETED");
     public static final List<String> INVENTORY_EDITABLE_TASK_STATUSES = List.of("CREATED", "IN_PROGRESS");

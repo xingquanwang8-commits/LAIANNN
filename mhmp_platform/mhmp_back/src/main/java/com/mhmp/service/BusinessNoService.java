@@ -12,6 +12,8 @@ public interface BusinessNoService {
 
     String nextInventoryTaskNo();
 
+    String nextTransferTaskNo();
+
     String nextRepairTaskNo();
 
     String nextRepairLogNo();

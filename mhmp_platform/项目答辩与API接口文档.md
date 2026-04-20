@@ -143,9 +143,10 @@ mhmp_platform/
 - 前端页面路由也带有 `permission` 元信息，用于页面级访问限制
 - 当前内置角色固定为 4 类：
   - `admin` / 系统管理员：拥有全部菜单与按钮权限
-  - `senior_researcher` / 高级研究员：负责入库审批、出库审批、修复审批和修复验收，同时保留研究员的业务办理权限
-- `researcher` / 研究员：负责建档、入库登记、出库申请、盘点、修复申请和修复过程记录，不再保留审批类权限
+  - `senior_researcher` / 高级研究员：负责入库审批、出库审批、转存任务派发、修复审批和修复验收，同时保留研究员的业务办理权限
+- `researcher` / 研究员：负责建档、入库登记、出库申请、转存确认、盘点、修复申请和修复过程记录，不再保留审批类权限
 - 盘点任务支持“高级研究员发起并指派研究员负责人”，研究员进入“我的盘点”页面处理自己负责的盘点任务
+- 转存任务支持“系统管理员/高级研究员发起并指派研究员执行”，研究员进入“我的转存”页面确认完成任务
   - `docent` / 讲解员：保持原只读讲解类权限不变
 - 演示库默认账号 `researcher` 已迁移为 `senior_researcher`，便于直接演示审批与修复验收流程
 - 演示数据额外预置了 `senior_researcher02`、`senior_researcher03`、`senior_researcher04` 三个高级研究员账号，便于多账号分角色演示审批链路
@@ -180,7 +181,8 @@ mhmp_platform/
 | `/relic/detail/:id` | 文物详情 | `relic:detail:view` 等 |
 | `/relic/create` | 新增文物 | `relic:add` |
 | `/relic/edit/:id` | 编辑文物 | `relic:edit` |
-| `/relic/transfer` | 馆内转存 | `relic:edit` |
+| `/inventory/transfer` | 发起转存 | `inventory:transfer:view` |
+| `/inventory/transfer/my` | 我的转存 | `inventory:transfer:my:view` |
 | `/inventory/inbound` | 入库业务 | `inventory:inbound:view` |
 | `/inventory/inbound/approve` | 入库审批查询 | `inventory:inbound:approve` |
 | `/inventory/outbound/apply` | 出库申请 | `inventory:outbound:apply:view` |
@@ -215,6 +217,7 @@ mhmp_platform/
 - `relic_attachment`：文物附件
 - `relic_inbound_order` / `relic_inbound_detail`：入库单及明细
 - `relic_outbound_order` / `relic_outbound_detail`：出库单及明细
+- `relic_transfer_task`：馆内转存任务，记录派发人、研究员负责人、目标库位和确认结果
 - `inventory_task` / `inventory_task_detail`：盘点任务及明细，其中 `inventory_task.principal_user_id` 记录负责人用户 ID，`principal_name` 记录负责人展示名快照
 - `repair_task`：修复任务
 - `repair_plan`：修复方案
@@ -366,8 +369,6 @@ mhmp_platform/
 | PUT | `/api/relic/{id}` | `relic:edit` | 编辑文物 | 同新增 |
 | POST | `/api/relic/categories` | `relic:add` / `relic:edit` | 新增文物类别字典项 | `categoryName` |
 | POST | `/api/relic/materials` | `relic:add` / `relic:edit` | 新增文物材质字典项 | `materialName` |
-| POST | `/api/relic/{id}/transfer` | `relic:edit` | 单个文物馆内转存 | `storageLocationCode`、`transferTime`、`transferReason` |
-| POST | `/api/relic/transfer/batch` | `relic:edit` | 批量馆内转存 | `relicIds`、`storageLocationCode`、`transferTime`、`transferReason` |
 | DELETE | `/api/relic/{id}` | `relic:delete` | 删除文物 | 路径参数 `id` |
 
 附件对象 `attachments` 的主要字段：
@@ -409,10 +410,18 @@ mhmp_platform/
 | POST | `/api/inventory/tasks` | `inventory:task:add` | 创建盘点任务 | `taskName`、`locationCode`、`startTime`、`principalUserId`、`remark` |
 | PUT | `/api/inventory/tasks/{taskId}/details/{detailId}` | `inventory:task:submit` | 更新盘点明细 | `actualQuantity`、`diffRemark` |
 | POST | `/api/inventory/tasks/{taskId}/submit` | `inventory:task:submit` | 提交盘点任务 | 路径参数 `taskId` |
+| GET | `/api/inventory/transfer-tasks/principals` | `inventory:transfer:add` | 获取可选转存负责人 | 无，返回可指派的研究员列表 |
+| POST | `/api/inventory/transfer-tasks` | `inventory:transfer:add` | 创建单个转存任务 | `relicId`、`principalUserId`、`targetLocationCode`、`transferReason` |
+| POST | `/api/inventory/transfer-tasks/batch` | `inventory:transfer:add` | 批量创建转存任务 | `relicIds`、`principalUserId`、`targetLocationCode`、`transferReason` |
+| GET | `/api/inventory/transfer-tasks/my/page` | `inventory:transfer:my:view` | 我的转存任务分页 | `pageNum`、`pageSize`、`keyword`、`taskStatus` |
+| GET | `/api/inventory/transfer-tasks/{id}` | `inventory:transfer:view` / `inventory:transfer:my:view` | 转存任务详情 | 路径参数 `id` |
+| POST | `/api/inventory/transfer-tasks/{id}/confirm` | `inventory:transfer:confirm` | 确认转存完成 | 路径参数 `id`，请求体可选 `confirmRemark` |
 
 补充说明：
 - 高级研究员和系统管理员可以为任意“研究员”发起盘点任务。
 - 研究员只能为自己发起盘点任务，前端“我的盘点”页面通过 `principalUserId = 当前用户ID` 过滤任务。
+- 系统管理员和高级研究员可以发起转存任务，并将任务派发给研究员执行。
+- 研究员在“我的转存”页面确认任务完成后，系统才会正式更新文物库位；当前版本确认时不再要求上传照片。
 
 ### 9.6 修复管理
 | 方法 | 路径 | 权限 | 说明 | 关键参数 |
@@ -459,7 +468,14 @@ mhmp_platform/
 3. 负责人在“我的盘点”页面填写实际数量与差异备注
 4. 提交盘点任务形成结果
 
-### 10.5 修复流程
+### 10.5 转存流程
+1. 系统管理员或高级研究员选择文物并发起转存任务
+2. 选择目标库位，并指派研究员负责人
+3. 研究员在“我的转存”页面查看自己负责的转存任务
+4. 实际完成转存后，研究员点击“确认转存”完成任务闭环
+5. 系统正式更新文物库位，并在文物详情时间线中记录转存结果
+
+### 10.6 修复流程
 1. 从待修复文物中发起修复申请
 2. 审批人审核并制定修复方案
 3. 修复人员持续记录修复日志

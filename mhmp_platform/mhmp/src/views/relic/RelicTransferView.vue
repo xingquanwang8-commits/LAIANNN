@@ -4,15 +4,14 @@
       <div class="overview-panel overview-panel--compact">
         <div class="overview-panel__top">
           <div>
-            <div class="overview-panel__eyebrow">MHMP Internal Transfer</div>
-            <h2 class="overview-panel__title">馆内转存</h2>
+            <div class="overview-panel__eyebrow">MHMP Transfer Dispatch</div>
+            <h2 class="overview-panel__title">发起转存</h2>
             <p class="overview-panel__desc">
-              用于调整文物在馆内不同库位间的存放位置，支持单件发起和批量办理，并在提交前自动校验当前状态、
-              目标库位和业务可流转性。
+              由系统管理员或高级研究员发起馆内转存任务，选择目标库位并指派研究员执行。任务下发后，研究员需在“我的转存”中确认完成，系统才会真正更新文物库位。
             </p>
           </div>
           <div class="overview-panel__meta">
-            <span class="overview-chip">可转存对象 {{ pageData.total }} 条</span>
+            <span class="overview-chip">可派发文物 {{ pageData.total }} 件</span>
             <span class="overview-chip overview-chip--accent">批量已选 {{ selectedRows.length }} 件</span>
           </div>
         </div>
@@ -21,22 +20,22 @@
           <article class="metric-card">
             <span class="metric-card__label">当前页文物</span>
             <strong class="metric-card__value">{{ currentPageCount }}</strong>
-            <div class="metric-card__meta">本页结果均为可进入馆内转存流程的文物档案。</div>
+            <div class="metric-card__meta">当前筛选结果中的在库文物，可直接发起转存任务。</div>
           </article>
           <article class="metric-card">
             <span class="metric-card__label">涉及库位</span>
             <strong class="metric-card__value">{{ currentLocationCount }}</strong>
-            <div class="metric-card__meta">用于判断当前筛查结果覆盖的馆内存放范围。</div>
+            <div class="metric-card__meta">用于快速判断本页待派发文物覆盖的馆内库位范围。</div>
           </article>
           <article class="metric-card">
             <span class="metric-card__label">保存状态类型</span>
             <strong class="metric-card__value">{{ preservationCoverageCount }}</strong>
-            <div class="metric-card__meta">便于提前识别是否存在需要重点关注的保管对象。</div>
+            <div class="metric-card__meta">便于识别是否涉及需重点关注的文物对象。</div>
           </article>
           <article class="metric-card">
-            <span class="metric-card__label">批量模式</span>
-            <strong class="metric-card__value">{{ multipleMode ? '开启' : '单件' }}</strong>
-            <div class="metric-card__meta">可随时切换为批量勾选模式，统一提交转存申请。</div>
+            <span class="metric-card__label">可选研究员</span>
+            <strong class="metric-card__value">{{ principalOptions.length }}</strong>
+            <div class="metric-card__meta">管理员和高级研究员可将转存任务派发给研究员执行。</div>
           </article>
         </div>
       </div>
@@ -45,12 +44,12 @@
     <section class="page-card page-card--section">
       <PageHeader
         title="转存对象检索"
-        description="按文物编号、类别和当前库位筛选可转存对象，支持从列表直接发起单件或批量馆内转存。"
+        description="按文物编号、类别和当前库位筛选可发起转存的文物，支持单件派发和批量派发。"
       >
         <template #extra>
           <div class="query-toolbar__actions">
             <el-button :type="multipleMode ? 'primary' : 'default'" plain @click="toggleMultipleMode">
-              {{ multipleMode ? '退出多选' : '多选转存' }}
+              {{ multipleMode ? '退出多选' : '多选派发' }}
             </el-button>
             <el-button
               v-if="multipleMode"
@@ -58,7 +57,7 @@
               :disabled="!selectedRows.length"
               @click="openBatchTransferDialog"
             >
-              一键转存{{ selectedRows.length ? `（${selectedRows.length}）` : '' }}
+              一键派发{{ selectedRows.length ? `（${selectedRows.length}）` : '' }}
             </el-button>
           </div>
         </template>
@@ -100,10 +99,9 @@
     <section class="page-card page-card--section">
       <div class="list-section__header">
         <div>
-          <div class="list-section__title">可转存文物列表</div>
+          <div class="list-section__title">可派发转存文物</div>
           <div class="list-section__desc">
-            当前展示 {{ currentPageCount }} 件文物，可直接进入详情或发起转存。
-            {{ multipleMode ? '当前已开启批量模式，可勾选多件文物统一办理。' : '默认单件模式，可切换为批量办理。' }}
+            当前展示 {{ currentPageCount }} 件文物，既可逐件发起转存，也可开启批量模式统一派发给同一位研究员。
           </div>
         </div>
       </div>
@@ -149,7 +147,7 @@
 
       <div class="table-footer">
         <div v-if="multipleMode" class="table-selection-tip">
-          已选中文物 {{ selectedRows.length }} 件，可统一发起馆内转存。
+          已选中文物 {{ selectedRows.length }} 件，可统一派发转存任务。
         </div>
         <el-pagination
           :current-page="queryForm.pageNum"
@@ -163,30 +161,30 @@
       </div>
     </section>
 
-    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="680px">
+    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="720px">
       <div class="detail-stack">
         <div class="overview-panel overview-panel--compact transfer-dialog-overview">
           <div class="overview-panel__top">
             <div>
-              <div class="overview-panel__eyebrow">Transfer Request</div>
+              <div class="overview-panel__eyebrow">Transfer Dispatch</div>
               <h3 class="overview-panel__title transfer-dialog-overview__title">{{ dialogTitle }}</h3>
               <p class="overview-panel__desc">
-                选择目标库位并填写转存说明后即可提交，系统会同步校验文物当前状态、原库位和目标库位是否满足馆内转存条件。
+                选择目标库位和负责人后提交，系统会创建转存任务并下发给研究员。只有研究员在“我的转存”中确认完成后，文物库位才会正式更新。
               </p>
             </div>
             <div class="overview-panel__meta">
-              <span class="overview-chip">待转存文物 {{ selectedRelics.length }} 件</span>
+              <span class="overview-chip">待派发 {{ selectedRelics.length }} 件</span>
               <span class="overview-chip overview-chip--accent">
-                目标库位 {{ resolveDictLabel(locationOptions, formData.storageLocationCode) || '待选择' }}
+                负责人 {{ selectedPrincipalLabel || '待选择' }}
               </span>
             </div>
           </div>
         </div>
 
         <div class="soft-note soft-note--accent">
-          <div class="soft-note__title">转存办理说明</div>
+          <div class="soft-note__title">派发说明</div>
           <div class="soft-note__desc">
-            馆内转存仅用于调整馆内存放位置，不改变文物归属和档案编号。若系统提示校验未通过，请先处理当前业务状态后再发起。
+            转存任务适用于馆内库位调整，不改变文物归属和档案编号。若系统提示校验未通过，请先处理当前业务状态后再发起。
           </div>
         </div>
 
@@ -202,12 +200,26 @@
               <div>已选择 {{ selectedRelics.length }} 件文物</div>
               <div class="selected-batch__list">
                 <span v-for="item in selectedRelicPreview" :key="item.id">{{ item.relicNo }} / {{ item.name }}</span>
-                <span v-if="selectedRelics.length > selectedRelicPreview.length">等 {{ selectedRelics.length }} 件</span>
+                <span v-if="selectedRelics.length > selectedRelicPreview.length">共 {{ selectedRelics.length }} 件</span>
               </div>
             </div>
           </el-form-item>
-          <el-form-item label="目标库位" prop="storageLocationCode">
-            <el-select v-model="formData.storageLocationCode" placeholder="请选择目标库位">
+          <el-form-item label="负责人" prop="principalUserId">
+            <el-select
+              v-model="formData.principalUserId"
+              placeholder="请选择负责执行转存的研究员"
+              :loading="principalLoading"
+            >
+              <el-option
+                v-for="item in principalOptions"
+                :key="item.id"
+                :label="item.displayName"
+                :value="item.id"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="目标库位" prop="targetLocationCode">
+            <el-select v-model="formData.targetLocationCode" placeholder="请选择目标库位">
               <el-option
                 v-for="item in locationOptions"
                 :key="item.itemValue"
@@ -258,7 +270,12 @@
 import { computed, nextTick, reactive, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
-import { batchTransferRelicApi, getRelicDetailApi, getRelicPageApi, transferRelicApi } from '@/api/relic'
+import { getRelicDetailApi, getRelicPageApi } from '@/api/relic'
+import {
+  createTransferBatchTasksApi,
+  createTransferTaskApi,
+  getTransferTaskPrincipalOptionsApi
+} from '@/api/inventory'
 import PageHeader from '@/components/common/PageHeader.vue'
 import { useDictStore } from '@/stores/dict'
 import { validateElForm } from '@/utils/form'
@@ -277,10 +294,12 @@ const tableRef = ref()
 const formRef = ref()
 const loading = ref(false)
 const saving = ref(false)
+const principalLoading = ref(false)
 const dialogVisible = ref(false)
 const multipleMode = ref(false)
 const selectedRows = ref([])
 const selectedRelics = ref([])
+const principalOptions = ref([])
 const pageData = ref({
   total: 0,
   pageNum: 1,
@@ -298,12 +317,14 @@ const queryForm = reactive({
 })
 
 const formData = reactive({
-  storageLocationCode: '',
+  principalUserId: null,
+  targetLocationCode: '',
   transferReason: ''
 })
 
 const rules = {
-  storageLocationCode: [{ required: true, message: '请选择目标库位', trigger: 'change' }]
+  principalUserId: [{ required: true, message: '请选择负责人', trigger: 'change' }],
+  targetLocationCode: [{ required: true, message: '请选择目标库位', trigger: 'change' }]
 }
 
 const categoryOptions = computed(() => dictStore.itemsMap.relic_category || [])
@@ -317,28 +338,29 @@ const preservationCoverageCount = computed(() =>
   new Set(pageData.value.records.map((item) => item.preservationStatusCode).filter(Boolean)).size
 )
 const dialogTitle = computed(() => (
-  selectedRelics.value.length > 1 ? `馆内转存（已选 ${selectedRelics.value.length} 件）` : '馆内转存'
+  selectedRelics.value.length > 1 ? `发起转存（已选 ${selectedRelics.value.length} 件）` : '发起转存'
 ))
 const selectedRelicPreview = computed(() => selectedRelics.value.slice(0, 4))
+const selectedPrincipalLabel = computed(() =>
+  principalOptions.value.find((item) => item.id === formData.principalUserId)?.displayName || ''
+)
 const transferCheck = computed(() =>
   analyzeRelicSelection(
     selectedRelics.value,
-    (relic) => checkTransferRelicEligibility(relic, formData.storageLocationCode)
+    (relic) => checkTransferRelicEligibility(relic, formData.targetLocationCode)
   )
 )
 const transferCheckTitle = computed(() => (
-  transferCheck.value.allPassed
-    ? '馆内转存前置校验已通过'
-    : '馆内转存前置校验未通过'
+  transferCheck.value.allPassed ? '转存任务前置校验已通过' : '转存任务前置校验未通过'
 ))
 const transferCheckSummary = computed(() => {
   if (!transferCheck.value.totalCount) {
     return ''
   }
   if (transferCheck.value.allPassed) {
-    return `已选 ${transferCheck.value.totalCount} 件文物，均符合馆内转存条件，可直接提交本次转存。`
+    return `已选 ${transferCheck.value.totalCount} 件文物，均符合馆内转存条件，可直接创建转存任务。`
   }
-  if (!formData.storageLocationCode) {
+  if (!formData.targetLocationCode) {
     return `已选 ${transferCheck.value.totalCount} 件文物，请先选择目标库位，系统会同步校验是否与当前库位冲突。`
   }
   return `已选 ${transferCheck.value.totalCount} 件文物，其中 ${transferCheck.value.invalidItems.length} 件暂不符合转存条件，请先调整后再提交。`
@@ -353,8 +375,21 @@ async function loadPage() {
   }
 }
 
+async function loadPrincipalOptions() {
+  if (principalOptions.value.length) {
+    return
+  }
+  principalLoading.value = true
+  try {
+    principalOptions.value = await getTransferTaskPrincipalOptionsApi()
+  } finally {
+    principalLoading.value = false
+  }
+}
+
 function resetTransferForm() {
-  formData.storageLocationCode = ''
+  formData.principalUserId = null
+  formData.targetLocationCode = ''
   formData.transferReason = ''
 }
 
@@ -365,7 +400,8 @@ function normalizeRelicSelection(row) {
   }
 }
 
-function openTransferDialog(row, options = {}) {
+async function openTransferDialog(row, options = {}) {
+  await loadPrincipalOptions()
   const relic = normalizeRelicSelection(row)
   const checkResult = checkTransferRelicEligibility(relic)
   if (!checkResult.passed) {
@@ -375,7 +411,7 @@ function openTransferDialog(row, options = {}) {
   selectedRelics.value = [relic]
   resetTransferForm()
   if (options.quickCreate) {
-    formData.transferReason = '由文物详情快捷发起'
+    formData.transferReason = '由文物详情页快捷发起'
   }
   dialogVisible.value = true
   nextTick(() => {
@@ -383,11 +419,12 @@ function openTransferDialog(row, options = {}) {
   })
 }
 
-function openBatchTransferDialog() {
+async function openBatchTransferDialog() {
   if (!selectedRows.value.length) {
-    ElMessage.warning('请先选择要批量转存的文物')
+    ElMessage.warning('请先选择要批量派发的文物')
     return
   }
+  await loadPrincipalOptions()
   selectedRelics.value = selectedRows.value.map((item) => normalizeRelicSelection(item))
   resetTransferForm()
   dialogVisible.value = true
@@ -397,25 +434,32 @@ function openBatchTransferDialog() {
 }
 
 async function handleSubmit() {
-  const valid = await validateElForm(formRef, '璇峰厛瀹屽杽搴撲綅杞Щ淇℃伅鍚庡啀鎻愪氦')
+  const valid = await validateElForm(formRef, '请完善负责人和目标库位后再提交')
   if (!valid) {
     return
   }
   if (!transferCheck.value.allPassed) {
-    ElMessage.warning(transferCheck.value.invalidItems[0]?.message || '当前选中文物不符合馆内转存条件')
+    ElMessage.warning(transferCheck.value.invalidItems[0]?.message || '当前选中文物不符合转存条件')
     return
   }
   saving.value = true
   try {
     if (selectedRelics.value.length > 1) {
-      await batchTransferRelicApi({
+      await createTransferBatchTasksApi({
         relicIds: selectedRelics.value.map((item) => item.id),
-        ...formData
+        principalUserId: formData.principalUserId,
+        targetLocationCode: formData.targetLocationCode,
+        transferReason: formData.transferReason
       })
-      ElMessage.success(`已完成 ${selectedRelics.value.length} 件文物的馆内转存`)
+      ElMessage.success(`已派发 ${selectedRelics.value.length} 条转存任务`)
     } else if (selectedRelics.value[0]) {
-      await transferRelicApi(selectedRelics.value[0].id, formData)
-      ElMessage.success('馆内转存已提交')
+      await createTransferTaskApi({
+        relicId: selectedRelics.value[0].id,
+        principalUserId: formData.principalUserId,
+        targetLocationCode: formData.targetLocationCode,
+        transferReason: formData.transferReason
+      })
+      ElMessage.success('转存任务已派发')
     }
     dialogVisible.value = false
     selectedRelics.value = []
@@ -497,7 +541,7 @@ async function handleQuickCreateFromRoute() {
     ElMessage.warning('未找到当前文物档案，请刷新后重试')
     return
   }
-  openTransferDialog(relic, { quickCreate: true })
+  await openTransferDialog(relic, { quickCreate: true })
 }
 
 dictStore.ensureMultipleItems(['relic_category', 'storage_location', 'preservation_status'])
@@ -508,6 +552,7 @@ watch(
   },
   { immediate: true }
 )
+loadPrincipalOptions()
 loadPage()
 </script>
 

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.MybatisConfiguration;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.mhmp.entity.InventoryTask;
 import com.mhmp.entity.Relic;
+import com.mhmp.entity.RelicTransferTask;
 import com.mhmp.mapper.InventoryTaskMapper;
 import com.mhmp.mapper.RepairAcceptanceMapper;
 import com.mhmp.mapper.RepairLogMapper;
@@ -11,6 +12,7 @@ import com.mhmp.mapper.RepairTaskMapper;
 import com.mhmp.mapper.RelicInboundOrderMapper;
 import com.mhmp.mapper.RelicMapper;
 import com.mhmp.mapper.RelicOutboundOrderMapper;
+import com.mhmp.mapper.RelicTransferTaskMapper;
 import com.mhmp.mapper.SysDictItemMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,6 +43,8 @@ class BusinessNoServiceImplTest {
     @Mock
     private InventoryTaskMapper inventoryTaskMapper;
     @Mock
+    private RelicTransferTaskMapper relicTransferTaskMapper;
+    @Mock
     private RepairTaskMapper repairTaskMapper;
     @Mock
     private RepairLogMapper repairLogMapper;
@@ -55,11 +59,13 @@ class BusinessNoServiceImplTest {
     void setUp() {
         initTableInfo(Relic.class);
         initTableInfo(InventoryTask.class);
+        initTableInfo(RelicTransferTask.class);
         businessNoService = new BusinessNoServiceImpl(
             relicMapper,
             relicInboundOrderMapper,
             relicOutboundOrderMapper,
             inventoryTaskMapper,
+            relicTransferTaskMapper,
             repairTaskMapper,
             repairLogMapper,
             repairAcceptanceMapper,
@@ -99,6 +105,21 @@ class BusinessNoServiceImplTest {
         assertEquals(String.format("INV-%s-003", todaySegment), businessNoService.nextInventoryTaskNo());
     }
 
+    @Test
+    void nextTransferTaskNoShouldResetSequenceEveryDay() {
+        LocalDate today = LocalDate.now();
+        String todaySegment = today.format(DATE_SEGMENT_FORMATTER);
+        String yesterdaySegment = today.minusDays(1).format(DATE_SEGMENT_FORMATTER);
+
+        when(relicTransferTaskMapper.selectList(any())).thenReturn(List.of(
+            buildTransferTask(String.format("TRF-%s-001", todaySegment)),
+            buildTransferTask(String.format("TRF-%s-008", todaySegment)),
+            buildTransferTask(String.format("TRF-%s-015", yesterdaySegment))
+        ));
+
+        assertEquals(String.format("TRF-%s-009", todaySegment), businessNoService.nextTransferTaskNo());
+    }
+
     private Relic buildRelic(String relicNo) {
         Relic relic = new Relic();
         relic.setRelicNo(relicNo);
@@ -107,6 +128,12 @@ class BusinessNoServiceImplTest {
 
     private InventoryTask buildInventoryTask(String taskNo) {
         InventoryTask task = new InventoryTask();
+        task.setTaskNo(taskNo);
+        return task;
+    }
+
+    private RelicTransferTask buildTransferTask(String taskNo) {
+        RelicTransferTask task = new RelicTransferTask();
         task.setTaskNo(taskNo);
         return task;
     }

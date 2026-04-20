@@ -22,7 +22,7 @@
         </div>
         <div class="login-feature-item">
           <span class="status-dot" style="color: #fff7f4">流程闭环管理</span>
-          <p>支持入库、出库、馆内转存、盘点、修复与验收等关键环节的连续流转与状态追踪。</p>
+          <p>支持入库、出库、馆内转存、盘点、修复与验收等关键环节的连续流转与状态跟踪。</p>
         </div>
         <div class="login-feature-item">
           <span class="status-dot" style="color: #fff7f4">角色权限联动</span>
@@ -43,17 +43,34 @@
         :rules="rules"
         label-position="top"
         size="large"
+        autocomplete="off"
         @keyup.enter="handleLogin"
       >
+        <div class="login-form__ghost-fields" aria-hidden="true">
+          <input type="text" name="ghost-username" autocomplete="username" tabindex="-1">
+          <input type="password" name="ghost-password" autocomplete="current-password" tabindex="-1">
+        </div>
+
         <el-form-item label="用户名" prop="username">
-          <el-input v-model="form.username" placeholder="请输入用户名" clearable />
+          <el-input
+            v-model="form.username"
+            name="mhmp-login-username"
+            placeholder="请输入用户名"
+            autocomplete="off"
+            autocapitalize="none"
+            autocorrect="off"
+            spellcheck="false"
+            clearable
+          />
         </el-form-item>
 
         <el-form-item label="密码" prop="password">
           <el-input
             v-model="form.password"
+            name="mhmp-login-password"
             type="password"
             placeholder="请输入密码"
+            autocomplete="new-password"
             show-password
             clearable
           />
@@ -100,7 +117,7 @@ const rules = {
 }
 
 async function handleLogin() {
-  const valid = await validateElForm(formRef, '璇峰厛杈撳叆鐢ㄦ埛鍚嶅拰瀵嗙爜')
+  const valid = await validateElForm(formRef, '请先输入用户名和密码')
   if (!valid) {
     return
   }
@@ -242,6 +259,7 @@ async function handleLogin() {
 }
 
 .login-panel--form {
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -253,6 +271,22 @@ async function handleLogin() {
 
 .login-form__head {
   margin-bottom: 28px;
+}
+
+.login-form__ghost-fields {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.login-form__ghost-fields input {
+  width: 0;
+  height: 0;
+  padding: 0;
+  border: 0;
 }
 
 .login-form__title {

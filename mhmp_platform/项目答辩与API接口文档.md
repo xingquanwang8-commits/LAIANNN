@@ -195,7 +195,7 @@ mhmp_platform/
 | `/repair/process` | 修复过程 | `repair:process:view` |
 | `/repair/acceptance` | 修复验收 | `repair:acceptance:view` |
 | `/repair/history` | 修复历史 | `repair:history:view` |
-| `/profile` | 个人中心（资料维护、头像上传、密码修改） | `profile:view` |
+| `/profile` | 个人中心（资料维护、头像上传、头部快捷修改密码） | `profile:view` |
 
 ## 7. 核心数据表/实体
 答辩时可以按下面的业务分组讲数据库设计：

@@ -11,7 +11,7 @@
           <div class="profile-hero__eyebrow">MHMP Personal Profile</div>
           <h2 class="profile-hero__title">{{ profile.realName || profile.nickName || profile.username || '--' }}</h2>
           <p class="profile-hero__desc">
-            当前平台身份：{{ profile.roles?.join(' / ') || '未分配角色' }}。可在此维护个人档案、头像与登录密码，平台会同步用于业务经办、
+            当前平台身份：{{ profile.roles?.join(' / ') || '未分配角色' }}。可在此维护个人档案与头像，平台会同步用于业务经办、
             审批留痕、操作日志和页面展示。
           </p>
         </div>
@@ -21,6 +21,7 @@
         <el-upload :show-file-list="false" accept="image/*" :http-request="handleAvatarUpload">
           <el-button :loading="uploadingAvatar">上传头像</el-button>
         </el-upload>
+        <el-button class="profile-hero__action--password" @click="openPasswordDialog">修改密码</el-button>
         <el-button type="primary" @click="openEditDialog">编辑档案</el-button>
       </div>
     </section>
@@ -66,36 +67,6 @@
           <div class="profile-meta__item profile-meta__item--column">
             <span class="profile-meta__label">补充说明</span>
             <span>{{ profile.remark || '暂无补充说明' }}</span>
-          </div>
-        </div>
-      </article>
-
-      <article class="page-card page-card--section profile-panel profile-panel--wide profile-security">
-        <div class="profile-panel__header">
-          <div>
-            <div class="profile-panel__title">账号安全</div>
-            <div class="profile-panel__desc">
-              登录密码用于保护当前账号的业务处理、审批记录和操作日志。修改密码后，系统会要求重新登录以确保会话安全。
-            </div>
-          </div>
-          <el-button type="primary" plain @click="openPasswordDialog">修改密码</el-button>
-        </div>
-
-        <div class="profile-security__grid">
-          <div class="profile-security__item">
-            <div class="profile-security__label">当前账号</div>
-            <div class="profile-security__value">{{ profile.username || '--' }}</div>
-            <div class="profile-security__remark">建议仅本人持有并使用。</div>
-          </div>
-          <div class="profile-security__item">
-            <div class="profile-security__label">安全提示</div>
-            <div class="profile-security__value">修改后需重新登录</div>
-            <div class="profile-security__remark">提交成功后会自动清理当前登录状态。</div>
-          </div>
-          <div class="profile-security__item">
-            <div class="profile-security__label">密码建议</div>
-            <div class="profile-security__value">不少于 6 位</div>
-            <div class="profile-security__remark">建议使用字母、数字组合，避免与旧密码重复。</div>
           </div>
         </div>
       </article>
@@ -436,31 +407,27 @@ loadProfile()
   flex-wrap: wrap;
 }
 
+.profile-hero__action--password {
+  color: var(--primary);
+  border-color: rgba(123, 44, 42, 0.2);
+  background: rgba(123, 44, 42, 0.08);
+}
+
+.profile-hero__action--password:hover,
+.profile-hero__action--password:focus {
+  color: #6a2422;
+  border-color: rgba(123, 44, 42, 0.34);
+  background: rgba(123, 44, 42, 0.14);
+}
+
 .profile-grid {
   grid-template-columns: 1fr 1fr;
-}
-
-.profile-panel--wide {
-  grid-column: 1 / -1;
-}
-
-.profile-panel__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 18px;
 }
 
 .profile-panel__title {
   margin-bottom: 16px;
   font-size: 16px;
   font-weight: 700;
-}
-
-.profile-panel__desc {
-  color: var(--text-second);
-  line-height: 1.8;
 }
 
 .profile-meta {
@@ -484,43 +451,6 @@ loadProfile()
   color: var(--text-second);
 }
 
-.profile-security {
-  background:
-    linear-gradient(180deg, rgba(123, 44, 42, 0.04), rgba(123, 44, 42, 0)),
-    #fff;
-}
-
-.profile-security__grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.profile-security__item {
-  padding: 16px 18px;
-  border: 1px solid rgba(123, 44, 42, 0.12);
-  border-radius: 18px;
-  background: rgba(250, 247, 244, 0.92);
-}
-
-.profile-security__label {
-  color: var(--text-second);
-  font-size: 13px;
-}
-
-.profile-security__value {
-  margin-top: 8px;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-main);
-}
-
-.profile-security__remark {
-  margin-top: 8px;
-  color: var(--text-second);
-  line-height: 1.7;
-}
-
 .dialog-avatar {
   display: flex;
   align-items: center;
@@ -540,19 +470,6 @@ loadProfile()
   .profile-hero__main {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .profile-panel--wide {
-    grid-column: auto;
-  }
-
-  .profile-panel__header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .profile-security__grid {
-    grid-template-columns: 1fr;
   }
 
   .dialog-avatar {

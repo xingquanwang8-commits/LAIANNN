@@ -43,34 +43,17 @@
         :rules="rules"
         label-position="top"
         size="large"
-        autocomplete="off"
         @keyup.enter="handleLogin"
       >
-        <div class="login-form__ghost-fields" aria-hidden="true">
-          <input type="text" name="ghost-username" autocomplete="username" tabindex="-1">
-          <input type="password" name="ghost-password" autocomplete="current-password" tabindex="-1">
-        </div>
-
         <el-form-item label="用户名" prop="username">
-          <el-input
-            v-model="form.username"
-            name="mhmp-login-username"
-            placeholder="请输入用户名"
-            autocomplete="off"
-            autocapitalize="none"
-            autocorrect="off"
-            spellcheck="false"
-            clearable
-          />
+          <el-input v-model="form.username" placeholder="请输入用户名" clearable />
         </el-form-item>
 
         <el-form-item label="密码" prop="password">
           <el-input
             v-model="form.password"
-            name="mhmp-login-password"
             type="password"
             placeholder="请输入密码"
-            autocomplete="new-password"
             show-password
             clearable
           />
@@ -259,7 +242,6 @@ async function handleLogin() {
 }
 
 .login-panel--form {
-  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -271,22 +253,6 @@ async function handleLogin() {
 
 .login-form__head {
   margin-bottom: 28px;
-}
-
-.login-form__ghost-fields {
-  position: absolute;
-  width: 0;
-  height: 0;
-  overflow: hidden;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.login-form__ghost-fields input {
-  width: 0;
-  height: 0;
-  padding: 0;
-  border: 0;
 }
 
 .login-form__title {

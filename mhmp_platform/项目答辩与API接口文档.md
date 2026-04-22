@@ -170,7 +170,7 @@ mhmp_platform/
 
 | 前端路由 | 页面功能 | 主要权限 |
 | --- | --- | --- |
-| `/login` | 登录页（已收紧自动回填行为，减少浏览器账号密码干扰） | 无 |
+| `/login` | 登录页 | 无 |
 | `/dashboard` | 首页统计看板 | `dashboard:view` |
 | `/system/user` | 用户管理 | `sys:user:view` |
 | `/system/role` | 角色管理 | `sys:role:view` |

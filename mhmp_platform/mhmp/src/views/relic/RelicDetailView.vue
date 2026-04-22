@@ -114,7 +114,7 @@
               <div class="section-header">
                 <div>
                   <div class="section-header__title">当前待办</div>
-                  <div class="section-header__desc">可直接在详情页完成审批、归还登记和修复验收等关键动作。</div>
+                  <div class="section-header__desc">可直接在详情页完成审批和修复验收，并跳转到专门页面处理出库归还。</div>
                 </div>
               </div>
 
@@ -155,11 +155,11 @@
                       驳回申请
                     </el-button>
                     <el-button
-                      v-if="item.businessType === 'OUTBOUND_RETURN' && authStore.hasPermission(['inventory:outbound:approve', 'inventory:outbound:submit'])"
+                      v-if="item.businessType === 'OUTBOUND_RETURN' && authStore.hasPermission('inventory:outbound:return:view')"
                       type="primary"
                       @click="handleReturnOutbound(item.relatedId)"
                     >
-                      登记归还
+                      前往出库归还
                     </el-button>
                     <el-button
                       v-if="item.businessType === 'REPAIR_ACCEPTANCE' && authStore.hasPermission('repair:acceptance:add')"
@@ -336,7 +336,7 @@ import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { approveInboundApi } from '@/api/inbound'
-import { approveOutboundApi, rejectOutboundApi, returnOutboundApi } from '@/api/outbound'
+import { approveOutboundApi, rejectOutboundApi } from '@/api/outbound'
 import { getRelicDetailApi } from '@/api/relic'
 import StatusTag from '@/components/common/StatusTag.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -662,17 +662,6 @@ async function loadDetail() {
   }
 }
 
-function currentDateTime() {
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = `${now.getMonth() + 1}`.padStart(2, '0')
-  const day = `${now.getDate()}`.padStart(2, '0')
-  const hour = `${now.getHours()}`.padStart(2, '0')
-  const minute = `${now.getMinutes()}`.padStart(2, '0')
-  const second = `${now.getSeconds()}`.padStart(2, '0')
-  return `${year}-${month}-${day}T${hour}:${minute}:${second}`
-}
-
 function resolveBusinessStatusLabel(status) {
   if (!status) {
     return '--'
@@ -708,6 +697,15 @@ function formatFileSize(fileSize) {
 function handleBusinessPageJump(item) {
   if (item.businessType === 'INBOUND_APPROVAL') {
     router.push('/inventory/inbound/approve')
+    return
+  }
+  if (item.businessType === 'OUTBOUND_RETURN') {
+    router.push({
+      path: '/inventory/outbound/return',
+      query: {
+        approveStatus: 'APPROVED'
+      }
+    })
     return
   }
   if (item.businessType === 'TRANSFER_CONFIRM') {
@@ -809,21 +807,16 @@ async function handleRejectOutbound(id) {
 }
 
 async function handleReturnOutbound(id) {
-  try {
-    await ElMessageBox.confirm('确认登记该出库单已归还吗？', '归还登记', {
-      type: 'warning'
-    })
-    await returnOutboundApi(id, {
-      returnTime: currentDateTime(),
-      remark: '文物详情页登记归还'
-    })
-    ElMessage.success('已完成归还登记')
-    await loadDetail()
-  } catch (error) {
-    if (error !== 'cancel' && error !== 'close') {
-      throw error
-    }
+  if (!id) {
+    return
   }
+  router.push({
+    path: '/inventory/outbound/return',
+    query: {
+      approveStatus: 'APPROVED',
+      highlightId: String(id)
+    }
+  })
 }
 
 function openAcceptanceDialog(taskId) {

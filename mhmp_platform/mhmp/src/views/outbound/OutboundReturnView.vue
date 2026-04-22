@@ -4,39 +4,39 @@
       <div class="overview-panel overview-panel--compact">
         <div class="overview-panel__top">
           <div>
-            <div class="overview-panel__eyebrow">MHMP Approval Desk</div>
-            <h2 class="overview-panel__title">出库审批</h2>
+            <div class="overview-panel__eyebrow">MHMP Return Desk</div>
+            <h2 class="overview-panel__title">出库归还</h2>
             <p class="overview-panel__desc">
-              集中处理文物出库申请的审批与驳回，实时查看当前页审批分布，并在详情抽屉中核对用途、去向、
-              审批意见和文物状态快照。归还登记已单独归入“出库归还”页面，审批职责和归还登记职责保持分离。
+              集中处理已审批出库单的归还登记，实时查看待归还与已归还分布，并在详情抽屉中核对用途、
+              去向、审批意见和文物状态快照，保证出库业务形成完整闭环。
             </p>
           </div>
           <div class="overview-panel__meta">
             <span class="overview-chip">当前筛选 {{ pageData.total }} 条</span>
-            <span class="overview-chip overview-chip--accent">默认聚焦待审批业务</span>
+            <span class="overview-chip overview-chip--accent">默认聚焦待归还业务</span>
           </div>
         </div>
 
-        <div class="metric-grid approve-metrics">
+        <div class="metric-grid return-metrics">
           <article class="metric-card">
-            <span class="metric-card__label">当前页待审批</span>
-            <strong class="metric-card__value">{{ pendingCount }}</strong>
-            <div class="metric-card__meta">优先处理尚未形成审批结论的出库申请。</div>
+            <span class="metric-card__label">当前页待归还</span>
+            <strong class="metric-card__value">{{ approvedCount }}</strong>
+            <div class="metric-card__meta">已审批通过、待登记归还的出库单据。</div>
           </article>
           <article class="metric-card">
-            <span class="metric-card__label">当前页已驳回</span>
-            <strong class="metric-card__value">{{ rejectedCount }}</strong>
-            <div class="metric-card__meta">便于复核驳回原因并指导重新发起申请。</div>
+            <span class="metric-card__label">当前页已归还</span>
+            <strong class="metric-card__value">{{ returnedCount }}</strong>
+            <div class="metric-card__meta">已完成归还登记，可作为业务闭环留痕。</div>
           </article>
           <article class="metric-card">
             <span class="metric-card__label">当前页记录</span>
             <strong class="metric-card__value">{{ currentPageCount }}</strong>
-            <div class="metric-card__meta">当前筛选条件下的出库审批记录总数。</div>
+            <div class="metric-card__meta">当前筛选条件下的归还记录总数。</div>
           </article>
           <article class="metric-card">
             <span class="metric-card__label">当前页文物数</span>
             <strong class="metric-card__value">{{ totalRelicCount }}</strong>
-            <div class="metric-card__meta">按申请单合计统计当前页涉及的文物数量。</div>
+            <div class="metric-card__meta">按出库单合计统计当前页涉及的文物数量。</div>
           </article>
         </div>
       </div>
@@ -44,14 +44,14 @@
 
     <section class="page-card page-card--section">
       <PageHeader
-        title="审批任务检索"
-        description="通过状态切换和关键字检索快速定位待审批或已驳回的出库业务记录。"
+        title="归还任务检索"
+        description="通过状态切换和关键字检索快速定位待归还或已归还的出库业务记录。"
       />
 
       <div class="query-toolbar query-toolbar--approval">
         <el-radio-group v-model="queryForm.approveStatus" @change="handleSearch">
-          <el-radio-button label="PENDING">待审批</el-radio-button>
-          <el-radio-button label="REJECTED">已驳回</el-radio-button>
+          <el-radio-button label="APPROVED">待归还</el-radio-button>
+          <el-radio-button label="RETURNED">已归还</el-radio-button>
           <el-radio-button label="">全部</el-radio-button>
         </el-radio-group>
 
@@ -75,17 +75,16 @@
     <section class="page-card page-card--section">
       <div class="list-section__header">
         <div>
-          <div class="list-section__title">审批记录</div>
+          <div class="list-section__title">归还记录</div>
           <div class="list-section__desc">
-            当前展示 {{ currentPageCount }} 条审批记录，可直接在列表或详情抽屉内完成审批通过和驳回。
-            已审批通过但待归还的单据，请前往“出库归还”页面登记归还。
+            当前展示 {{ currentPageCount }} 条归还记录，可直接在列表或详情抽屉内完成归还登记。
           </div>
         </div>
       </div>
 
       <el-table :data="pageData.records" v-loading="loading" row-key="id">
         <template #empty>
-          <el-empty class="empty-block" description="未检索到符合条件的出库审批记录，请调整筛选条件后重试。" />
+          <el-empty class="empty-block" description="未检索到符合条件的出库归还记录，请调整筛选条件后重试。" />
         </template>
         <el-table-column prop="orderNo" label="出库单号" min-width="160" />
         <el-table-column prop="purpose" label="用途" min-width="160" show-overflow-tooltip />
@@ -94,7 +93,7 @@
         <el-table-column label="申请时间" min-width="160">
           <template #default="{ row }">{{ formatDateTime(row.outboundTime) }}</template>
         </el-table-column>
-        <el-table-column label="审批状态" min-width="120">
+        <el-table-column label="归还状态" min-width="120">
           <template #default="{ row }">
             <StatusTag :status="row.approveStatus" :label="resolveStatusLabel(row.approveStatus)" />
           </template>
@@ -104,20 +103,12 @@
           <template #default="{ row }">
             <el-button text type="primary" @click="handleView(row.id)">详情</el-button>
             <el-button
-              v-if="row.approveStatus === 'PENDING' && authStore.hasPermission('inventory:outbound:approve')"
+              v-if="row.approveStatus === 'APPROVED' && authStore.hasPermission('inventory:outbound:return')"
               text
               type="primary"
-              @click="handleApprove(row.id)"
+              @click="handleReturn(row.id)"
             >
-              通过
-            </el-button>
-            <el-button
-              v-if="row.approveStatus === 'PENDING' && authStore.hasPermission('inventory:outbound:reject')"
-              text
-              type="danger"
-              @click="handleReject(row.id)"
-            >
-              驳回
+              归还登记
             </el-button>
           </template>
         </el-table-column>
@@ -148,11 +139,11 @@
           <div class="overview-panel overview-panel--compact drawer-overview">
             <div class="overview-panel__top">
               <div>
-                <div class="overview-panel__eyebrow">Approval Detail</div>
+                <div class="overview-panel__eyebrow">Return Detail</div>
                 <h3 class="overview-panel__title drawer-overview__title">{{ detail.orderNo }}</h3>
                 <p class="overview-panel__desc">
-                  查看本次出库的审批状态、用途、去向、审批意见与文物明细，
-                  并在当前抽屉中直接完成关键审批动作。
+                  查看本次出库的审批状态、用途、去向、归还时间与文物明细，
+                  并在当前抽屉中直接完成归还登记。
                 </p>
               </div>
               <div class="overview-panel__meta">
@@ -165,16 +156,16 @@
           <section class="info-section">
             <div class="info-section__header">
               <div>
-                <h3 class="info-section__title">审批信息</h3>
+                <h3 class="info-section__title">归还信息</h3>
                 <p class="info-section__desc">
-                  汇总用途、去向、经手人、申请时间与审批时间，作为审批决策和业务留痕依据。
+                  汇总用途、去向、经手人、审批时间与归还时间，作为归还登记和业务留痕依据。
                 </p>
               </div>
             </div>
 
             <el-descriptions :column="2" border>
               <el-descriptions-item label="出库单号">{{ detail.orderNo }}</el-descriptions-item>
-              <el-descriptions-item label="审批状态">
+              <el-descriptions-item label="归还状态">
                 <StatusTag :status="detail.approveStatus" :label="resolveStatusLabel(detail.approveStatus)" />
               </el-descriptions-item>
               <el-descriptions-item label="用途">{{ detail.purpose || '--' }}</el-descriptions-item>
@@ -189,26 +180,11 @@
 
             <div class="drawer-actions">
               <el-button
-                v-if="detail.approveStatus === 'PENDING' && authStore.hasPermission('inventory:outbound:approve')"
+                v-if="detail.approveStatus === 'APPROVED' && authStore.hasPermission('inventory:outbound:return')"
                 type="primary"
-                @click="handleApprove(detail.id)"
+                @click="handleReturn(detail.id)"
               >
-                审批通过
-              </el-button>
-              <el-button
-                v-if="detail.approveStatus === 'PENDING' && authStore.hasPermission('inventory:outbound:reject')"
-                type="danger"
-                plain
-                @click="handleReject(detail.id)"
-              >
-                驳回申请
-              </el-button>
-              <el-button
-                v-if="detail.approveStatus === 'APPROVED' && authStore.hasPermission('inventory:outbound:return:view')"
-                plain
-                @click="router.push({ path: '/inventory/outbound/return', query: { approveStatus: 'APPROVED' } })"
-              >
-                前往出库归还
+                登记归还
               </el-button>
             </div>
           </section>
@@ -251,10 +227,9 @@ import { computed, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
-  approveOutboundApi,
   getOutboundDetailApi,
   getOutboundPageApi,
-  rejectOutboundApi
+  returnOutboundApi
 } from '@/api/outbound'
 import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
@@ -277,32 +252,32 @@ const pageData = ref({
 })
 
 const statusLabelMap = {
-  PENDING: '待审批',
-  APPROVED: '已通过',
+  APPROVED: '待归还',
   RETURNED: '已归还',
+  PENDING: '待审批',
   REJECTED: '已驳回'
 }
 
 function normalizeApproveStatus(value) {
-  if (value === 'REJECTED' || value === '') {
+  if (value === 'RETURNED' || value === '') {
     return value
   }
-  return 'PENDING'
+  return 'APPROVED'
 }
 
 const queryForm = reactive({
   pageNum: 1,
   pageSize: 10,
   keyword: '',
-  approveStatus: normalizeApproveStatus(typeof route.query.approveStatus === 'string' ? route.query.approveStatus : 'PENDING')
+  approveStatus: normalizeApproveStatus(typeof route.query.approveStatus === 'string' ? route.query.approveStatus : 'APPROVED')
 })
 
 const statusOptions = computed(() => dictStore.itemsMap.outbound_status || [])
 const relicStatusOptions = computed(() => dictStore.itemsMap.relic_status || [])
 
 const currentPageCount = computed(() => pageData.value.records.length)
-const pendingCount = computed(() => pageData.value.records.filter((item) => item.approveStatus === 'PENDING').length)
-const rejectedCount = computed(() => pageData.value.records.filter((item) => item.approveStatus === 'REJECTED').length)
+const approvedCount = computed(() => pageData.value.records.filter((item) => item.approveStatus === 'APPROVED').length)
+const returnedCount = computed(() => pageData.value.records.filter((item) => item.approveStatus === 'RETURNED').length)
 const totalRelicCount = computed(() =>
   pageData.value.records.reduce((sum, item) => sum + Number(item.detailCount || 0), 0)
 )
@@ -336,7 +311,7 @@ function handleReset() {
     pageNum: 1,
     pageSize: 10,
     keyword: '',
-    approveStatus: 'PENDING'
+    approveStatus: 'APPROVED'
   })
   loadData()
 }
@@ -361,29 +336,40 @@ function resolveStatusLabel(status) {
 }
 
 function resolveAlertType(status) {
-  if (status === 'PENDING') {
+  if (status === 'APPROVED') {
     return 'warning'
   }
-  if (status === 'REJECTED') {
-    return 'error'
-  }
-  if (status === 'APPROVED') {
+  if (status === 'RETURNED') {
     return 'success'
   }
-  return 'info'
+  if (status === 'PENDING') {
+    return 'info'
+  }
+  return 'error'
 }
 
 function resolveBusinessHint(status) {
-  if (status === 'PENDING') {
-    return '当前单据处于待审批状态，审批通过后文物将进入正式出库流程。'
-  }
   if (status === 'APPROVED') {
-    return '当前单据已审批通过，后续归还登记请前往“出库归还”页面处理。'
+    return '当前单据已审批通过，归还完成后请及时登记，系统将同步关闭本次出库业务。'
   }
   if (status === 'RETURNED') {
     return '当前单据已完成归还登记，本次出库业务已闭环。'
   }
-  return '当前单据已被驳回，本次出库申请未进入后续流转。'
+  if (status === 'PENDING') {
+    return '当前单据尚未完成审批，请先到“出库审批”页面完成审批。'
+  }
+  return '当前单据已被驳回，无需进入归还登记流程。'
+}
+
+function currentDateTime() {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = `${now.getMonth() + 1}`.padStart(2, '0')
+  const day = `${now.getDate()}`.padStart(2, '0')
+  const hour = `${now.getHours()}`.padStart(2, '0')
+  const minute = `${now.getMinutes()}`.padStart(2, '0')
+  const second = `${now.getSeconds()}`.padStart(2, '0')
+  return `${year}-${month}-${day}T${hour}:${minute}:${second}`
 }
 
 async function refreshAfterAction(id) {
@@ -393,34 +379,18 @@ async function refreshAfterAction(id) {
   }
 }
 
-async function handleApprove(id) {
+async function handleReturn(id) {
   try {
-    const { value } = await ElMessageBox.prompt('可填写审批意见，留空则直接通过。', '审批通过', {
-      confirmButtonText: '确认通过',
+    await ElMessageBox.confirm('确认登记该出库单已归还吗？', '归还登记', {
+      confirmButtonText: '确认归还',
       cancelButtonText: '取消',
-      inputPlaceholder: '请输入审批意见'
+      type: 'warning'
     })
-    await approveOutboundApi(id, { approveRemark: value })
-    ElMessage.success('出库申请已审批通过')
-    await refreshAfterAction(id)
-  } catch (error) {
-    if (error !== 'cancel' && error !== 'close') {
-      throw error
-    }
-  }
-}
-
-async function handleReject(id) {
-  try {
-    const { value } = await ElMessageBox.prompt('请输入驳回原因。', '驳回申请', {
-      confirmButtonText: '确认驳回',
-      cancelButtonText: '取消',
-      inputPlaceholder: '请输入驳回原因',
-      inputPattern: /.+/,
-      inputErrorMessage: '驳回原因不能为空'
+    await returnOutboundApi(id, {
+      returnTime: currentDateTime(),
+      remark: '出库归还页登记归还'
     })
-    await rejectOutboundApi(id, { approveRemark: value })
-    ElMessage.success('出库申请已驳回')
+    ElMessage.success('已完成归还登记')
     await refreshAfterAction(id)
   } catch (error) {
     if (error !== 'cancel' && error !== 'close') {
@@ -432,7 +402,7 @@ async function handleReject(id) {
 watch(
   () => route.query.approveStatus,
   (status) => {
-    const nextStatus = normalizeApproveStatus(typeof status === 'string' ? status : 'PENDING')
+    const nextStatus = normalizeApproveStatus(typeof status === 'string' ? status : 'APPROVED')
     if (queryForm.approveStatus === nextStatus) {
       return
     }
@@ -447,7 +417,7 @@ loadData()
 </script>
 
 <style scoped>
-.approve-metrics {
+.return-metrics {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
@@ -489,13 +459,13 @@ loadData()
 }
 
 @media (max-width: 960px) {
-  .approve-metrics {
+  .return-metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 640px) {
-  .approve-metrics {
+  .return-metrics {
     grid-template-columns: 1fr;
   }
 }

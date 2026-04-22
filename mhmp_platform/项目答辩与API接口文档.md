@@ -187,6 +187,7 @@ mhmp_platform/
 | `/inventory/inbound/approve` | 入库审批查询 | `inventory:inbound:approve` |
 | `/inventory/outbound/apply` | 出库申请 | `inventory:outbound:apply:view` |
 | `/inventory/outbound/approve` | 出库审批 | `inventory:outbound:approve:view` |
+| `/inventory/outbound/return` | 出库归还 | `inventory:outbound:return:view` |
 | `/inventory/query` | 库存查询 | `inventory:query:view` |
 | `/inventory/task` | 盘点任务 | `inventory:task:view` |
 | `/inventory/task/my` | 我的盘点 | `inventory:task:view` |
@@ -392,12 +393,12 @@ mhmp_platform/
 #### 9.5.2 出库
 | 方法 | 路径 | 权限 | 说明 | 关键参数 |
 | --- | --- | --- | --- | --- |
-| GET | `/api/outbound/page` | `inventory:outbound:apply:view` / `inventory:outbound:approve:view` | 出库单分页 | `pageNum`、`pageSize`、`keyword`、`approveStatus`、`applyUserId` |
+| GET | `/api/outbound/page` | `inventory:outbound:apply:view` / `inventory:outbound:approve:view` / `inventory:outbound:return:view` | 出库单分页 | `pageNum`、`pageSize`、`keyword`、`approveStatus`、`applyUserId` |
 | GET | `/api/outbound/{id}` | 同上 | 出库单详情 | 路径参数 `id` |
 | POST | `/api/outbound` | `inventory:outbound:submit` | 新建出库申请 | `purpose`、`destination`、`handlerName`、`outboundTime`、`remark`、`relicIds` |
 | POST | `/api/outbound/approve/{id}` | `inventory:outbound:approve` | 审批通过 | `approveRemark` |
 | POST | `/api/outbound/reject/{id}` | `inventory:outbound:reject` | 审批驳回 | `approveRemark` |
-| POST | `/api/outbound/return/{id}` | `inventory:outbound:approve` / `inventory:outbound:submit` | 文物归还登记 | `returnTime`、`remark` |
+| POST | `/api/outbound/return/{id}` | `inventory:outbound:return` | 文物归还登记 | `returnTime`、`remark` |
 
 #### 9.5.3 库存查询与盘点
 | 方法 | 路径 | 权限 | 说明 | 关键参数 |

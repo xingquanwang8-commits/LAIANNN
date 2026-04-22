@@ -165,7 +165,8 @@ const shortcutDescriptionMap = {
   '/inventory/inbound': '登记来源、批次和入库文物，形成入库台账。',
   '/inventory/inbound/approve': '集中处理入库审批并将文物正式转为在库状态。',
   '/inventory/outbound/apply': '提交文物出库申请并跟踪流转状态。',
-  '/inventory/outbound/approve': '处理出库审批、归还登记与流转闭环。',
+  '/inventory/outbound/approve': '处理出库审批并形成审批结论。',
+  '/inventory/outbound/return': '集中登记已审批出库业务的归还结果，形成流转闭环。',
   '/inventory/query': '按状态、类别、材质和库位筛查库存文物。',
   '/inventory/task': '创建盘点任务并提交盘点结果。',
   '/repair/apply': '筛选待修复文物并发起修复申请。',
@@ -264,8 +265,8 @@ const todoCards = computed(() => {
       title: '待归还登记',
       description: '登记已审批出库文物的归还结果。',
       count: summary.value.outboundReturnPendingCount || 0,
-      route: { path: '/inventory/outbound/approve', query: { approveStatus: 'APPROVED' } },
-      visible: authStore.hasPermission('inventory:outbound:approve:view')
+      route: { path: '/inventory/outbound/return', query: { approveStatus: 'APPROVED' } },
+      visible: authStore.hasPermission('inventory:outbound:return:view')
     },
     {
       title: '待修复审批',

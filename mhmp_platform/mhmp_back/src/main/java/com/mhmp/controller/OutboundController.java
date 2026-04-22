@@ -32,13 +32,13 @@ public class OutboundController {
     }
 
     @GetMapping("/page")
-    @PreAuthorize("hasAnyAuthority('inventory:outbound:apply:view','inventory:outbound:approve:view')")
+    @PreAuthorize("hasAnyAuthority('inventory:outbound:apply:view','inventory:outbound:approve:view','inventory:outbound:return:view')")
     public R<PageResponse<OutboundListVO>> page(@Valid OutboundPageQueryDTO queryDTO) {
         return R.success(outboundService.page(queryDTO));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('inventory:outbound:apply:view','inventory:outbound:approve:view')")
+    @PreAuthorize("hasAnyAuthority('inventory:outbound:apply:view','inventory:outbound:approve:view','inventory:outbound:return:view')")
     public R<OutboundDetailVO> detail(@PathVariable Long id) {
         return R.success(outboundService.detail(id));
     }
@@ -67,7 +67,7 @@ public class OutboundController {
     }
 
     @PostMapping("/return/{id}")
-    @PreAuthorize("hasAnyAuthority('inventory:outbound:approve','inventory:outbound:submit')")
+    @PreAuthorize("hasAuthority('inventory:outbound:return')")
     @OperationLog(module = "Outbound", businessType = "RETURN", description = "Register relic return")
     public R<Void> returnOrder(@PathVariable Long id, @RequestBody(required = false) OutboundReturnDTO returnDTO) {
         outboundService.returnOrder(id, returnDTO == null ? new OutboundReturnDTO() : returnDTO);

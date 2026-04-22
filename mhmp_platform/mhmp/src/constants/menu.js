@@ -149,6 +149,16 @@ export const APP_ROUTE_DEFINITIONS = [
     }
   },
   {
+    path: 'inventory/outbound/return',
+    name: 'inventory-outbound-return',
+    component: () => import('@/views/outbound/OutboundReturnView.vue'),
+    meta: {
+      title: '鍑哄簱褰掕繕',
+      requiresAuth: true,
+      permission: 'inventory:outbound:return:view'
+    }
+  },
+  {
     path: 'inventory/query',
     name: 'inventory-query',
     component: () => import('@/views/inventory/InventoryQueryView.vue'),

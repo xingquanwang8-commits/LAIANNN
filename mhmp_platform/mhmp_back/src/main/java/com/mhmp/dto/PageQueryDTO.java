@@ -6,9 +6,9 @@ import lombok.Data;
 @Data
 public class PageQueryDTO {
 
-    @Min(value = 1, message = "pageNum must be greater than or equal to 1")
+    @Min(value = 1, message = "页码必须大于等于 1")
     private Long pageNum = 1L;
 
-    @Min(value = 1, message = "pageSize must be greater than or equal to 1")
+    @Min(value = 1, message = "每页条数必须大于等于 1")
     private Long pageSize = 10L;
 }

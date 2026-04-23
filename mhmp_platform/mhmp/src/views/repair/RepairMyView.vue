@@ -409,7 +409,10 @@ async function handleFileUpload(option) {
 }
 
 function removeAttachment(fileUrl) {
-  formData.attachments = formData.attachments.filter((item) => item.fileUrl !== fileUrl)
+  const index = formData.attachments.findIndex((item) => item.fileUrl === fileUrl)
+  if (index >= 0) {
+    formData.attachments.splice(index, 1)
+  }
 }
 
 async function refreshCurrentDetail(id) {
@@ -535,6 +538,14 @@ loadPage()
   align-items: center;
   gap: 10px;
   padding: 10px 0;
+}
+
+.upload-item span {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .upload-item--image {

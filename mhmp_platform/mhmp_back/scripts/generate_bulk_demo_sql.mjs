@@ -22,6 +22,13 @@ function loadSeniorResearchersSeed() {
     .trim()
 }
 
+function normalizeLegacyCategoryCodes(sqlText) {
+  return sqlText
+    .replaceAll("'BRONZE_WARE'", "'BRONZE'")
+    .replaceAll("'PAINTING_CALLIGRAPHY'", "'PAINTING'")
+    .replaceAll("'JADE_ARTIFACT'", "'JADE'")
+}
+
 function patchInventoryTaskBlocks(sqlText) {
   const lines = sqlText.split(/\r?\n/)
   let inventoryTaskCount = 0
@@ -79,6 +86,55 @@ function patchInventoryTaskBlocks(sqlText) {
   }
 }
 
+function patchOutboundOrderBlocks(sqlText) {
+  const lines = sqlText.split(/\r?\n/)
+  let outboundTaskCount = 0
+  let patchedColumnCount = 0
+  let patchedValueCount = 0
+
+  for (let index = 0; index < lines.length; index += 1) {
+    if (lines[index].trim() !== 'INSERT INTO relic_outbound_order (') {
+      continue
+    }
+
+    outboundTaskCount += 1
+    const columnLineIndex = index + 1
+    const valueLineIndex = index + 4
+
+    if (lines[columnLineIndex]?.includes('destination, handler_name, outbound_time, apply_user_id')) {
+      lines[columnLineIndex] = lines[columnLineIndex].replace(
+        'destination, handler_name, outbound_time, apply_user_id',
+        'destination, handler_user_id, handler_name, outbound_time, apply_user_id'
+      )
+      patchedColumnCount += 1
+    }
+
+    const currentLine = lines[valueLineIndex] || ''
+    const match = currentLine.match(
+      /^(\s*SELECT\s+'(?:''|[^'])*',\s+'(?:''|[^'])*',\s+'(?:''|[^'])*',\s+)('(?:''|[^'])*')(\s*,\s*'(?:''|[^'])*'\s*,\s*)(COALESCE\(\(SELECT id FROM sys_user WHERE username = '(?:[^']+)' AND deleted = 0 LIMIT 1\), @seed_admin_id\))(,.*)$/
+    )
+    if (match) {
+      const [, prefix, handlerName, middle, applyUserExpr, suffix] = match
+      lines[valueLineIndex] = `${prefix}${applyUserExpr}, ${handlerName}${middle}${applyUserExpr}${suffix}`
+      patchedValueCount += 1
+    }
+  }
+
+  if (outboundTaskCount === 0) {
+    throw new Error('No relic_outbound_order blocks were found in SQL template')
+  }
+  if (patchedColumnCount !== outboundTaskCount || patchedValueCount !== outboundTaskCount) {
+    throw new Error(
+      `Outbound order patch mismatch: blocks=${outboundTaskCount}, columns=${patchedColumnCount}, values=${patchedValueCount}`
+    )
+  }
+
+  return {
+    content: lines.join('\n'),
+    outboundTaskCount
+  }
+}
+
 function injectSeniorResearchersSeed(sqlText, seedSqlText) {
   const commitMarker = '\nCOMMIT;'
   const commitIndex = sqlText.lastIndexOf(commitMarker)
@@ -89,14 +145,16 @@ function injectSeniorResearchersSeed(sqlText, seedSqlText) {
 }
 
 function main() {
-  const template = loadTemplate()
+  const template = normalizeLegacyCategoryCodes(loadTemplate())
   const seniorResearchersSeed = loadSeniorResearchersSeed()
-  const { content, inventoryTaskCount } = patchInventoryTaskBlocks(template)
-  const finalContent = injectSeniorResearchersSeed(content, seniorResearchersSeed)
+  const { content: inventoryPatchedContent, inventoryTaskCount } = patchInventoryTaskBlocks(template)
+  const { content: outboundPatchedContent, outboundTaskCount } = patchOutboundOrderBlocks(inventoryPatchedContent)
+  const finalContent = injectSeniorResearchersSeed(outboundPatchedContent, seniorResearchersSeed)
   fs.mkdirSync(path.dirname(outputFile), { recursive: true })
   fs.writeFileSync(outputFile, `\uFEFF${finalContent}\n`, 'utf8')
   console.log(`Generated ${outputFile}`)
   console.log(`Patched inventory_task blocks: ${inventoryTaskCount}`)
+  console.log(`Patched relic_outbound_order blocks: ${outboundTaskCount}`)
   console.log('Injected extra senior researchers seed')
 }
 

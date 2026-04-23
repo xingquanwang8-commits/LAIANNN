@@ -13,21 +13,31 @@ import com.mhmp.dto.OutboundReturnDTO;
 import com.mhmp.entity.Relic;
 import com.mhmp.entity.RelicOutboundDetail;
 import com.mhmp.entity.RelicOutboundOrder;
+import com.mhmp.entity.SysRole;
+import com.mhmp.entity.SysUser;
+import com.mhmp.entity.SysUserRole;
 import com.mhmp.mapper.RelicMapper;
 import com.mhmp.mapper.RelicOutboundDetailMapper;
 import com.mhmp.mapper.RelicOutboundOrderMapper;
+import com.mhmp.mapper.SysRoleMapper;
+import com.mhmp.mapper.SysUserMapper;
+import com.mhmp.mapper.SysUserRoleMapper;
 import com.mhmp.service.BusinessNoService;
 import com.mhmp.service.OutboundService;
 import com.mhmp.vo.OutboundDetailItemVO;
 import com.mhmp.vo.OutboundDetailVO;
+import com.mhmp.vo.OutboundHandlerVO;
 import com.mhmp.vo.OutboundListVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -41,19 +51,29 @@ public class OutboundServiceImpl implements OutboundService {
     private final RelicOutboundDetailMapper relicOutboundDetailMapper;
     private final RelicMapper relicMapper;
     private final BusinessNoService businessNoService;
+    private final SysUserMapper sysUserMapper;
+    private final SysRoleMapper sysRoleMapper;
+    private final SysUserRoleMapper sysUserRoleMapper;
 
     public OutboundServiceImpl(RelicOutboundOrderMapper relicOutboundOrderMapper,
                                RelicOutboundDetailMapper relicOutboundDetailMapper,
                                RelicMapper relicMapper,
-                               BusinessNoService businessNoService) {
+                               BusinessNoService businessNoService,
+                               SysUserMapper sysUserMapper,
+                               SysRoleMapper sysRoleMapper,
+                               SysUserRoleMapper sysUserRoleMapper) {
         this.relicOutboundOrderMapper = relicOutboundOrderMapper;
         this.relicOutboundDetailMapper = relicOutboundDetailMapper;
         this.relicMapper = relicMapper;
         this.businessNoService = businessNoService;
+        this.sysUserMapper = sysUserMapper;
+        this.sysRoleMapper = sysRoleMapper;
+        this.sysUserRoleMapper = sysUserRoleMapper;
     }
 
     @Override
     public PageResponse<OutboundListVO> page(OutboundPageQueryDTO queryDTO) {
+        Long currentUserId = SecurityUtils.getUserId();
         Page<RelicOutboundOrder> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
         Page<RelicOutboundOrder> resultPage = relicOutboundOrderMapper.selectPage(page,
             Wrappers.<RelicOutboundOrder>lambdaQuery()
@@ -62,9 +82,13 @@ public class OutboundServiceImpl implements OutboundService {
                         .or()
                         .like(RelicOutboundOrder::getPurpose, queryDTO.getKeyword())
                         .or()
-                        .like(RelicOutboundOrder::getDestination, queryDTO.getKeyword()))
+                        .like(RelicOutboundOrder::getDestination, queryDTO.getKeyword())
+                        .or()
+                        .like(RelicOutboundOrder::getHandlerName, queryDTO.getKeyword()))
                 .eq(StringUtils.hasText(queryDTO.getApproveStatus()), RelicOutboundOrder::getApproveStatus, queryDTO.getApproveStatus())
                 .eq(queryDTO.getApplyUserId() != null, RelicOutboundOrder::getApplyUserId, queryDTO.getApplyUserId())
+                .eq(Boolean.TRUE.equals(queryDTO.getOnlyCurrentHandler()) && currentUserId != null,
+                    RelicOutboundOrder::getHandlerUserId, currentUserId)
                 .orderByDesc(RelicOutboundOrder::getCreateTime)
                 .orderByDesc(RelicOutboundOrder::getId)
         );
@@ -87,6 +111,33 @@ public class OutboundServiceImpl implements OutboundService {
     }
 
     @Override
+    public List<OutboundHandlerVO> handlerOptions() {
+        SysRole researcherRole = sysRoleMapper.findByRoleCode("researcher");
+        if (researcherRole == null) {
+            return List.of();
+        }
+
+        List<Long> userIds = sysUserRoleMapper.selectList(
+                Wrappers.<SysUserRole>lambdaQuery()
+                    .eq(SysUserRole::getRoleId, researcherRole.getId())
+                    .orderByAsc(SysUserRole::getId)
+            ).stream()
+            .map(SysUserRole::getUserId)
+            .distinct()
+            .toList();
+        if (CollectionUtils.isEmpty(userIds)) {
+            return List.of();
+        }
+
+        return sysUserMapper.selectBatchIds(userIds).stream()
+            .filter(Objects::nonNull)
+            .filter(user -> "ENABLED".equals(user.getStatus()))
+            .sorted(Comparator.comparing(this::resolveDisplayName))
+            .map(this::toHandlerVO)
+            .toList();
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public Long create(OutboundCreateDTO createDTO) {
         Long currentUserId = SecurityUtils.getUserId();
@@ -99,11 +150,14 @@ public class OutboundServiceImpl implements OutboundService {
             RelicBusinessRuleUtils.validateOutboundCreatable(relic);
         }
 
+        SysUser handlerUser = resolveHandlerUser(createDTO.getHandlerUserId());
+
         RelicOutboundOrder order = new RelicOutboundOrder();
         order.setOrderNo(businessNoService.nextOutboundOrderNo());
         order.setPurpose(createDTO.getPurpose());
         order.setDestination(createDTO.getDestination());
-        order.setHandlerName(resolveOperatorName(createDTO.getHandlerName()));
+        order.setHandlerUserId(handlerUser.getId());
+        order.setHandlerName(resolveDisplayName(handlerUser));
         order.setOutboundTime(createDTO.getOutboundTime());
         order.setApplyUserId(currentUserId);
         order.setApproveStatus("PENDING");
@@ -171,10 +225,14 @@ public class OutboundServiceImpl implements OutboundService {
     @Transactional(rollbackFor = Exception.class)
     public void returnOrder(Long id, OutboundReturnDTO returnDTO) {
         RelicOutboundOrder order = getOrderOrThrow(id);
+        Long currentUserId = SecurityUtils.getUserId();
+        if (!Objects.equals(order.getHandlerUserId(), currentUserId)) {
+            throw new BusinessException("只能由当前经手人登记归还");
+        }
+
         OutboundOrderContext orderContext = loadOrderContext(id);
         RelicBusinessRuleUtils.validateOutboundReturnable(order, toRelicList(orderContext));
 
-        Long currentUserId = SecurityUtils.getUserId();
         order.setApproveStatus("RETURNED");
         order.setReturnTime(returnDTO.getReturnTime() == null ? LocalDateTime.now() : returnDTO.getReturnTime());
         if (StringUtils.hasText(returnDTO.getRemark())) {
@@ -193,6 +251,21 @@ public class OutboundServiceImpl implements OutboundService {
         return order;
     }
 
+    private SysUser resolveHandlerUser(Long handlerUserId) {
+        if (handlerUserId == null) {
+            throw new BusinessException("经手人不能为空");
+        }
+        SysUser user = sysUserMapper.selectById(handlerUserId);
+        if (user == null || !"ENABLED".equals(user.getStatus())) {
+            throw new BusinessException("所选经手人不存在或已被停用");
+        }
+        List<String> roleCodes = sysUserMapper.selectRoleCodesByUserId(handlerUserId);
+        if (!roleCodes.contains("researcher")) {
+            throw new BusinessException("出库经手人必须选择研究员");
+        }
+        return user;
+    }
+
     private List<OutboundDetailItemVO> listDetailItems(Long orderId) {
         return listOrderDetails(orderId).stream()
             .map(this::toDetailItemVO)
@@ -208,6 +281,7 @@ public class OutboundServiceImpl implements OutboundService {
     private List<Relic> toRelicList(OutboundOrderContext orderContext) {
         return orderContext.details().stream()
             .map(detail -> orderContext.relicMap().get(detail.getRelicId()))
+            .filter(Objects::nonNull)
             .toList();
     }
 
@@ -275,11 +349,30 @@ public class OutboundServiceImpl implements OutboundService {
         return vo;
     }
 
-    private String resolveOperatorName(String operatorName) {
-        if (StringUtils.hasText(operatorName)) {
-            return operatorName.trim();
+    private OutboundHandlerVO toHandlerVO(SysUser user) {
+        OutboundHandlerVO vo = new OutboundHandlerVO();
+        vo.setId(user.getId());
+        vo.setUsername(user.getUsername());
+        vo.setNickName(user.getNickName());
+        vo.setRealName(user.getRealName());
+        vo.setDisplayName(resolveDisplayName(user));
+        return vo;
+    }
+
+    private String resolveDisplayName(SysUser user) {
+        if (user == null) {
+            return "当前用户";
         }
-        return StringUtils.hasText(SecurityUtils.getUsername()) ? SecurityUtils.getUsername() : "当前用户";
+        if (StringUtils.hasText(user.getRealName())) {
+            return user.getRealName().trim();
+        }
+        if (StringUtils.hasText(user.getNickName())) {
+            return user.getNickName().trim();
+        }
+        if (StringUtils.hasText(user.getUsername())) {
+            return user.getUsername().trim();
+        }
+        return "当前用户";
     }
 
     private record OutboundOrderContext(List<RelicOutboundDetail> details, Map<Long, Relic> relicMap) {

@@ -6,10 +6,10 @@ import lombok.Data;
 @Data
 public class DictTypeSaveDTO {
 
-    @NotBlank(message = "dictName is required")
+    @NotBlank(message = "字典名称不能为空")
     private String dictName;
 
-    @NotBlank(message = "dictTypeCode is required")
+    @NotBlank(message = "字典类型编码不能为空")
     private String dictTypeCode;
 
     private String status;

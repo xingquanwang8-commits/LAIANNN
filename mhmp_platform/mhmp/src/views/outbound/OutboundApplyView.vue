@@ -7,7 +7,7 @@
             <div class="overview-panel__eyebrow">MHMP Outbound Ledger</div>
             <h2 class="overview-panel__title">文物出库申请</h2>
             <p class="overview-panel__desc">
-              统一发起文物出库申请，登记用途、去向、经手人和申请时间，并在详情抽屉中追踪审批、归还和状态快照。
+              统一发起文物出库申请，登记用途、去向、经手研究员和申请时间，并在详情抽屉中追踪审批、归还和状态快照。
             </p>
           </div>
           <div class="overview-panel__meta">
@@ -20,22 +20,22 @@
           <article class="metric-card">
             <span class="metric-card__label">待审批</span>
             <strong class="metric-card__value">{{ pendingCount }}</strong>
-            <div class="metric-card__meta">待管理员或研究员完成出库审批</div>
+            <div class="metric-card__meta">等待高级研究员或管理员完成出库审批。</div>
           </article>
           <article class="metric-card">
             <span class="metric-card__label">待归还</span>
             <strong class="metric-card__value">{{ approvedCount }}</strong>
-            <div class="metric-card__meta">已出库单据需要后续登记归还</div>
+            <div class="metric-card__meta">已审批通过，后续仍需在“出库归还”页面登记归还。</div>
           </article>
           <article class="metric-card">
-            <span class="metric-card__label">已完成闭环</span>
+            <span class="metric-card__label">已闭环</span>
             <strong class="metric-card__value">{{ returnedCount }}</strong>
-            <div class="metric-card__meta">已完成归还登记，可用于业务追溯</div>
+            <div class="metric-card__meta">已完成归还登记，可作为业务追溯依据。</div>
           </article>
           <article class="metric-card">
             <span class="metric-card__label">当前页文物件数</span>
             <strong class="metric-card__value">{{ totalRelicCount }}</strong>
-            <div class="metric-card__meta">按申请单合计统计本页涉及的文物数量</div>
+            <div class="metric-card__meta">按申请单合计统计本页涉及的文物数量。</div>
           </article>
         </div>
       </div>
@@ -44,7 +44,7 @@
     <section class="page-card page-card--section">
       <PageHeader
         title="出库申请检索"
-        description="按单号、用途、去向和审批状态筛选出库申请，支持直接发起新建并在抽屉中查看完整业务详情。"
+        description="按单号、用途、去向、经手人和审批状态筛选出库申请，支持直接发起新建并在抽屉中查看完整业务详情。"
       >
         <template #extra>
           <el-button
@@ -59,8 +59,13 @@
 
       <div class="query-toolbar">
         <el-form :inline="true" :model="queryForm" class="query-form query-form--single-line">
-          <el-form-item label="关键字" class="query-form__keyword">
-            <el-input v-model="queryForm.keyword" placeholder="单号 / 用途 / 去向" clearable @keyup.enter="loadOrders" />
+          <el-form-item label="关键词" class="query-form__keyword">
+            <el-input
+              v-model="queryForm.keyword"
+              placeholder="单号 / 用途 / 去向 / 经手人"
+              clearable
+              @keyup.enter="loadOrders"
+            />
           </el-form-item>
           <el-form-item label="状态">
             <el-select v-model="queryForm.approveStatus" clearable placeholder="全部状态">
@@ -103,7 +108,7 @@
         </el-table-column>
         <el-table-column label="审批状态" min-width="120">
           <template #default="{ row }">
-            <StatusTag :status="row.approveStatus" :label="resolveDictLabel(statusOptions, row.approveStatus)" />
+            <StatusTag :status="row.approveStatus" :label="resolveDictLabel(statusOptions, row.approveStatus) || '--'" />
           </template>
         </el-table-column>
         <el-table-column prop="detailCount" label="文物数量" width="100" />
@@ -135,11 +140,12 @@
               <div class="overview-panel__eyebrow">Outbound Request</div>
               <h3 class="overview-panel__title dialog-overview__title">新建文物出库申请</h3>
               <p class="overview-panel__desc">
-                填写用途、去向、经手人和申请时间后即可提交出库申请，系统会自动校验当前文物是否满足出库条件。
+                填写用途、去向、经手研究员和申请时间后即可提交出库申请，系统会自动校验当前文物是否满足出库条件。
               </p>
             </div>
             <div class="overview-panel__meta">
               <span class="overview-chip">审批状态默认待审批</span>
+              <span class="overview-chip">经手人 {{ selectedHandler?.displayName || '待选择' }}</span>
               <span class="overview-chip overview-chip--accent">已选文物 {{ outboundSelection.totalCount }} 件</span>
             </div>
           </div>
@@ -158,8 +164,25 @@
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="经手人" prop="handlerName">
-                <el-input v-model="form.handlerName" disabled />
+              <el-form-item label="经手人" prop="handlerUserId">
+                <el-select
+                  v-model="form.handlerUserId"
+                  filterable
+                  placeholder="请选择负责经手的研究员"
+                  :loading="handlerLoading"
+                >
+                  <el-option
+                    v-for="item in handlerOptions"
+                    :key="item.id"
+                    :label="item.displayName"
+                    :value="item.id"
+                  >
+                    <div class="principal-option">
+                      <span class="principal-option__name">{{ item.displayName }}</span>
+                      <span class="principal-option__meta">{{ item.username }}</span>
+                    </div>
+                  </el-option>
+                </el-select>
               </el-form-item>
             </el-col>
             <el-col :span="12">
@@ -228,7 +251,7 @@
               <div class="overview-panel__eyebrow">Outbound Detail</div>
               <h3 class="overview-panel__title drawer-overview__title">{{ detail?.orderNo || '出库详情' }}</h3>
               <p class="overview-panel__desc">
-                汇总出库用途、去向、审批状态、归还时间和文物状态快照，便于馆内审核与业务闭环追踪。
+                汇总出库用途、去向、经手人、审批状态、归还时间和文物状态快照，便于馆内审核与业务闭环追踪。
               </p>
             </div>
             <div class="overview-panel__meta">
@@ -249,7 +272,7 @@
           <el-descriptions v-if="detail" :column="2" border>
             <el-descriptions-item label="出库单号">{{ detail.orderNo || '--' }}</el-descriptions-item>
             <el-descriptions-item label="审批状态">
-              <StatusTag :status="detail.approveStatus" :label="resolveDictLabel(statusOptions, detail.approveStatus)" />
+              <StatusTag :status="detail.approveStatus" :label="resolveDictLabel(statusOptions, detail.approveStatus) || '--'" />
             </el-descriptions-item>
             <el-descriptions-item label="用途">{{ detail.purpose || '--' }}</el-descriptions-item>
             <el-descriptions-item label="去向">{{ detail.destination || '--' }}</el-descriptions-item>
@@ -278,7 +301,7 @@
               <template #default="{ row }">
                 <StatusTag
                   :status="row.currentStatusSnapshot"
-                  :label="resolveDictLabel(relicStatusOptions, row.currentStatusSnapshot)"
+                  :label="resolveDictLabel(relicStatusOptions, row.currentStatusSnapshot) || '--'"
                 />
               </template>
             </el-table-column>
@@ -293,7 +316,12 @@
 import { computed, nextTick, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { createOutboundApi, getOutboundDetailApi, getOutboundPageApi } from '@/api/outbound'
+import {
+  createOutboundApi,
+  getOutboundDetailApi,
+  getOutboundHandlerOptionsApi,
+  getOutboundPageApi
+} from '@/api/outbound'
 import { getRelicDetailApi, getRelicPageApi } from '@/api/relic'
 import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
@@ -313,11 +341,13 @@ const route = useRoute()
 
 const loading = ref(false)
 const saving = ref(false)
+const handlerLoading = ref(false)
 const dialogVisible = ref(false)
 const drawerVisible = ref(false)
 const formRef = ref()
 const detail = ref(null)
 const relicOptions = ref([])
+const handlerOptions = ref([])
 const pageData = ref({
   total: 0,
   pageNum: 1,
@@ -335,7 +365,7 @@ const queryForm = reactive({
 const form = reactive({
   purpose: '',
   destination: '',
-  handlerName: '',
+  handlerUserId: null,
   outboundTime: '',
   remark: '',
   relicIds: []
@@ -344,18 +374,20 @@ const form = reactive({
 const rules = {
   purpose: [{ required: true, message: '请输入用途', trigger: 'blur' }],
   destination: [{ required: true, message: '请输入去向', trigger: 'blur' }],
-  handlerName: [{ required: true, message: '请输入经手人', trigger: 'blur' }],
+  handlerUserId: [{ required: true, message: '请选择经手人', trigger: 'change' }],
   outboundTime: [{ required: true, message: '请选择申请时间', trigger: 'change' }],
   relicIds: [{ required: true, type: 'array', message: '请选择文物', trigger: 'change' }]
 }
 
 const statusOptions = computed(() => dictStore.itemsMap.outbound_status || [])
 const relicStatusOptions = computed(() => dictStore.itemsMap.relic_status || [])
-const currentOperatorName = computed(() => authStore.displayName || authStore.user?.username || '当前用户')
 const selectedRelics = computed(() =>
   form.relicIds
     .map((id) => relicOptions.value.find((item) => String(item.id) === String(id)))
     .filter(Boolean)
+)
+const selectedHandler = computed(() =>
+  handlerOptions.value.find((item) => item.id === form.handlerUserId) || null
 )
 const outboundSelection = computed(() =>
   analyzeRelicSelection(selectedRelics.value, checkOutboundRelicEligibility)
@@ -411,7 +443,7 @@ function resetForm() {
   Object.assign(form, {
     purpose: '',
     destination: '',
-    handlerName: currentOperatorName.value,
+    handlerUserId: null,
     outboundTime: getCurrentDateTime(),
     remark: '',
     relicIds: []
@@ -437,6 +469,28 @@ async function loadRelicOptions() {
     .filter((item) => checkOutboundRelicEligibility(item).passed)
 }
 
+async function loadHandlerOptions() {
+  if (handlerOptions.value.length) {
+    return
+  }
+  handlerLoading.value = true
+  try {
+    handlerOptions.value = await getOutboundHandlerOptionsApi()
+  } finally {
+    handlerLoading.value = false
+  }
+}
+
+function fillDefaultHandler() {
+  if (form.handlerUserId || !handlerOptions.value.length) {
+    return
+  }
+  const currentUserId = authStore.user?.id
+  if (currentUserId && handlerOptions.value.some((item) => String(item.id) === String(currentUserId))) {
+    form.handlerUserId = currentUserId
+  }
+}
+
 async function ensureQuickRelicOption(relicId) {
   if (!relicId) {
     return null
@@ -458,7 +512,8 @@ async function openCreate(prefill = {}) {
     return
   }
   resetForm()
-  await loadRelicOptions()
+  await Promise.all([loadRelicOptions(), loadHandlerOptions()])
+  fillDefaultHandler()
   const quickRelic = await ensureQuickRelicOption(prefill.relicId)
   if (prefill.relicId) {
     if (!quickRelic) {
@@ -474,7 +529,7 @@ async function openCreate(prefill = {}) {
   dialogVisible.value = true
   if (prefill.relicId) {
     form.relicIds = [Number(prefill.relicId)]
-    form.remark = '由文物详情快捷发起'
+    form.remark = '由文物详情页快捷发起'
   }
   await nextTick()
   formRef.value?.clearValidate()
@@ -592,6 +647,21 @@ loadOrders()
 .dialog-overview__title,
 .drawer-overview__title {
   font-size: 22px;
+}
+
+.principal-option {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.principal-option__name {
+  font-weight: 600;
+}
+
+.principal-option__meta {
+  color: var(--text-second);
+  font-size: 12px;
 }
 
 .table-footer {

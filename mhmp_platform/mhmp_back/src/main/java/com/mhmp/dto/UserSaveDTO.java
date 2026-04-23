@@ -10,7 +10,7 @@ import java.util.List;
 @Data
 public class UserSaveDTO {
 
-    @NotBlank(message = "username is required")
+    @NotBlank(message = "用户名不能为空")
     private String username;
 
     private String password;
@@ -31,7 +31,7 @@ public class UserSaveDTO {
 
     private String remark;
 
-    @NotEmpty(message = "roleIds is required")
-    @Size(max = 1, message = "roleIds supports only one primary role")
+    @NotEmpty(message = "请选择主角色")
+    @Size(max = 1, message = "一个账号只能绑定一个主角色")
     private List<Long> roleIds;
 }

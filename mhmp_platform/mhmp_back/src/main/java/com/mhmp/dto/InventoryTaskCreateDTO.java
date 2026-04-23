@@ -9,16 +9,16 @@ import java.time.LocalDateTime;
 @Data
 public class InventoryTaskCreateDTO {
 
-    @NotBlank(message = "taskName is required")
+    @NotBlank(message = "任务名称不能为空")
     private String taskName;
 
-    @NotBlank(message = "locationCode is required")
+    @NotBlank(message = "盘点库位不能为空")
     private String locationCode;
 
-    @NotNull(message = "startTime is required")
+    @NotNull(message = "开始时间不能为空")
     private LocalDateTime startTime;
 
-    @NotNull(message = "principalUserId is required")
+    @NotNull(message = "负责人不能为空")
     private Long principalUserId;
 
     private String remark;

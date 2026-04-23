@@ -191,7 +191,7 @@ public class RepairServiceImpl implements RepairService {
     public Long createApply(RepairApplyCreateDTO createDTO) {
         Relic relic = relicMapper.selectById(createDTO.getRelicId());
         if (relic == null) {
-            throw new BusinessException("Relic does not exist");
+            throw new BusinessException("文物不存在");
         }
         long activeTaskCount = repairTaskMapper.selectCount(
             Wrappers.<RepairTask>lambdaQuery()
@@ -435,7 +435,7 @@ public class RepairServiceImpl implements RepairService {
     private RepairTask getTaskOrThrow(Long id) {
         RepairTask task = repairTaskMapper.selectById(id);
         if (task == null) {
-            throw new BusinessException("Repair task does not exist");
+            throw new BusinessException("修复任务不存在");
         }
         return task;
     }

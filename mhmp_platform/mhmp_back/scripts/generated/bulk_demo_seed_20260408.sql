@@ -388,7 +388,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0001', '春秋错金银壶', 'BRONZE_WARE', 'BRONZE', '春秋', '旧藏整理',
+SELECT 'REL-DEMO-2026-0001', '春秋错金银壶', 'BRONZE', 'BRONZE', '春秋', '旧藏整理',
   'STORAGE_ROOM_3', 'INCOMPLETE', 'IN_STOCK', '二级', '干燥存放，温度18至24度，相对湿度45%至55%，防止锈蚀继续扩散。',
   '局部残缺，调阅与搬运需双人复核。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-07-09 10:07:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-07-09 11:37:00', 0
@@ -465,7 +465,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0003', '明代楷书扇面', 'PAINTING_CALLIGRAPHY', 'SILK', '明代', '旧藏移交',
+SELECT 'REL-DEMO-2026-0003', '明代楷书扇面', 'PAINTING', 'SILK', '明代', '旧藏移交',
   'LOC_C', 'INCOMPLETE', 'IN_STOCK', '二级', '平铺或悬挂缓释支撑，避光防尘，控制湿度波动。',
   '局部残缺，调阅与搬运需双人复核。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher05' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-07-13 12:21:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher05' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-07-13 13:51:00', 0
@@ -498,7 +498,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0004', '汉代谷纹玉圭', 'JADE_ARTIFACT', 'JADE', '汉代', '考古发掘入藏',
+SELECT 'REL-DEMO-2026-0004', '汉代谷纹玉圭', 'JADE', 'JADE', '汉代', '考古发掘入藏',
   'LOC_B', 'COMPLETE', 'IN_STOCK', '二级', '独立柜架保存，防碰撞、防油污，定期观察表面风化。',
   '常规巡检即可，适合常设展陈或常规库房管理。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher06' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-07-15 13:28:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher06' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-07-15 14:58:00', 0
@@ -718,7 +718,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0010', '汉代云雷纹镜', 'BRONZE_WARE', 'BRONZE', '汉代', '考古发掘入藏',
+SELECT 'REL-DEMO-2026-0010', '汉代云雷纹镜', 'BRONZE', 'BRONZE', '汉代', '考古发掘入藏',
   'LOC_A', 'BASIC_COMPLETE', 'IN_STOCK', '三级', '干燥存放，温度18至24度，相对湿度45%至55%，防止锈蚀继续扩散。',
   '搬运时需加缓冲垫，避免高频流转。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher12' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-07-27 12:10:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher12' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-07-27 13:40:00', 0
@@ -795,7 +795,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0012', '清代花鸟手卷', 'PAINTING_CALLIGRAPHY', 'SILK', '清代', '社会捐赠',
+SELECT 'REL-DEMO-2026-0012', '清代花鸟手卷', 'PAINTING', 'SILK', '清代', '社会捐赠',
   'EXHIBIT_HALL_1', 'COMPLETE', 'IN_STOCK', '三级', '平铺或悬挂缓释支撑，避光防尘，控制湿度波动。',
   '常规巡检即可，适合常设展陈或常规库房管理。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher14' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-07-31 14:24:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher14' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-07-31 15:54:00', 0
@@ -828,7 +828,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0013', '战国谷纹玉璧', 'JADE_ARTIFACT', 'JADE', '战国', '考古发掘入藏',
+SELECT 'REL-DEMO-2026-0013', '战国谷纹玉璧', 'JADE', 'JADE', '战国', '考古发掘入藏',
   'EXHIBIT_HALL_2', 'BASIC_COMPLETE', 'IN_STOCK', '三级', '独立柜架保存，防碰撞、防油污，定期观察表面风化。',
   '搬运时需加缓冲垫，避免高频流转。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-08-02 15:31:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-08-02 17:01:00', 0
@@ -1048,7 +1048,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0019', '战国蟠螭纹镜', 'BRONZE_WARE', 'BRONZE', '战国', '馆际征集',
+SELECT 'REL-DEMO-2026-0019', '战国蟠螭纹镜', 'BRONZE', 'BRONZE', '战国', '馆际征集',
   'EXHIBIT_HALL_1', 'INCOMPLETE', 'IN_STOCK', '二级', '干燥存放，温度18至24度，相对湿度45%至55%，防止锈蚀继续扩散。',
   '局部残缺，调阅与搬运需双人复核。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher08' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-08-14 14:13:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher08' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-08-14 15:43:00', 0
@@ -1125,7 +1125,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0021', '清代楷书立轴', 'PAINTING_CALLIGRAPHY', 'PAPER', '清代', '社会捐赠',
+SELECT 'REL-DEMO-2026-0021', '清代楷书立轴', 'PAINTING', 'PAPER', '清代', '社会捐赠',
   'EXHIBIT_HALL_1', 'INCOMPLETE', 'IN_STOCK', '一级', '避光平放，温度18至20度，相对湿度50%至55%，减少酸化风险。',
   '局部残缺，调阅与搬运需双人复核。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-08-18 09:27:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-08-18 10:57:00', 0
@@ -1158,7 +1158,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0022', '商代素面带钩', 'JADE_ARTIFACT', 'JADE', '商代', '馆际调拨',
+SELECT 'REL-DEMO-2026-0022', '商代素面带钩', 'JADE', 'JADE', '商代', '馆际调拨',
   'LOC_A', 'COMPLETE', 'IN_STOCK', '二级', '独立柜架保存，防碰撞、防油污，定期观察表面风化。',
   '常规巡检即可，适合常设展陈或常规库房管理。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-08-20 10:34:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-08-20 12:04:00', 0
@@ -1378,7 +1378,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0028', '西周兽面纹簋', 'BRONZE_WARE', 'BRONZE', '西周', '考古发掘入藏',
+SELECT 'REL-DEMO-2026-0028', '西周兽面纹簋', 'BRONZE', 'BRONZE', '西周', '考古发掘入藏',
   'EXHIBIT_HALL_1', 'INCOMPLETE', 'IN_STOCK', '三级', '干燥存放，温度18至24度，相对湿度45%至55%，防止锈蚀继续扩散。',
   '局部残缺，调阅与搬运需双人复核。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher04' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-09-01 09:16:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher04' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-09-01 10:46:00', 0
@@ -1455,7 +1455,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0030', '明代花鸟扇面', 'PAINTING_CALLIGRAPHY', 'PAPER', '明代', '社会捐赠',
+SELECT 'REL-DEMO-2026-0030', '明代花鸟扇面', 'PAINTING', 'PAPER', '明代', '社会捐赠',
   'EXHIBIT_HALL_2', 'BASIC_COMPLETE', 'IN_STOCK', '一般', '避光平放，温度18至20度，相对湿度50%至55%，减少酸化风险。',
   '搬运时需加缓冲垫，避免高频流转。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher06' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-09-05 11:30:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher06' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-09-05 13:00:00', 0
@@ -1488,7 +1488,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0031', '战国素面带钩', 'JADE_ARTIFACT', 'JADE', '战国', '考古发掘入藏',
+SELECT 'REL-DEMO-2026-0031', '战国素面带钩', 'JADE', 'JADE', '战国', '考古发掘入藏',
   'LOC_VIP', 'COMPLETE', 'IN_STOCK', '一般', '独立柜架保存，防碰撞、防油污，定期观察表面风化。',
   '常规巡检即可，适合常设展陈或常规库房管理。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher07' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-09-07 12:37:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher07' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-09-07 14:07:00', 0
@@ -1708,7 +1708,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0037', '春秋错金银簋', 'BRONZE_WARE', 'BRONZE', '春秋', '馆际征集',
+SELECT 'REL-DEMO-2026-0037', '春秋错金银簋', 'BRONZE', 'BRONZE', '春秋', '馆际征集',
   'LOC_B', 'INCOMPLETE', 'IN_STOCK', '一级', '干燥存放，温度18至24度，相对湿度45%至55%，防止锈蚀继续扩散。',
   '局部残缺，调阅与搬运需双人复核。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher13' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-09-19 11:19:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher13' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-09-19 12:49:00', 0
@@ -1785,7 +1785,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0039', '民国行书扇面', 'PAINTING_CALLIGRAPHY', 'PAPER', '民国', '馆际征集',
+SELECT 'REL-DEMO-2026-0039', '民国行书扇面', 'PAINTING', 'PAPER', '民国', '馆际征集',
   'LOC_B', 'COMPLETE', 'IN_STOCK', '一般', '避光平放，温度18至20度，相对湿度50%至55%，减少酸化风险。',
   '常规巡检即可，适合常设展陈或常规库房管理。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-09-23 13:33:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-09-23 15:03:00', 0
@@ -1818,7 +1818,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0040', '新石器时代云龙纹玉琮', 'JADE_ARTIFACT', 'JADE', '新石器时代', '馆际调拨',
+SELECT 'REL-DEMO-2026-0040', '新石器时代云龙纹玉琮', 'JADE', 'JADE', '新石器时代', '馆际调拨',
   'LOC_A', 'INCOMPLETE', 'IN_STOCK', '三级', '独立柜架保存，防碰撞、防油污，定期观察表面风化。',
   '局部残缺，调阅与搬运需双人复核。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-09-25 14:40:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-09-25 16:10:00', 0
@@ -2038,7 +2038,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0046', '唐代蟠螭纹带钩', 'BRONZE_WARE', 'BRONZE', '唐代', '馆际征集',
+SELECT 'REL-DEMO-2026-0046', '唐代蟠螭纹带钩', 'BRONZE', 'BRONZE', '唐代', '馆际征集',
   'LOC_C', 'BASIC_COMPLETE', 'IN_STOCK', '一般', '干燥存放，温度18至24度，相对湿度45%至55%，防止锈蚀继续扩散。',
   '搬运时需加缓冲垫，避免高频流转。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher09' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-10-07 13:22:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher09' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-10-07 14:52:00', 0
@@ -2115,7 +2115,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0048', '元代花鸟扇面', 'PAINTING_CALLIGRAPHY', 'SILK', '元代', '社会捐赠',
+SELECT 'REL-DEMO-2026-0048', '元代花鸟扇面', 'PAINTING', 'SILK', '元代', '社会捐赠',
   'LOC_B', 'BASIC_COMPLETE', 'IN_STOCK', '二级', '平铺或悬挂缓释支撑，避光防尘，控制湿度波动。',
   '搬运时需加缓冲垫，避免高频流转。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-10-11 15:36:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-10-11 17:06:00', 0
@@ -2148,7 +2148,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0049', '新石器时代谷纹玉圭', 'JADE_ARTIFACT', 'JADE', '新石器时代', '社会捐赠',
+SELECT 'REL-DEMO-2026-0049', '新石器时代谷纹玉圭', 'JADE', 'JADE', '新石器时代', '社会捐赠',
   'LOC_B', 'INCOMPLETE', 'IN_STOCK', '三级', '独立柜架保存，防碰撞、防油污，定期观察表面风化。',
   '局部残缺，调阅与搬运需双人复核。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher12' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-10-13 09:43:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher12' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-10-13 11:13:00', 0
@@ -2368,7 +2368,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0055', '唐代兽面纹壶', 'BRONZE_WARE', 'BRONZE', '唐代', '旧藏整理',
+SELECT 'REL-DEMO-2026-0055', '唐代兽面纹壶', 'BRONZE', 'BRONZE', '唐代', '旧藏整理',
   'LOC_C', 'BASIC_COMPLETE', 'IN_STOCK', '一般', '干燥存放，温度18至24度，相对湿度45%至55%，防止锈蚀继续扩散。',
   '搬运时需加缓冲垫，避免高频流转。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher05' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-10-25 15:25:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher05' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-10-25 16:55:00', 0
@@ -2445,7 +2445,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0057', '民国仕女立轴', 'PAINTING_CALLIGRAPHY', 'PAPER', '民国', '馆际征集',
+SELECT 'REL-DEMO-2026-0057', '民国仕女立轴', 'PAINTING', 'PAPER', '民国', '馆际征集',
   'LOC_B', 'COMPLETE', 'IN_STOCK', '一般', '避光平放，温度18至20度，相对湿度50%至55%，减少酸化风险。',
   '常规巡检即可，适合常设展陈或常规库房管理。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher07' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-10-29 10:39:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher07' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-10-29 12:09:00', 0
@@ -2478,7 +2478,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0058', '新石器时代素面带钩', 'JADE_ARTIFACT', 'JADE', '新石器时代', '考古发掘入藏',
+SELECT 'REL-DEMO-2026-0058', '新石器时代素面带钩', 'JADE', 'JADE', '新石器时代', '考古发掘入藏',
   'LOC_B', 'INCOMPLETE', 'IN_STOCK', '一级', '独立柜架保存，防碰撞、防油污，定期观察表面风化。',
   '局部残缺，调阅与搬运需双人复核。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher08' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-10-31 11:46:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher08' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-10-31 13:16:00', 0
@@ -2698,7 +2698,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0064', '春秋兽面纹鼎', 'BRONZE_WARE', 'BRONZE', '春秋', '馆际征集',
+SELECT 'REL-DEMO-2026-0064', '春秋兽面纹鼎', 'BRONZE', 'BRONZE', '春秋', '馆际征集',
   'LOC_B', 'COMPLETE', 'IN_STOCK', '二级', '干燥存放，温度18至24度，相对湿度45%至55%，防止锈蚀继续扩散。',
   '常规巡检即可，适合常设展陈或常规库房管理。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher14' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-11-12 10:28:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher14' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-11-12 11:58:00', 0
@@ -2775,7 +2775,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0066', '民国山水扇面', 'PAINTING_CALLIGRAPHY', 'SILK', '民国', '馆际征集',
+SELECT 'REL-DEMO-2026-0066', '民国山水扇面', 'PAINTING', 'SILK', '民国', '馆际征集',
   'STORAGE_ROOM_3', 'BASIC_COMPLETE', 'IN_STOCK', '二级', '平铺或悬挂缓释支撑，避光防尘，控制湿度波动。',
   '搬运时需加缓冲垫，避免高频流转。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-11-16 12:42:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-11-16 14:12:00', 0
@@ -2808,7 +2808,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0067', '战国凤鸟纹玉璧', 'JADE_ARTIFACT', 'JADE', '战国', '馆际调拨',
+SELECT 'REL-DEMO-2026-0067', '战国凤鸟纹玉璧', 'JADE', 'JADE', '战国', '馆际调拨',
   'LOC_VIP', 'INCOMPLETE', 'IN_STOCK', '一般', '独立柜架保存，防碰撞、防油污，定期观察表面风化。',
   '局部残缺，调阅与搬运需双人复核。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher04' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-11-18 13:49:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher04' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-11-18 15:19:00', 0
@@ -3028,7 +3028,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0073', '春秋铭文壶', 'BRONZE_WARE', 'BRONZE', '春秋', '旧藏整理',
+SELECT 'REL-DEMO-2026-0073', '春秋铭文壶', 'BRONZE', 'BRONZE', '春秋', '旧藏整理',
   'LOC_VIP', 'COMPLETE', 'IN_STOCK', '一级', '干燥存放，温度18至24度，相对湿度45%至55%，防止锈蚀继续扩散。',
   '常规巡检即可，适合常设展陈或常规库房管理。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-11-30 12:31:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-11-30 14:01:00', 0
@@ -3105,7 +3105,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0075', '民国仕女册页', 'PAINTING_CALLIGRAPHY', 'SILK', '民国', '旧藏移交',
+SELECT 'REL-DEMO-2026-0075', '民国仕女册页', 'PAINTING', 'SILK', '民国', '旧藏移交',
   'LOC_A', 'BASIC_COMPLETE', 'IN_STOCK', '二级', '平铺或悬挂缓释支撑，避光防尘，控制湿度波动。',
   '搬运时需加缓冲垫，避免高频流转。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher12' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-12-04 14:45:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher12' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-12-04 16:15:00', 0
@@ -3138,7 +3138,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0076', '清代云龙纹玉璧', 'JADE_ARTIFACT', 'JADE', '清代', '考古发掘入藏',
+SELECT 'REL-DEMO-2026-0076', '清代云龙纹玉璧', 'JADE', 'JADE', '清代', '考古发掘入藏',
   'LOC_B', 'INCOMPLETE', 'IN_STOCK', '一级', '独立柜架保存，防碰撞、防油污，定期观察表面风化。',
   '局部残缺，调阅与搬运需双人复核。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher13' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-12-06 15:52:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher13' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-12-06 17:22:00', 0
@@ -3358,7 +3358,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0082', '春秋云雷纹镜', 'BRONZE_WARE', 'BRONZE', '春秋', '馆际征集',
+SELECT 'REL-DEMO-2026-0082', '春秋云雷纹镜', 'BRONZE', 'BRONZE', '春秋', '馆际征集',
   'STORAGE_ROOM_3', 'COMPLETE', 'IN_STOCK', '二级', '干燥存放，温度18至24度，相对湿度45%至55%，防止锈蚀继续扩散。',
   '常规巡检即可，适合常设展陈或常规库房管理。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher06' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-12-18 14:34:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher06' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-12-18 16:04:00', 0
@@ -3435,7 +3435,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0084', '清代山水立轴', 'PAINTING_CALLIGRAPHY', 'PAPER', '清代', '社会捐赠',
+SELECT 'REL-DEMO-2026-0084', '清代山水立轴', 'PAINTING', 'PAPER', '清代', '社会捐赠',
   'LOC_C', 'COMPLETE', 'IN_STOCK', '三级', '避光平放，温度18至20度，相对湿度50%至55%，减少酸化风险。',
   '常规巡检即可，适合常设展陈或常规库房管理。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher08' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-12-22 09:48:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher08' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-12-22 11:18:00', 0
@@ -3468,7 +3468,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0085', '清代谷纹带钩', 'JADE_ARTIFACT', 'JADE', '清代', '考古发掘入藏',
+SELECT 'REL-DEMO-2026-0085', '清代谷纹带钩', 'JADE', 'JADE', '清代', '考古发掘入藏',
   'EXHIBIT_HALL_1', 'BASIC_COMPLETE', 'IN_STOCK', '一般', '独立柜架保存，防碰撞、防油污，定期观察表面风化。',
   '搬运时需加缓冲垫，避免高频流转。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher09' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-12-24 10:55:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher09' AND deleted = 0 LIMIT 1), @seed_admin_id), '2024-12-24 12:25:00', 0
@@ -3688,7 +3688,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0091', '战国蟠螭纹壶', 'BRONZE_WARE', 'BRONZE', '战国', '考古发掘入藏',
+SELECT 'REL-DEMO-2026-0091', '战国蟠螭纹壶', 'BRONZE', 'BRONZE', '战国', '考古发掘入藏',
   'STORAGE_ROOM_3', 'BASIC_COMPLETE', 'IN_STOCK', '三级', '干燥存放，温度18至24度，相对湿度45%至55%，防止锈蚀继续扩散。',
   '搬运时需加缓冲垫，避免高频流转。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-01-05 09:37:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-01-05 11:07:00', 0
@@ -3765,7 +3765,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0093', '元代行书扇面', 'PAINTING_CALLIGRAPHY', 'PAPER', '元代', '旧藏移交',
+SELECT 'REL-DEMO-2026-0093', '元代行书扇面', 'PAINTING', 'PAPER', '元代', '旧藏移交',
   'EXHIBIT_HALL_2', 'BASIC_COMPLETE', 'IN_STOCK', '二级', '避光平放，温度18至20度，相对湿度50%至55%，减少酸化风险。',
   '搬运时需加缓冲垫，避免高频流转。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher04' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-01-09 11:51:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher04' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-01-09 13:21:00', 0
@@ -3798,7 +3798,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0094', '战国云龙纹玉璧', 'JADE_ARTIFACT', 'JADE', '战国', '社会捐赠',
+SELECT 'REL-DEMO-2026-0094', '战国云龙纹玉璧', 'JADE', 'JADE', '战国', '社会捐赠',
   'EXHIBIT_HALL_2', 'INCOMPLETE', 'IN_STOCK', '二级', '独立柜架保存，防碰撞、防油污，定期观察表面风化。',
   '局部残缺，调阅与搬运需双人复核。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher05' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-01-11 12:58:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher05' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-01-11 14:28:00', 0
@@ -4018,7 +4018,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0100', '唐代云雷纹鼎', 'BRONZE_WARE', 'BRONZE', '唐代', '馆际征集',
+SELECT 'REL-DEMO-2026-0100', '唐代云雷纹鼎', 'BRONZE', 'BRONZE', '唐代', '馆际征集',
   'LOC_VIP', 'INCOMPLETE', 'IN_STOCK', '一般', '干燥存放，温度18至24度，相对湿度45%至55%，防止锈蚀继续扩散。',
   '局部残缺，调阅与搬运需双人复核。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-01-23 11:40:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-01-23 13:10:00', 0
@@ -4095,7 +4095,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0102', '明代花鸟册页', 'PAINTING_CALLIGRAPHY', 'SILK', '明代', '社会捐赠',
+SELECT 'REL-DEMO-2026-0102', '明代花鸟册页', 'PAINTING', 'SILK', '明代', '社会捐赠',
   'EXHIBIT_HALL_1', 'COMPLETE', 'OUTBOUND_PENDING', '一般', '平铺或悬挂缓释支撑，避光防尘，控制湿度波动。',
   '常规巡检即可，适合常设展陈或常规库房管理。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher13' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-01-27 13:54:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher13' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-01-27 15:24:00', 0
@@ -4128,7 +4128,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0103', '汉代素面玉璧', 'JADE_ARTIFACT', 'JADE', '汉代', '馆际调拨',
+SELECT 'REL-DEMO-2026-0103', '汉代素面玉璧', 'JADE', 'JADE', '汉代', '馆际调拨',
   'LOC_B', 'COMPLETE', 'OUTBOUND_PENDING', '一般', '独立柜架保存，防碰撞、防油污，定期观察表面风化。',
   '常规巡检即可，适合常设展陈或常规库房管理。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher14' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-01-29 14:01:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher14' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-01-29 15:31:00', 0
@@ -4348,7 +4348,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0109', '战国兽面纹镜', 'BRONZE_WARE', 'BRONZE', '战国', '考古发掘入藏',
+SELECT 'REL-DEMO-2026-0109', '战国兽面纹镜', 'BRONZE', 'BRONZE', '战国', '考古发掘入藏',
   'LOC_B', 'COMPLETE', 'OUTBOUND_PENDING', '一级', '干燥存放，温度18至24度，相对湿度45%至55%，防止锈蚀继续扩散。',
   '常规巡检即可，适合常设展陈或常规库房管理。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher07' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-02-10 13:43:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher07' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-02-10 15:13:00', 0
@@ -4425,7 +4425,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0111', '清代行书扇面', 'PAINTING_CALLIGRAPHY', 'SILK', '清代', '馆际征集',
+SELECT 'REL-DEMO-2026-0111', '清代行书扇面', 'PAINTING', 'SILK', '清代', '馆际征集',
   'EXHIBIT_HALL_1', 'BASIC_COMPLETE', 'OUTBOUND_PENDING', '一般', '平铺或悬挂缓释支撑，避光防尘，控制湿度波动。',
   '搬运时需加缓冲垫，避免高频流转。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher09' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-02-14 15:57:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher09' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-02-14 17:27:00', 0
@@ -4458,7 +4458,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0112', '商代素面玉圭', 'JADE_ARTIFACT', 'JADE', '商代', '馆际调拨',
+SELECT 'REL-DEMO-2026-0112', '商代素面玉圭', 'JADE', 'JADE', '商代', '馆际调拨',
   'EXHIBIT_HALL_2', 'COMPLETE', 'OUTBOUND_PENDING', '一级', '独立柜架保存，防碰撞、防油污，定期观察表面风化。',
   '常规巡检即可，适合常设展陈或常规库房管理。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-02-16 09:04:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-02-16 10:34:00', 0
@@ -4678,7 +4678,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0118', '春秋错金银带钩', 'BRONZE_WARE', 'BRONZE', '春秋', '馆际征集',
+SELECT 'REL-DEMO-2026-0118', '春秋错金银带钩', 'BRONZE', 'BRONZE', '春秋', '馆际征集',
   'TEMP_STORAGE', 'BASIC_COMPLETE', 'OUTBOUND_PENDING', '一般', '干燥存放，温度18至24度，相对湿度45%至55%，防止锈蚀继续扩散。',
   '搬运时需加缓冲垫，避免高频流转。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-02-28 15:46:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-02-28 17:16:00', 0
@@ -4755,7 +4755,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0120', '清代花鸟手卷', 'PAINTING_CALLIGRAPHY', 'SILK', '清代', '馆际征集',
+SELECT 'REL-DEMO-2026-0120', '清代花鸟手卷', 'PAINTING', 'SILK', '清代', '馆际征集',
   'LOC_B', 'COMPLETE', 'OUTBOUND_PENDING', '三级', '平铺或悬挂缓释支撑，避光防尘，控制湿度波动。',
   '常规巡检即可，适合常设展陈或常规库房管理。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher05' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-03-04 10:00:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher05' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-03-04 11:30:00', 0
@@ -4788,7 +4788,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0121', '汉代素面带钩', 'JADE_ARTIFACT', 'JADE', '汉代', '社会捐赠',
+SELECT 'REL-DEMO-2026-0121', '汉代素面带钩', 'JADE', 'JADE', '汉代', '社会捐赠',
   'LOC_B', 'BASIC_COMPLETE', 'OUT_STOCK', '三级', '独立柜架保存，防碰撞、防油污，定期观察表面风化。',
   '搬运时需加缓冲垫，避免高频流转。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher06' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-03-06 11:07:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher06' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-03-06 12:37:00', 0
@@ -5008,7 +5008,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0127', '春秋铭文带钩', 'BRONZE_WARE', 'BRONZE', '春秋', '馆际征集',
+SELECT 'REL-DEMO-2026-0127', '春秋铭文带钩', 'BRONZE', 'BRONZE', '春秋', '馆际征集',
   'LOC_B', 'COMPLETE', 'OUT_STOCK', '三级', '干燥存放，温度18至24度，相对湿度45%至55%，防止锈蚀继续扩散。',
   '常规巡检即可，适合常设展陈或常规库房管理。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher12' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-03-18 10:49:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher12' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-03-18 12:19:00', 0
@@ -5085,7 +5085,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0129', '元代行书手卷', 'PAINTING_CALLIGRAPHY', 'PAPER', '元代', '社会捐赠',
+SELECT 'REL-DEMO-2026-0129', '元代行书手卷', 'PAINTING', 'PAPER', '元代', '社会捐赠',
   'LOC_C', 'COMPLETE', 'OUT_STOCK', '二级', '避光平放，温度18至20度，相对湿度50%至55%，减少酸化风险。',
   '常规巡检即可，适合常设展陈或常规库房管理。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher14' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-03-22 12:03:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher14' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-03-22 13:33:00', 0
@@ -5118,7 +5118,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0130', '新石器时代云龙纹玉佩', 'JADE_ARTIFACT', 'JADE', '新石器时代', '馆际调拨',
+SELECT 'REL-DEMO-2026-0130', '新石器时代云龙纹玉佩', 'JADE', 'JADE', '新石器时代', '馆际调拨',
   'LOC_B', 'COMPLETE', 'OUT_STOCK', '一级', '独立柜架保存，防碰撞、防油污，定期观察表面风化。',
   '常规巡检即可，适合常设展陈或常规库房管理。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-03-24 13:10:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-03-24 14:40:00', 0
@@ -5338,7 +5338,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0136', '战国云雷纹带钩', 'BRONZE_WARE', 'BRONZE', '战国', '考古发掘入藏',
+SELECT 'REL-DEMO-2026-0136', '战国云雷纹带钩', 'BRONZE', 'BRONZE', '战国', '考古发掘入藏',
   'LOC_D', 'BIOLOGICAL_DISEASE', 'IN_REPAIR', '一般', '干燥存放，温度18至24度，相对湿度45%至55%，防止锈蚀继续扩散。',
   '注意霉斑、虫蛀等病害复发，需定期检查。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher08' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-05 12:52:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher08' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-05 14:22:00', 0
@@ -5415,7 +5415,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0138', '清代墨竹册页', 'PAINTING_CALLIGRAPHY', 'PAPER', '清代', '社会捐赠',
+SELECT 'REL-DEMO-2026-0138', '清代墨竹册页', 'PAINTING', 'PAPER', '清代', '社会捐赠',
   'RESTORATION_ROOM', 'BIOLOGICAL_DISEASE', 'IN_REPAIR', '三级', '避光平放，温度18至20度，相对湿度50%至55%，减少酸化风险。',
   '注意霉斑、虫蛀等病害复发，需定期检查。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-09 14:06:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-09 15:36:00', 0
@@ -5448,7 +5448,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0139', '新石器时代云龙纹玉圭', 'JADE_ARTIFACT', 'JADE', '新石器时代', '考古发掘入藏',
+SELECT 'REL-DEMO-2026-0139', '新石器时代云龙纹玉圭', 'JADE', 'JADE', '新石器时代', '考古发掘入藏',
   'RESTORATION_ROOM', 'INCOMPLETE', 'IN_REPAIR', '三级', '独立柜架保存，防碰撞、防油污，定期观察表面风化。',
   '局部残缺，调阅与搬运需双人复核。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-11 15:13:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-11 16:43:00', 0
@@ -5668,7 +5668,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0145', '战国蟠螭纹镜', 'BRONZE_WARE', 'BRONZE', '战国', '馆际征集',
+SELECT 'REL-DEMO-2026-0145', '战国蟠螭纹镜', 'BRONZE', 'BRONZE', '战国', '馆际征集',
   'LOC_D', 'SEVERE_INCOMPLETE', 'IN_REPAIR', '一级', '干燥存放，温度18至24度，相对湿度45%至55%，防止锈蚀继续扩散。',
   '结构脆弱，原则上仅允许修复评估与专项查看。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher04' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-23 14:55:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher04' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-23 16:25:00', 0
@@ -5745,7 +5745,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0147', '宋代仕女册页', 'PAINTING_CALLIGRAPHY', 'PAPER', '宋代', '馆际征集',
+SELECT 'REL-DEMO-2026-0147', '宋代仕女册页', 'PAINTING', 'PAPER', '宋代', '馆际征集',
   'RESTORATION_ROOM', 'PHYSICAL_DAMAGE', 'IN_REPAIR', '三级', '避光平放，温度18至20度，相对湿度50%至55%，减少酸化风险。',
   '存在裂缝或断口，禁止直接陈列与频繁移动。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher06' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-27 09:09:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher06' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-27 10:39:00', 0
@@ -5778,7 +5778,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0148', '战国凤鸟纹玉璧', 'JADE_ARTIFACT', 'JADE', '战国', '馆际调拨',
+SELECT 'REL-DEMO-2026-0148', '战国凤鸟纹玉璧', 'JADE', 'JADE', '战国', '馆际调拨',
   'LOC_D', 'FRAGMENTED', 'IN_REPAIR', '二级', '独立柜架保存，防碰撞、防油污，定期观察表面风化。',
   '残碎件较多，需分件编号和托盘存放。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher07' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-29 10:16:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher07' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-29 11:46:00', 0
@@ -5998,7 +5998,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0154', '春秋蟠螭纹镜', 'BRONZE_WARE', 'BRONZE', '春秋', '旧藏整理',
+SELECT 'REL-DEMO-2026-0154', '春秋蟠螭纹镜', 'BRONZE', 'BRONZE', '春秋', '旧藏整理',
   'LOC_C', 'BIOLOGICAL_DISEASE', 'IN_STOCK', '一般', '干燥存放，温度18至24度，相对湿度45%至55%，防止锈蚀继续扩散。',
   '注意霉斑、虫蛀等病害复发，需定期检查。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher13' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-05-11 09:58:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher13' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-05-11 11:28:00', 0
@@ -6075,7 +6075,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0156', '元代墨竹立轴', 'PAINTING_CALLIGRAPHY', 'PAPER', '元代', '社会捐赠',
+SELECT 'REL-DEMO-2026-0156', '元代墨竹立轴', 'PAINTING', 'PAPER', '元代', '社会捐赠',
   'LOC_B', 'SEVERE_INCOMPLETE', 'IN_STOCK', '二级', '避光平放，温度18至20度，相对湿度50%至55%，减少酸化风险。',
   '结构脆弱，原则上仅允许修复评估与专项查看。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-05-15 11:12:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-05-15 12:42:00', 0
@@ -6108,7 +6108,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0157', '商代螭龙纹玉琮', 'JADE_ARTIFACT', 'JADE', '商代', '社会捐赠',
+SELECT 'REL-DEMO-2026-0157', '商代螭龙纹玉琮', 'JADE', 'JADE', '商代', '社会捐赠',
   'LOC_B', 'PHYSICAL_DAMAGE', 'IN_STOCK', '三级', '独立柜架保存，防碰撞、防油污，定期观察表面风化。',
   '存在裂缝或断口，禁止直接陈列与频繁移动。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-05-17 12:19:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-05-17 13:49:00', 0
@@ -6328,7 +6328,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0163', '战国错金银带钩', 'BRONZE_WARE', 'BRONZE', '战国', '考古发掘入藏',
+SELECT 'REL-DEMO-2026-0163', '战国错金银带钩', 'BRONZE', 'BRONZE', '战国', '考古发掘入藏',
   'STORAGE_ROOM_3', 'FRAGMENTED', 'IN_STOCK', '一级', '干燥存放，温度18至24度，相对湿度45%至55%，防止锈蚀继续扩散。',
   '残碎件较多，需分件编号和托盘存放。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher09' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-05-29 11:01:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher09' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-05-29 12:31:00', 0
@@ -6405,7 +6405,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0165', '清代仕女手卷', 'PAINTING_CALLIGRAPHY', 'PAPER', '清代', '社会捐赠',
+SELECT 'REL-DEMO-2026-0165', '清代仕女手卷', 'PAINTING', 'PAPER', '清代', '社会捐赠',
   'LOC_B', 'PHYSICAL_DAMAGE', 'IN_STOCK', '一般', '避光平放，温度18至20度，相对湿度50%至55%，减少酸化风险。',
   '存在裂缝或断口，禁止直接陈列与频繁移动。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-06-02 13:15:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-06-02 14:45:00', 0
@@ -6438,7 +6438,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0166', '商代素面玉璧', 'JADE_ARTIFACT', 'JADE', '商代', '社会捐赠',
+SELECT 'REL-DEMO-2026-0166', '商代素面玉璧', 'JADE', 'JADE', '商代', '社会捐赠',
   'LOC_C', 'BIOLOGICAL_DISEASE', 'IN_STOCK', '一般', '独立柜架保存，防碰撞、防油污，定期观察表面风化。',
   '注意霉斑、虫蛀等病害复发，需定期检查。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher12' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-06-04 14:22:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher12' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-06-04 15:52:00', 0
@@ -6658,7 +6658,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0172', '汉代云雷纹带钩', 'BRONZE_WARE', 'BRONZE', '汉代', '馆际征集',
+SELECT 'REL-DEMO-2026-0172', '汉代云雷纹带钩', 'BRONZE', 'BRONZE', '汉代', '馆际征集',
   'LOC_A', 'BASIC_COMPLETE', 'IN_STOCK', '三级', '干燥存放，温度18至24度，相对湿度45%至55%，防止锈蚀继续扩散。',
   '搬运时需加缓冲垫，避免高频流转。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher05' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-06-16 13:04:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher05' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-06-16 14:34:00', 0
@@ -6735,7 +6735,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0174', '元代花鸟手卷', 'PAINTING_CALLIGRAPHY', 'SILK', '元代', '社会捐赠',
+SELECT 'REL-DEMO-2026-0174', '元代花鸟手卷', 'PAINTING', 'SILK', '元代', '社会捐赠',
   'LOC_A', 'BASIC_COMPLETE', 'IN_STOCK', '一级', '平铺或悬挂缓释支撑，避光防尘，控制湿度波动。',
   '搬运时需加缓冲垫，避免高频流转。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher07' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-06-20 15:18:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher07' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-06-20 16:48:00', 0
@@ -6768,7 +6768,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0175', '商代谷纹带钩', 'JADE_ARTIFACT', 'JADE', '商代', '考古发掘入藏',
+SELECT 'REL-DEMO-2026-0175', '商代谷纹带钩', 'JADE', 'JADE', '商代', '考古发掘入藏',
   'EXHIBIT_HALL_1', 'COMPLETE', 'IN_STOCK', '二级', '独立柜架保存，防碰撞、防油污，定期观察表面风化。',
   '常规巡检即可，适合常设展陈或常规库房管理。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher08' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-06-22 09:25:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher08' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-06-22 10:55:00', 0
@@ -6988,7 +6988,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0181', '西周错金银镜', 'BRONZE_WARE', 'BRONZE', '西周', '旧藏整理',
+SELECT 'REL-DEMO-2026-0181', '西周错金银镜', 'BRONZE', 'BRONZE', '西周', '旧藏整理',
   'LOC_C', 'INCOMPLETE', 'IN_STOCK', '三级', '干燥存放，温度18至24度，相对湿度45%至55%，防止锈蚀继续扩散。',
   '局部残缺，调阅与搬运需双人复核。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher14' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-07-04 15:07:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher14' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-07-04 16:37:00', 0
@@ -7065,7 +7065,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0183', '宋代楷书立轴', 'PAINTING_CALLIGRAPHY', 'PAPER', '宋代', '旧藏移交',
+SELECT 'REL-DEMO-2026-0183', '宋代楷书立轴', 'PAINTING', 'PAPER', '宋代', '旧藏移交',
   'LOC_C', 'BASIC_COMPLETE', 'IN_STOCK', '二级', '避光平放，温度18至20度，相对湿度50%至55%，减少酸化风险。',
   '搬运时需加缓冲垫，避免高频流转。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-07-08 10:21:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-07-08 11:51:00', 0
@@ -7098,7 +7098,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0184', '汉代凤鸟纹带钩', 'JADE_ARTIFACT', 'JADE', '汉代', '考古发掘入藏',
+SELECT 'REL-DEMO-2026-0184', '汉代凤鸟纹带钩', 'JADE', 'JADE', '汉代', '考古发掘入藏',
   'LOC_C', 'INCOMPLETE', 'IN_STOCK', '三级', '独立柜架保存，防碰撞、防油污，定期观察表面风化。',
   '局部残缺，调阅与搬运需双人复核。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher04' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-07-10 11:28:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher04' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-07-10 12:58:00', 0
@@ -7318,7 +7318,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0190', '春秋蟠螭纹簋', 'BRONZE_WARE', 'BRONZE', '春秋', '馆际征集',
+SELECT 'REL-DEMO-2026-0190', '春秋蟠螭纹簋', 'BRONZE', 'BRONZE', '春秋', '馆际征集',
   'EXHIBIT_HALL_2', 'INCOMPLETE', 'IN_STOCK', '一般', '干燥存放，温度18至24度，相对湿度45%至55%，防止锈蚀继续扩散。',
   '局部残缺，调阅与搬运需双人复核。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-07-22 10:10:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-07-22 11:40:00', 0
@@ -7395,7 +7395,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0192', '明代墨竹立轴', 'PAINTING_CALLIGRAPHY', 'PAPER', '明代', '馆际征集',
+SELECT 'REL-DEMO-2026-0192', '明代墨竹立轴', 'PAINTING', 'PAPER', '明代', '馆际征集',
   'EXHIBIT_HALL_2', 'BASIC_COMPLETE', 'IN_STOCK', '二级', '避光平放，温度18至20度，相对湿度50%至55%，减少酸化风险。',
   '搬运时需加缓冲垫，避免高频流转。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher12' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-07-26 12:24:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher12' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-07-26 13:54:00', 0
@@ -7428,7 +7428,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0193', '商代凤鸟纹玉琮', 'JADE_ARTIFACT', 'JADE', '商代', '社会捐赠',
+SELECT 'REL-DEMO-2026-0193', '商代凤鸟纹玉琮', 'JADE', 'JADE', '商代', '社会捐赠',
   'LOC_A', 'INCOMPLETE', 'IN_STOCK', '一级', '独立柜架保存，防碰撞、防油污，定期观察表面风化。',
   '局部残缺，调阅与搬运需双人复核。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher13' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-07-28 13:31:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher13' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-07-28 15:01:00', 0
@@ -7648,7 +7648,7 @@ INSERT INTO relic (
   relic_no, name, category_code, material_code, era, source, storage_location_code, preservation_status_code, current_status, protection_level,
   storage_condition, attention_note, description, note, image_url, appraisal_report_url, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'REL-DEMO-2026-0199', '春秋蟠螭纹尊', 'BRONZE_WARE', 'BRONZE', '春秋', '馆际征集',
+SELECT 'REL-DEMO-2026-0199', '春秋蟠螭纹尊', 'BRONZE', 'BRONZE', '春秋', '馆际征集',
   'LOC_A', 'BASIC_COMPLETE', 'IN_STOCK', '一般', '干燥存放，温度18至24度，相对湿度45%至55%，防止锈蚀继续扩散。',
   '搬运时需加缓冲垫，避免高频流转。', '用于馆藏建档、库存查询、出入库流转、修复跟踪和答辩演示的模拟馆藏文物档案。', '批量生成的测试数据，可用于分页、筛选、审批、盘点和修复流程联调。', '/uploads/demo/images/relic-placeholder.png', '/uploads/demo/reports/appraisal-note.txt',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher06' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-08-09 12:13:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher06' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-08-09 13:43:00', 0
@@ -9442,10 +9442,10 @@ WHERE o.order_no = 'IN-DEMO-2026-040' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_inbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-001', '学术研究调阅', '市文化馆联合展区', '王蕾', '2025-02-12 12:47:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-001', '学术研究调阅', '市文化馆联合展区', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id), '王蕾', '2025-02-12 12:47:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'PENDING', NULL, NULL,
   NULL, NULL, '批量生成的出库业务单，共 2 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-02-12 12:47:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-02-12 12:47:00', 0
@@ -9467,10 +9467,10 @@ WHERE o.order_no = 'OUT-DEMO-2026-001' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_outbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-002', '专题临展借展', '省博物院交流展厅', '周洋', '2025-02-16 14:01:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-002', '专题临展借展', '省博物院交流展厅', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id), '周洋', '2025-02-16 14:01:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'PENDING', NULL, NULL,
   NULL, NULL, '批量生成的出库业务单，共 2 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-02-16 14:01:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-02-16 14:01:00', 0
@@ -9492,10 +9492,10 @@ WHERE o.order_no = 'OUT-DEMO-2026-002' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_outbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-003', '数字化采集外拍', '省博物院交流展厅', '林清', '2025-02-20 09:15:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher04' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-003', '数字化采集外拍', '省博物院交流展厅', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher04' AND deleted = 0 LIMIT 1), @seed_admin_id), '林清', '2025-02-20 09:15:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher04' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'PENDING', NULL, NULL,
   NULL, NULL, '批量生成的出库业务单，共 2 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher04' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-02-20 09:15:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher04' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-02-20 09:15:00', 0
@@ -9517,10 +9517,10 @@ WHERE o.order_no = 'OUT-DEMO-2026-003' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_outbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-004', '专题临展借展', '市文化馆联合展区', '何远', '2025-02-24 11:29:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher05' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-004', '专题临展借展', '市文化馆联合展区', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher05' AND deleted = 0 LIMIT 1), @seed_admin_id), '何远', '2025-02-24 11:29:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher05' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'PENDING', NULL, NULL,
   NULL, NULL, '批量生成的出库业务单，共 2 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher05' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-02-24 11:29:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher05' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-02-24 11:29:00', 0
@@ -9542,10 +9542,10 @@ WHERE o.order_no = 'OUT-DEMO-2026-004' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_outbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-005', '文保评估送检', '高校文博实验室', '苏瑶', '2025-02-28 13:43:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher06' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-005', '文保评估送检', '高校文博实验室', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher06' AND deleted = 0 LIMIT 1), @seed_admin_id), '苏瑶', '2025-02-28 13:43:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher06' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'PENDING', NULL, NULL,
   NULL, NULL, '批量生成的出库业务单，共 2 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher06' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-02-28 13:43:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher06' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-02-28 13:43:00', 0
@@ -9567,10 +9567,10 @@ WHERE o.order_no = 'OUT-DEMO-2026-005' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_outbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-006', '专题临展借展', '高校文博实验室', '郑川', '2025-03-04 15:57:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher07' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-006', '专题临展借展', '高校文博实验室', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher07' AND deleted = 0 LIMIT 1), @seed_admin_id), '郑川', '2025-03-04 15:57:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher07' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'PENDING', NULL, NULL,
   NULL, NULL, '批量生成的出库业务单，共 2 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher07' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-03-04 15:57:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher07' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-03-04 15:57:00', 0
@@ -9592,10 +9592,10 @@ WHERE o.order_no = 'OUT-DEMO-2026-006' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_outbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-007', '学术研究调阅', '市文化馆联合展区', '宋宁', '2025-03-08 10:11:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher08' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-007', '学术研究调阅', '市文化馆联合展区', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher08' AND deleted = 0 LIMIT 1), @seed_admin_id), '宋宁', '2025-03-08 10:11:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher08' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'PENDING', NULL, NULL,
   NULL, NULL, '批量生成的出库业务单，共 2 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher08' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-03-08 10:11:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher08' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-03-08 10:11:00', 0
@@ -9617,10 +9617,10 @@ WHERE o.order_no = 'OUT-DEMO-2026-007' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_outbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-008', '专题临展借展', '文物保护中心', '魏安', '2025-03-12 12:25:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher09' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-008', '专题临展借展', '文物保护中心', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher09' AND deleted = 0 LIMIT 1), @seed_admin_id), '魏安', '2025-03-12 12:25:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher09' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'PENDING', NULL, NULL,
   NULL, NULL, '批量生成的出库业务单，共 2 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher09' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-03-12 12:25:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher09' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-03-12 12:25:00', 0
@@ -9642,10 +9642,10 @@ WHERE o.order_no = 'OUT-DEMO-2026-008' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_outbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-009', '专题临展借展', '市文化馆联合展区', '唐蕾', '2025-03-16 14:39:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-009', '专题临展借展', '市文化馆联合展区', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id), '唐蕾', '2025-03-16 14:39:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'PENDING', NULL, NULL,
   NULL, NULL, '批量生成的出库业务单，共 2 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-03-16 14:39:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-03-16 14:39:00', 0
@@ -9667,10 +9667,10 @@ WHERE o.order_no = 'OUT-DEMO-2026-009' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_outbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-010', '专题临展借展', '馆外数字采集点', '韩卓', '2025-03-20 09:53:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-010', '专题临展借展', '馆外数字采集点', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id), '韩卓', '2025-03-20 09:53:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'PENDING', NULL, NULL,
   NULL, NULL, '批量生成的出库业务单，共 2 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-03-20 09:53:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-03-20 09:53:00', 0
@@ -9692,10 +9692,10 @@ WHERE o.order_no = 'OUT-DEMO-2026-010' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_outbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-011', '专题临展借展', '文物保护中心', '顾琳', '2025-03-24 11:07:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher12' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-011', '专题临展借展', '文物保护中心', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher12' AND deleted = 0 LIMIT 1), @seed_admin_id), '顾琳', '2025-03-24 11:07:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher12' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'APPROVED', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-03-25 11:07:00',
   '审批通过，已完成交接出库。', NULL, '批量生成的出库业务单，共 2 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher12' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-03-24 11:07:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-03-25 11:07:00', 0
@@ -9717,10 +9717,10 @@ WHERE o.order_no = 'OUT-DEMO-2026-011' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_outbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-012', '馆际交流展', '省博物院交流展厅', '罗宁', '2025-03-28 13:21:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher13' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-012', '馆际交流展', '省博物院交流展厅', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher13' AND deleted = 0 LIMIT 1), @seed_admin_id), '罗宁', '2025-03-28 13:21:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher13' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'APPROVED', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-03-29 13:21:00',
   '审批通过，已完成交接出库。', NULL, '批量生成的出库业务单，共 2 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher13' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-03-28 13:21:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-03-29 13:21:00', 0
@@ -9742,10 +9742,10 @@ WHERE o.order_no = 'OUT-DEMO-2026-012' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_outbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-013', '学术研究调阅', '高校文博实验室', '姚菲', '2025-04-01 15:35:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher14' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-013', '学术研究调阅', '高校文博实验室', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher14' AND deleted = 0 LIMIT 1), @seed_admin_id), '姚菲', '2025-04-01 15:35:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher14' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'APPROVED', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-02 15:35:00',
   '审批通过，已完成交接出库。', NULL, '批量生成的出库业务单，共 2 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher14' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-01 15:35:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-02 15:35:00', 0
@@ -9767,10 +9767,10 @@ WHERE o.order_no = 'OUT-DEMO-2026-013' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_outbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-014', '数字化采集外拍', '省博物院交流展厅', '王蕾', '2025-04-05 10:49:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-014', '数字化采集外拍', '省博物院交流展厅', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id), '王蕾', '2025-04-05 10:49:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'APPROVED', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-06 10:49:00',
   '审批通过，已完成交接出库。', NULL, '批量生成的出库业务单，共 2 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-05 10:49:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-06 10:49:00', 0
@@ -9792,10 +9792,10 @@ WHERE o.order_no = 'OUT-DEMO-2026-014' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_outbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-015', '数字化采集外拍', '馆外数字采集点', '周洋', '2025-04-09 12:03:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-015', '数字化采集外拍', '馆外数字采集点', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id), '周洋', '2025-04-09 12:03:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'APPROVED', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-10 12:03:00',
   '审批通过，已完成交接出库。', NULL, '批量生成的出库业务单，共 2 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-09 12:03:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-10 12:03:00', 0
@@ -9817,10 +9817,10 @@ WHERE o.order_no = 'OUT-DEMO-2026-015' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_outbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-016', '学术研究调阅', '高校文博实验室', '林清', '2025-04-13 14:17:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher04' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-016', '学术研究调阅', '高校文博实验室', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher04' AND deleted = 0 LIMIT 1), @seed_admin_id), '林清', '2025-04-13 14:17:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher04' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'APPROVED', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-14 14:17:00',
   '审批通过，已完成交接出库。', NULL, '批量生成的出库业务单，共 2 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher04' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-13 14:17:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-14 14:17:00', 0
@@ -9842,10 +9842,10 @@ WHERE o.order_no = 'OUT-DEMO-2026-016' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_outbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-017', '专题临展借展', '馆外数字采集点', '何远', '2025-04-17 09:31:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher05' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-017', '专题临展借展', '馆外数字采集点', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher05' AND deleted = 0 LIMIT 1), @seed_admin_id), '何远', '2025-04-17 09:31:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher05' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'APPROVED', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-18 09:31:00',
   '审批通过，已完成交接出库。', NULL, '批量生成的出库业务单，共 2 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher05' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-17 09:31:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-18 09:31:00', 0
@@ -9867,10 +9867,10 @@ WHERE o.order_no = 'OUT-DEMO-2026-017' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_outbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-018', '数字化采集外拍', '高校文博实验室', '苏瑶', '2025-04-21 11:45:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher06' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-018', '数字化采集外拍', '高校文博实验室', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher06' AND deleted = 0 LIMIT 1), @seed_admin_id), '苏瑶', '2025-04-21 11:45:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher06' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'APPROVED', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-22 11:45:00',
   '审批通过，已完成交接出库。', NULL, '批量生成的出库业务单，共 1 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher06' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-21 11:45:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-04-22 11:45:00', 0
@@ -9885,10 +9885,10 @@ WHERE o.order_no = 'OUT-DEMO-2026-018' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_outbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-019', '文保评估送检', '市文化馆联合展区', '郑川', '2025-07-22 15:07:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher07' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-019', '文保评估送检', '市文化馆联合展区', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher07' AND deleted = 0 LIMIT 1), @seed_admin_id), '郑川', '2025-07-22 15:07:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher07' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'RETURNED', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-07-23 15:07:00',
   '审批通过，已完成借展并回库登记。', '2025-08-09 15:07:00', '批量生成的出库业务单，共 2 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher07' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-07-22 15:07:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-08-09 15:07:00', 0
@@ -9910,10 +9910,10 @@ WHERE o.order_no = 'OUT-DEMO-2026-019' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_outbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-020', '专题临展借展', '文物保护中心', '宋宁', '2025-07-26 10:21:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher08' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-020', '专题临展借展', '文物保护中心', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher08' AND deleted = 0 LIMIT 1), @seed_admin_id), '宋宁', '2025-07-26 10:21:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher08' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'RETURNED', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-07-27 10:21:00',
   '审批通过，已完成借展并回库登记。', '2025-08-13 10:21:00', '批量生成的出库业务单，共 2 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher08' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-07-26 10:21:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-08-13 10:21:00', 0
@@ -9935,10 +9935,10 @@ WHERE o.order_no = 'OUT-DEMO-2026-020' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_outbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-021', '文保评估送检', '市文化馆联合展区', '魏安', '2025-07-30 12:35:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher09' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-021', '文保评估送检', '市文化馆联合展区', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher09' AND deleted = 0 LIMIT 1), @seed_admin_id), '魏安', '2025-07-30 12:35:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher09' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'RETURNED', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-07-31 12:35:00',
   '审批通过，已完成借展并回库登记。', '2025-08-17 12:35:00', '批量生成的出库业务单，共 2 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher09' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-07-30 12:35:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-08-17 12:35:00', 0
@@ -9960,10 +9960,10 @@ WHERE o.order_no = 'OUT-DEMO-2026-021' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_outbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-022', '馆际交流展', '高校文博实验室', '唐蕾', '2025-08-03 14:49:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-022', '馆际交流展', '高校文博实验室', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id), '唐蕾', '2025-08-03 14:49:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'RETURNED', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-08-04 14:49:00',
   '审批通过，已完成借展并回库登记。', '2025-08-21 14:49:00', '批量生成的出库业务单，共 2 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher10' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-08-03 14:49:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-08-21 14:49:00', 0
@@ -9985,10 +9985,10 @@ WHERE o.order_no = 'OUT-DEMO-2026-022' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_outbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-023', '数字化采集外拍', '省博物院交流展厅', '韩卓', '2025-08-07 09:03:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-023', '数字化采集外拍', '省博物院交流展厅', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id), '韩卓', '2025-08-07 09:03:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'RETURNED', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-08-08 09:03:00',
   '审批通过，已完成借展并回库登记。', '2025-08-25 09:03:00', '批量生成的出库业务单，共 2 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher11' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-08-07 09:03:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-08-25 09:03:00', 0
@@ -10010,10 +10010,10 @@ WHERE o.order_no = 'OUT-DEMO-2026-023' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_outbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-024', '数字化采集外拍', '高校文博实验室', '顾琳', '2025-08-11 11:17:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher12' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-024', '数字化采集外拍', '高校文博实验室', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher12' AND deleted = 0 LIMIT 1), @seed_admin_id), '顾琳', '2025-08-11 11:17:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher12' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'REJECTED', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-08-12 11:17:00',
   '借展条件未满足，驳回本次申请。', NULL, '批量生成的出库业务单，共 2 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher12' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-08-11 11:17:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-08-12 11:17:00', 0
@@ -10035,10 +10035,10 @@ WHERE o.order_no = 'OUT-DEMO-2026-024' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_outbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-025', '馆际交流展', '省博物院交流展厅', '罗宁', '2025-08-15 13:31:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher13' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-025', '馆际交流展', '省博物院交流展厅', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher13' AND deleted = 0 LIMIT 1), @seed_admin_id), '罗宁', '2025-08-15 13:31:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher13' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'REJECTED', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-08-16 13:31:00',
   '借展条件未满足，驳回本次申请。', NULL, '批量生成的出库业务单，共 2 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher13' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-08-15 13:31:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-08-16 13:31:00', 0
@@ -10060,10 +10060,10 @@ WHERE o.order_no = 'OUT-DEMO-2026-025' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_outbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-026', '馆际交流展', '高校文博实验室', '姚菲', '2025-08-19 15:45:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher14' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-026', '馆际交流展', '高校文博实验室', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher14' AND deleted = 0 LIMIT 1), @seed_admin_id), '姚菲', '2025-08-19 15:45:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher14' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'REJECTED', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-08-20 15:45:00',
   '借展条件未满足，驳回本次申请。', NULL, '批量生成的出库业务单，共 2 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher14' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-08-19 15:45:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-08-20 15:45:00', 0
@@ -10085,10 +10085,10 @@ WHERE o.order_no = 'OUT-DEMO-2026-026' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_outbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-027', '学术研究调阅', '高校文博实验室', '王蕾', '2025-08-23 10:59:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-027', '学术研究调阅', '高校文博实验室', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id), '王蕾', '2025-08-23 10:59:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'REJECTED', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-08-24 10:59:00',
   '借展条件未满足，驳回本次申请。', NULL, '批量生成的出库业务单，共 2 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher02' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-08-23 10:59:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-08-24 10:59:00', 0
@@ -10110,10 +10110,10 @@ WHERE o.order_no = 'OUT-DEMO-2026-027' AND o.deleted = 0
   AND NOT EXISTS (SELECT 1 FROM relic_outbound_detail d WHERE d.order_id = o.id AND d.relic_id = r.id AND d.deleted = 0);
 
 INSERT INTO relic_outbound_order (
-  order_no, purpose, destination, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
+  order_no, purpose, destination, handler_user_id, handler_name, outbound_time, apply_user_id, approve_status, approve_by, approve_time, approve_remark,
   return_time, remark, create_by, create_time, update_by, update_time, deleted
 )
-SELECT 'OUT-DEMO-2026-028', '文保评估送检', '文物保护中心', '周洋', '2025-08-27 12:13:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id),
+SELECT 'OUT-DEMO-2026-028', '文保评估送检', '文物保护中心', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id), '周洋', '2025-08-27 12:13:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id),
   'REJECTED', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-08-28 12:13:00',
   '借展条件未满足，驳回本次申请。', NULL, '批量生成的出库业务单，共 2 件文物。',
   COALESCE((SELECT id FROM sys_user WHERE username = 'researcher03' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-08-27 12:13:00', COALESCE((SELECT id FROM sys_user WHERE username = 'researcher' AND deleted = 0 LIMIT 1), @seed_admin_id), '2025-08-28 12:13:00', 0

@@ -23,6 +23,13 @@ export function createOutboundApi(data) {
   })
 }
 
+export function getOutboundHandlerOptionsApi() {
+  return request({
+    url: '/outbound/handlers',
+    method: 'get'
+  })
+}
+
 export function approveOutboundApi(id, data) {
   return request({
     url: `/outbound/approve/${id}`,

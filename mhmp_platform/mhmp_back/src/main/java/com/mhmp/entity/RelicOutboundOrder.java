@@ -20,6 +20,8 @@ public class RelicOutboundOrder extends BaseEntity {
     private String orderNo;
     private String purpose;
     private String destination;
+    @TableField("handler_user_id")
+    private Long handlerUserId;
     @TableField("handler_name")
     private String handlerName;
     @TableField("outbound_time")

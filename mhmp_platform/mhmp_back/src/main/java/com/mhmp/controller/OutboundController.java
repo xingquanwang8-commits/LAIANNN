@@ -9,6 +9,7 @@ import com.mhmp.dto.OutboundPageQueryDTO;
 import com.mhmp.dto.OutboundReturnDTO;
 import com.mhmp.service.OutboundService;
 import com.mhmp.vo.OutboundDetailVO;
+import com.mhmp.vo.OutboundHandlerVO;
 import com.mhmp.vo.OutboundListVO;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,6 +20,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @Validated
 @RestController
@@ -41,6 +44,12 @@ public class OutboundController {
     @PreAuthorize("hasAnyAuthority('inventory:outbound:apply:view','inventory:outbound:approve:view','inventory:outbound:return:view')")
     public R<OutboundDetailVO> detail(@PathVariable Long id) {
         return R.success(outboundService.detail(id));
+    }
+
+    @GetMapping("/handlers")
+    @PreAuthorize("hasAuthority('inventory:outbound:submit')")
+    public R<List<OutboundHandlerVO>> handlerOptions() {
+        return R.success(outboundService.handlerOptions());
     }
 
     @PostMapping

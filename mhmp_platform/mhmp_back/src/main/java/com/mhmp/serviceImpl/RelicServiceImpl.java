@@ -111,18 +111,34 @@ public class RelicServiceImpl implements RelicService {
 
     @Override
     public PageResponse<RelicListVO> page(RelicPageQueryDTO queryDTO) {
+        List<Long> activeTransferRelicIds = Boolean.TRUE.equals(queryDTO.getExcludeActiveTransferTask())
+            ? relicTransferTaskMapper.selectList(
+                Wrappers.<RelicTransferTask>lambdaQuery()
+                    .in(RelicTransferTask::getTaskStatus, RelicBusinessRuleUtils.ACTIVE_TRANSFER_TASK_STATUSES)
+                    .select(RelicTransferTask::getRelicId)
+            ).stream()
+                .map(RelicTransferTask::getRelicId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList()
+            : List.of();
         Page<Relic> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
         Page<Relic> resultPage = relicMapper.selectPage(page,
             Wrappers.<Relic>lambdaQuery()
                 .and(StringUtils.hasText(queryDTO.getKeyword()),
                     wrapper -> wrapper.like(Relic::getRelicNo, queryDTO.getKeyword())
                         .or()
-                        .like(Relic::getName, queryDTO.getKeyword()))
+                        .like(Relic::getName, queryDTO.getKeyword())
+                        .or()
+                        .like(Relic::getEra, queryDTO.getKeyword())
+                        .or()
+                        .like(Relic::getSource, queryDTO.getKeyword()))
                 .eq(StringUtils.hasText(queryDTO.getCategoryCode()), Relic::getCategoryCode, queryDTO.getCategoryCode())
                 .eq(StringUtils.hasText(queryDTO.getMaterialCode()), Relic::getMaterialCode, queryDTO.getMaterialCode())
                 .eq(StringUtils.hasText(queryDTO.getPreservationStatusCode()), Relic::getPreservationStatusCode, queryDTO.getPreservationStatusCode())
                 .eq(StringUtils.hasText(queryDTO.getCurrentStatus()), Relic::getCurrentStatus, queryDTO.getCurrentStatus())
                 .eq(StringUtils.hasText(queryDTO.getStorageLocationCode()), Relic::getStorageLocationCode, queryDTO.getStorageLocationCode())
+                .notIn(!activeTransferRelicIds.isEmpty(), Relic::getId, activeTransferRelicIds)
                 .orderByDesc(Relic::getUpdateTime)
                 .orderByDesc(Relic::getId)
         );
@@ -195,7 +211,7 @@ public class RelicServiceImpl implements RelicService {
     private Relic getRelicOrThrow(Long id) {
         Relic relic = relicMapper.selectById(id);
         if (relic == null) {
-            throw new BusinessException("Relic does not exist");
+            throw new BusinessException("文物不存在");
         }
         return relic;
     }
@@ -226,7 +242,7 @@ public class RelicServiceImpl implements RelicService {
     private String createDictItem(String dictTypeCode, String itemName, String itemValue, String remark) {
         String normalizedName = itemName == null ? "" : itemName.trim();
         if (!StringUtils.hasText(normalizedName)) {
-            throw new BusinessException("Dictionary item name cannot be empty");
+            throw new BusinessException("字典项名称不能为空");
         }
 
         long duplicateCount = sysDictItemMapper.selectCount(
@@ -235,7 +251,7 @@ public class RelicServiceImpl implements RelicService {
                 .eq(SysDictItem::getItemLabel, normalizedName)
         );
         if (duplicateCount > 0) {
-            throw new BusinessException("Dictionary item already exists");
+            throw new BusinessException("字典项已存在");
         }
 
         Integer nextSort = sysDictItemMapper.selectList(

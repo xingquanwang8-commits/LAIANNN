@@ -6,13 +6,13 @@ import lombok.Data;
 @Data
 public class DictItemSaveDTO {
 
-    @NotBlank(message = "dictTypeCode is required")
+    @NotBlank(message = "字典类型编码不能为空")
     private String dictTypeCode;
 
-    @NotBlank(message = "itemLabel is required")
+    @NotBlank(message = "字典项名称不能为空")
     private String itemLabel;
 
-    @NotBlank(message = "itemValue is required")
+    @NotBlank(message = "字典项值不能为空")
     private String itemValue;
 
     private Integer itemSort;

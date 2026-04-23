@@ -6,9 +6,9 @@ import lombok.Data;
 @Data
 public class DictImportDTO {
 
-    @NotBlank(message = "dictTypeCode is required")
+    @NotBlank(message = "字典类型编码不能为空")
     private String dictTypeCode;
 
-    @NotBlank(message = "content is required")
+    @NotBlank(message = "导入内容不能为空")
     private String content;
 }

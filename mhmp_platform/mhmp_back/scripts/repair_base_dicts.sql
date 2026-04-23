@@ -63,12 +63,9 @@ INSERT INTO tmp_dict_item_seed (
     ('preservation_status', CONVERT(0xE58C96E5ADA6E58AA3E58C96 USING utf8mb4), 'CHEMICAL_DEGRADATION', 7, 'ENABLED', 'Base dictionary repair'),
     ('preservation_status', CONVERT(0xE7949FE789A9E79785E5AEB3 USING utf8mb4), 'BIOLOGICAL_DISEASE', 8, 'ENABLED', 'Base dictionary repair'),
 
-    ('relic_category', CONVERT(0xE99D92E9939CE599A8 USING utf8mb4), 'BRONZE_WARE', 1, 'ENABLED', 'Legacy compatibility dictionary item'),
     ('relic_category', CONVERT(0xE99D92E9939CE599A8 USING utf8mb4), 'BRONZE', 1, 'ENABLED', 'Base dictionary repair'),
     ('relic_category', CONVERT(0xE999B6E793B7E599A8 USING utf8mb4), 'CERAMIC', 2, 'ENABLED', 'Base dictionary repair'),
-    ('relic_category', CONVERT(0xE4B9A6E794BB USING utf8mb4), 'PAINTING_CALLIGRAPHY', 3, 'ENABLED', 'Legacy compatibility dictionary item'),
     ('relic_category', CONVERT(0xE4B9A6E794BB USING utf8mb4), 'PAINTING', 3, 'ENABLED', 'Base dictionary repair'),
-    ('relic_category', CONVERT(0xE78E89E599A8 USING utf8mb4), 'JADE_ARTIFACT', 4, 'ENABLED', 'Legacy compatibility dictionary item'),
     ('relic_category', CONVERT(0xE79FB3E588BBE980A0E5838F USING utf8mb4), 'STONE', 4, 'ENABLED', 'Base dictionary repair'),
     ('relic_category', CONVERT(0xE98791E993B6E599A8 USING utf8mb4), 'GOLD_SILVER_WARE', 5, 'ENABLED', 'Legacy compatibility dictionary item'),
     ('relic_category', CONVERT(0xE78E89E599A8 USING utf8mb4), 'JADE', 5, 'ENABLED', 'Base dictionary repair'),
@@ -123,6 +120,16 @@ CREATE TEMPORARY TABLE tmp_used_dict_item (
     item_value VARCHAR(100) NOT NULL,
     PRIMARY KEY (dict_type_code, item_value)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+UPDATE relic
+SET category_code = CASE category_code
+    WHEN 'BRONZE_WARE' THEN 'BRONZE'
+    WHEN 'PAINTING_CALLIGRAPHY' THEN 'PAINTING'
+    WHEN 'JADE_ARTIFACT' THEN 'JADE'
+    ELSE category_code
+END
+WHERE deleted = 0
+  AND category_code IN ('BRONZE_WARE', 'PAINTING_CALLIGRAPHY', 'JADE_ARTIFACT');
 
 INSERT IGNORE INTO tmp_used_dict_item (dict_type_code, item_value)
 SELECT 'relic_category', category_code
@@ -273,6 +280,22 @@ JOIN (
 SET i.deleted = 1,
     i.update_by = @operator_id,
     i.update_time = NOW();
+
+UPDATE sys_dict_item
+SET status = 'DISABLED',
+    deleted = 1,
+    update_by = @operator_id,
+    update_time = NOW()
+WHERE dict_type_code = 'relic_category'
+  AND item_value IN ('BRONZE_WARE', 'PAINTING_CALLIGRAPHY', 'JADE_ARTIFACT');
+
+UPDATE sys_dict_item
+SET status = 'ENABLED',
+    deleted = 0,
+    update_by = @operator_id,
+    update_time = NOW()
+WHERE dict_type_code = 'relic_category'
+  AND item_value IN ('BRONZE', 'PAINTING', 'JADE');
 
 DROP TEMPORARY TABLE IF EXISTS tmp_used_dict_item;
 DROP TEMPORARY TABLE IF EXISTS tmp_dict_item_seed;

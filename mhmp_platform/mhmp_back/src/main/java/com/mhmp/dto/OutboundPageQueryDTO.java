@@ -15,4 +15,5 @@ public class OutboundPageQueryDTO {
     private String keyword;
     private String approveStatus;
     private Long applyUserId;
+    private Boolean onlyCurrentHandler;
 }

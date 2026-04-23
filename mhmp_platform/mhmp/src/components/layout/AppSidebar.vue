@@ -23,7 +23,7 @@
 
     <el-scrollbar class="sidebar-scroll">
       <el-menu
-        :default-active="activePath"
+        :default-active="activeMenuPath || activePath"
         :default-openeds="defaultOpeneds"
         :unique-opened="true"
         class="sidebar-menu"
@@ -86,6 +86,7 @@ const props = defineProps({
 const route = useRoute()
 const logoAvailable = ref(true)
 const activePath = computed(() => route.path)
+const activeMenuPath = computed(() => findBestMatchingMenuPath(props.menus, activePath.value))
 const orderedMenus = computed(() => {
   const menus = [...(props.menus || [])]
   return menus.sort((left, right) => {
@@ -100,7 +101,7 @@ const orderedMenus = computed(() => {
 const defaultOpeneds = computed(() =>
   orderedMenus.value
     .filter((menu) =>
-      (menu.children || []).some((child) => child.path && activePath.value.startsWith(normalizePath(child.path)))
+      (menu.children || []).some((child) => normalizePath(child.path) === activeMenuPath.value)
     )
     .map((menu) => resolveMenuIndex(menu))
 )
@@ -114,11 +115,11 @@ function resolveMenuIndex(menu) {
 }
 
 function isMenuActive(path) {
-  return normalizePath(path) === activePath.value
+  return normalizePath(path) === activeMenuPath.value
 }
 
 function isMenuGroupActive(menu) {
-  return (menu.children || []).some((child) => child.path && activePath.value.startsWith(normalizePath(child.path)))
+  return (menu.children || []).some((child) => normalizePath(child.path) === activeMenuPath.value)
 }
 
 function normalizePath(path) {
@@ -126,6 +127,33 @@ function normalizePath(path) {
     return ''
   }
   return path.startsWith('/') ? path : `/${path}`
+}
+
+function isPathMatch(menuPath, currentPath) {
+  const normalizedPath = normalizePath(menuPath)
+  if (!normalizedPath || !currentPath) {
+    return false
+  }
+  return currentPath === normalizedPath || currentPath.startsWith(`${normalizedPath}/`)
+}
+
+function flattenLeafPaths(menus = []) {
+  return menus.flatMap((menu) => {
+    if (menu.children?.length) {
+      return flattenLeafPaths(menu.children)
+    }
+    return menu.path ? [normalizePath(menu.path)] : []
+  })
+}
+
+function findBestMatchingMenuPath(menus, currentPath) {
+  let bestMatch = ''
+  for (const path of flattenLeafPaths(menus)) {
+    if (isPathMatch(path, currentPath) && path.length > bestMatch.length) {
+      bestMatch = path
+    }
+  }
+  return bestMatch
 }
 </script>
 

@@ -88,12 +88,12 @@ public class TransferTaskServiceImpl implements TransferTaskService {
         SysUser principal = resolvePrincipalUser(createDTO.getPrincipalUserId());
         List<Long> relicIds = normalizeRelicIds(createDTO.getRelicIds());
         if (relicIds.isEmpty()) {
-            throw new BusinessException("Please select relics to transfer");
+            throw new BusinessException("请选择需要转存的文物");
         }
 
         List<Relic> relics = relicMapper.selectBatchIds(relicIds);
         if (relics.size() != relicIds.size()) {
-            throw new BusinessException("Some relics do not exist or have been deleted");
+            throw new BusinessException("部分文物不存在或已被删除");
         }
 
         Set<Long> activeRelicIds = relicTransferTaskMapper.selectList(
@@ -150,16 +150,16 @@ public class TransferTaskServiceImpl implements TransferTaskService {
         RelicTransferTask task = getTaskOrThrow(id);
         Long currentUserId = SecurityUtils.getUserId();
         if (!Objects.equals(task.getPrincipalUserId(), currentUserId)) {
-            throw new BusinessException("Only the assigned researcher can confirm this transfer task");
+            throw new BusinessException("只有被指派的研究员可以确认转存任务");
         }
         if (!RelicBusinessRuleUtils.ACTIVE_TRANSFER_TASK_STATUSES.contains(task.getTaskStatus())) {
-            throw new BusinessException("The transfer task has already been completed");
+            throw new BusinessException("该转存任务已完成，无需重复确认");
         }
 
         Relic relic = getRelicOrThrow(task.getRelicId());
         RelicBusinessRuleUtils.validateTransferCreatable(relic, task.getTargetLocationCode());
         if (!Objects.equals(task.getFromLocationCode(), relic.getStorageLocationCode())) {
-            throw new BusinessException("The current relic location has changed. Please refresh and create a new transfer task");
+            throw new BusinessException("当前文物库位已变化，请刷新后重新发起转存任务");
         }
 
         LocalDateTime completeTime = LocalDateTime.now();
@@ -175,7 +175,7 @@ public class TransferTaskServiceImpl implements TransferTaskService {
     private void requireDispatcherRole() {
         Long currentUserId = SecurityUtils.getUserId();
         if (!canDispatchTransfer(loadRoleCodes(currentUserId))) {
-            throw new BusinessException("Only administrators and senior researchers can create transfer tasks");
+            throw new BusinessException("只有系统管理员和高级研究员可以发起转存任务");
         }
     }
 
@@ -208,8 +208,8 @@ public class TransferTaskServiceImpl implements TransferTaskService {
     private void validateRelicTransferTaskCreatable(Relic relic, String targetLocationCode, Set<Long> activeRelicIds) {
         RelicBusinessRuleUtils.validateTransferCreatable(relic, targetLocationCode);
         if (activeRelicIds.contains(relic.getId()) || hasActiveTask(relic.getId())) {
-            String identity = StringUtils.hasText(relic.getRelicNo()) ? relic.getRelicNo() : "Current relic";
-            throw new BusinessException(identity + " already has an unfinished transfer task");
+            String identity = StringUtils.hasText(relic.getRelicNo()) ? relic.getRelicNo() : "当前文物";
+            throw new BusinessException(identity + " 已存在未完成的转存任务");
         }
     }
 
@@ -224,7 +224,7 @@ public class TransferTaskServiceImpl implements TransferTaskService {
     private Relic getRelicOrThrow(Long relicId) {
         Relic relic = relicMapper.selectById(relicId);
         if (relic == null) {
-            throw new BusinessException("Relic does not exist");
+            throw new BusinessException("文物不存在");
         }
         return relic;
     }
@@ -232,7 +232,7 @@ public class TransferTaskServiceImpl implements TransferTaskService {
     private RelicTransferTask getTaskOrThrow(Long id) {
         RelicTransferTask task = relicTransferTaskMapper.selectById(id);
         if (task == null) {
-            throw new BusinessException("Transfer task does not exist");
+            throw new BusinessException("转存任务不存在");
         }
         return task;
     }
@@ -244,7 +244,7 @@ public class TransferTaskServiceImpl implements TransferTaskService {
             return;
         }
         if (!Objects.equals(task.getPrincipalUserId(), currentUserId)) {
-            throw new BusinessException("You do not have permission to view this transfer task");
+            throw new BusinessException("没有权限查看该转存任务");
         }
     }
 
@@ -261,7 +261,7 @@ public class TransferTaskServiceImpl implements TransferTaskService {
                 transferTime,
                 StringUtils.hasText(previousLocationCode) ? previousLocationCode : "UNKNOWN",
                 task.getTargetLocationCode(),
-                StringUtils.hasText(task.getTransferReason()) ? task.getTransferReason() : "No reason",
+                StringUtils.hasText(task.getTransferReason()) ? task.getTransferReason() : "未填写原因",
                 task.getTaskNo())
         ));
         relic.setUpdateBy(currentUserId);
@@ -277,14 +277,14 @@ public class TransferTaskServiceImpl implements TransferTaskService {
 
     private SysUser resolvePrincipalUser(Long principalUserId) {
         if (principalUserId == null) {
-            throw new BusinessException("Principal researcher is required");
+            throw new BusinessException("负责人不能为空");
         }
         SysUser principal = sysUserMapper.selectById(principalUserId);
         if (principal == null || !"ENABLED".equals(principal.getStatus())) {
-            throw new BusinessException("Selected principal researcher does not exist or has been disabled");
+            throw new BusinessException("所选负责人不存在或已被停用");
         }
         if (!loadRoleCodes(principalUserId).contains("researcher")) {
-            throw new BusinessException("Transfer task principal must be a researcher");
+            throw new BusinessException("转存任务负责人必须选择研究员");
         }
         return principal;
     }
@@ -351,14 +351,14 @@ public class TransferTaskServiceImpl implements TransferTaskService {
 
     private String resolveCurrentUserName(Long userId) {
         if (userId == null) {
-            return "Current User";
+            return "当前用户";
         }
         return resolveDisplayName(sysUserMapper.selectById(userId));
     }
 
     private String resolveDisplayName(SysUser user) {
         if (user == null) {
-            return "Current User";
+            return "当前用户";
         }
         if (StringUtils.hasText(user.getRealName())) {
             return user.getRealName().trim();
@@ -369,6 +369,6 @@ public class TransferTaskServiceImpl implements TransferTaskService {
         if (StringUtils.hasText(user.getUsername())) {
             return user.getUsername().trim();
         }
-        return "Current User";
+        return "当前用户";
     }
 }

@@ -18,4 +18,5 @@ public class RelicPageQueryDTO {
     private String preservationStatusCode;
     private String currentStatus;
     private String storageLocationCode;
+    private Boolean excludeActiveTransferTask;
 }

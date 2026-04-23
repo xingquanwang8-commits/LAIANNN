@@ -89,7 +89,9 @@ public class InventoryServiceImpl implements InventoryService {
             Wrappers.<Relic>lambdaQuery()
                 .and(StringUtils.hasText(queryDTO.getKeyword()),
                     wrapper -> wrapper.like(Relic::getRelicNo, queryDTO.getKeyword())
-                        .or().like(Relic::getName, queryDTO.getKeyword()))
+                        .or().like(Relic::getName, queryDTO.getKeyword())
+                        .or().like(Relic::getEra, queryDTO.getKeyword())
+                        .or().like(Relic::getSource, queryDTO.getKeyword()))
                 .eq(StringUtils.hasText(queryDTO.getCategoryCode()), Relic::getCategoryCode, queryDTO.getCategoryCode())
                 .eq(StringUtils.hasText(queryDTO.getMaterialCode()), Relic::getMaterialCode, queryDTO.getMaterialCode())
                 .eq(StringUtils.hasText(queryDTO.getStorageLocationCode()), Relic::getStorageLocationCode, queryDTO.getStorageLocationCode())
@@ -252,7 +254,7 @@ public class InventoryServiceImpl implements InventoryService {
     private InventoryTask getTaskOrThrow(Long id) {
         InventoryTask task = inventoryTaskMapper.selectById(id);
         if (task == null) {
-            throw new BusinessException("Inventory task does not exist");
+            throw new BusinessException("盘点任务不存在");
         }
         return task;
     }
@@ -300,21 +302,21 @@ public class InventoryServiceImpl implements InventoryService {
 
     private SysUser resolvePrincipalUser(Long principalUserId) {
         if (principalUserId == null) {
-            throw new BusinessException("Principal researcher is required");
+            throw new BusinessException("负责人不能为空");
         }
         SysUser principal = sysUserMapper.selectById(principalUserId);
         if (principal == null || !"ENABLED".equals(principal.getStatus())) {
-            throw new BusinessException("Selected principal researcher does not exist or has been disabled");
+            throw new BusinessException("所选负责人不存在或已被停用");
         }
         List<String> principalRoleCodes = loadRoleCodes(principalUserId);
         if (!principalRoleCodes.contains("researcher")) {
-            throw new BusinessException("Inventory task principal must be a researcher");
+            throw new BusinessException("盘点任务负责人必须选择研究员");
         }
 
         Long currentUserId = SecurityUtils.getUserId();
         List<String> currentRoleCodes = loadRoleCodes(currentUserId);
         if (!canDispatchToOtherResearchers(currentRoleCodes) && !Objects.equals(currentUserId, principalUserId)) {
-            throw new BusinessException("Researchers can only assign inventory tasks to themselves");
+            throw new BusinessException("研究员只能给自己发起盘点任务");
         }
         return principal;
     }
@@ -377,6 +379,6 @@ public class InventoryServiceImpl implements InventoryService {
         if (StringUtils.hasText(user.getUsername())) {
             return user.getUsername().trim();
         }
-        return "Current User";
+        return "当前用户";
     }
 }

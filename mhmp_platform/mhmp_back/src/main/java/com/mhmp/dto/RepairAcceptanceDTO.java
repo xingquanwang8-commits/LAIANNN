@@ -9,10 +9,10 @@ import java.time.LocalDateTime;
 @Data
 public class RepairAcceptanceDTO {
 
-    @NotBlank(message = "acceptanceResult is required")
+    @NotBlank(message = "验收结果不能为空")
     private String acceptanceResult;
 
-    @NotNull(message = "acceptanceTime is required")
+    @NotNull(message = "验收时间不能为空")
     private LocalDateTime acceptanceTime;
 
     private String acceptanceRemark;

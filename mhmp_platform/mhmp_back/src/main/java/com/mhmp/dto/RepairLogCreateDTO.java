@@ -11,20 +11,20 @@ import java.util.List;
 @Data
 public class RepairLogCreateDTO {
 
-    @NotBlank(message = "stepName is required")
+    @NotBlank(message = "步骤名称不能为空")
     private String stepName;
 
-    @NotBlank(message = "operationContent is required")
+    @NotBlank(message = "操作内容不能为空")
     private String operationContent;
 
     private String materialsUsed;
 
     private String operatorName;
 
-    @NotNull(message = "logTime is required")
+    @NotNull(message = "记录时间不能为空")
     private LocalDateTime logTime;
 
-    @NotBlank(message = "progressStatus is required")
+    @NotBlank(message = "进度状态不能为空")
     private String progressStatus;
 
     private String remark;

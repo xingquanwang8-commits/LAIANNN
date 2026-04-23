@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 public class RepairApproveDTO {
 
-    @NotBlank(message = "approveResult is required")
+    @NotBlank(message = "审批结果不能为空")
     private String approveResult;
 
     private String approveRemark;

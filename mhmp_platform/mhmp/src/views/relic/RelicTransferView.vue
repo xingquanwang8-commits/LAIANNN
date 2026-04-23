@@ -7,12 +7,13 @@
             <div class="overview-panel__eyebrow">MHMP Transfer Dispatch</div>
             <h2 class="overview-panel__title">发起转存</h2>
             <p class="overview-panel__desc">
-              由系统管理员或高级研究员发起馆内转存任务，选择目标库位并指派研究员执行。任务下发后，研究员需在“我的转存”中确认完成，系统才会真正更新文物库位。
+              由系统管理员或高级研究员发起馆内转存任务，选择目标库位并指派研究员执行。任务下发后，
+              研究员需在“我的转存”中确认完成，系统才会正式更新文物库位。
             </p>
           </div>
           <div class="overview-panel__meta">
             <span class="overview-chip">可派发文物 {{ pageData.total }} 件</span>
-            <span class="overview-chip overview-chip--accent">批量已选 {{ selectedRows.length }} 件</span>
+            <span class="overview-chip overview-chip--accent">当前已选 {{ selectedRows.length }} 件</span>
           </div>
         </div>
 
@@ -30,7 +31,7 @@
           <article class="metric-card">
             <span class="metric-card__label">保存状态类型</span>
             <strong class="metric-card__value">{{ preservationCoverageCount }}</strong>
-            <div class="metric-card__meta">便于识别是否涉及需重点关注的文物对象。</div>
+            <div class="metric-card__meta">便于识别是否涉及需要重点关注的文物对象。</div>
           </article>
           <article class="metric-card">
             <span class="metric-card__label">可选研究员</span>
@@ -44,7 +45,7 @@
     <section class="page-card page-card--section">
       <PageHeader
         title="转存对象检索"
-        description="按文物编号、类别和当前库位筛选可发起转存的文物，支持单件派发和批量派发。"
+        description="按文物编号、名称、年代、来源、类别、材质、保存状态和当前库位筛选可发起转存的文物，支持单件派发和批量派发。"
       >
         <template #extra>
           <div class="query-toolbar__actions">
@@ -65,13 +66,38 @@
 
       <div class="query-toolbar">
         <el-form :inline="true" :model="queryForm" class="query-form query-form--single-line">
-          <el-form-item label="关键字" class="query-form__keyword">
-            <el-input v-model="queryForm.keyword" placeholder="文物编号 / 名称" clearable @keyup.enter="handleSearch" />
+          <el-form-item label="关键词" class="query-form__keyword">
+            <el-input
+              v-model="queryForm.keyword"
+              placeholder="文物编号 / 名称 / 年代 / 来源"
+              clearable
+              @keyup.enter="handleSearch"
+            />
           </el-form-item>
           <el-form-item label="文物类别">
             <el-select v-model="queryForm.categoryCode" clearable placeholder="全部类别">
               <el-option
                 v-for="item in categoryOptions"
+                :key="item.itemValue"
+                :label="item.itemLabel"
+                :value="item.itemValue"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="材质">
+            <el-select v-model="queryForm.materialCode" clearable placeholder="全部材质">
+              <el-option
+                v-for="item in materialOptions"
+                :key="item.itemValue"
+                :label="item.itemLabel"
+                :value="item.itemValue"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="保存状态">
+            <el-select v-model="queryForm.preservationStatusCode" clearable placeholder="全部保存状态">
+              <el-option
+                v-for="item in preservationOptions"
                 :key="item.itemValue"
                 :label="item.itemLabel"
                 :value="item.itemValue"
@@ -101,7 +127,7 @@
         <div>
           <div class="list-section__title">可派发转存文物</div>
           <div class="list-section__desc">
-            当前展示 {{ currentPageCount }} 件文物，既可逐件发起转存，也可开启批量模式统一派发给同一位研究员。
+            当前展示 {{ currentPageCount }} 件文物，列表已自动排除尚未完成转存任务的文物，避免重复派发。
           </div>
         </div>
       </div>
@@ -129,10 +155,13 @@
           </template>
         </el-table-column>
         <el-table-column label="类别" min-width="120">
-          <template #default="{ row }">{{ resolveDictLabel(categoryOptions, row.categoryCode) }}</template>
+          <template #default="{ row }">{{ resolveDictLabel(categoryOptions, row.categoryCode) || '--' }}</template>
+        </el-table-column>
+        <el-table-column label="材质" min-width="120">
+          <template #default="{ row }">{{ resolveDictLabel(materialOptions, row.materialCode) || '--' }}</template>
         </el-table-column>
         <el-table-column label="当前库位" min-width="130">
-          <template #default="{ row }">{{ resolveDictLabel(locationOptions, row.storageLocationCode) }}</template>
+          <template #default="{ row }">{{ resolveDictLabel(locationOptions, row.storageLocationCode) || '--' }}</template>
         </el-table-column>
         <el-table-column label="更新时间" min-width="150">
           <template #default="{ row }">{{ formatDateTime(row.updateTime) }}</template>
@@ -169,14 +198,13 @@
               <div class="overview-panel__eyebrow">Transfer Dispatch</div>
               <h3 class="overview-panel__title transfer-dialog-overview__title">{{ dialogTitle }}</h3>
               <p class="overview-panel__desc">
-                选择目标库位和负责人后提交，系统会创建转存任务并下发给研究员。只有研究员在“我的转存”中确认完成后，文物库位才会正式更新。
+                选择目标库位和负责人后提交，系统会创建转存任务并下发给研究员。只有研究员在“我的转存”中确认完成后，
+                文物库位才会正式更新。
               </p>
             </div>
             <div class="overview-panel__meta">
               <span class="overview-chip">待派发 {{ selectedRelics.length }} 件</span>
-              <span class="overview-chip overview-chip--accent">
-                负责人 {{ selectedPrincipalLabel || '待选择' }}
-              </span>
+              <span class="overview-chip overview-chip--accent">负责人 {{ selectedPrincipalLabel || '待选择' }}</span>
             </div>
           </div>
         </div>
@@ -312,8 +340,11 @@ const queryForm = reactive({
   pageSize: 10,
   keyword: '',
   categoryCode: '',
+  materialCode: '',
+  preservationStatusCode: '',
   storageLocationCode: '',
-  currentStatus: 'IN_STOCK'
+  currentStatus: 'IN_STOCK',
+  excludeActiveTransferTask: true
 })
 
 const formData = reactive({
@@ -328,6 +359,7 @@ const rules = {
 }
 
 const categoryOptions = computed(() => dictStore.itemsMap.relic_category || [])
+const materialOptions = computed(() => dictStore.itemsMap.relic_material || [])
 const locationOptions = computed(() => dictStore.itemsMap.storage_location || [])
 const preservationOptions = computed(() => dictStore.itemsMap.preservation_status || [])
 const currentPageCount = computed(() => pageData.value.records.length)
@@ -346,19 +378,22 @@ const selectedPrincipalLabel = computed(() =>
 )
 const transferCheck = computed(() =>
   analyzeRelicSelection(
-    selectedRelics.value,
-    (relic) => checkTransferRelicEligibility(relic, formData.targetLocationCode)
+    selectedRelics.value.map((item) => ({
+      ...item,
+      targetLocationCode: formData.targetLocationCode
+    })),
+    checkTransferRelicEligibility
   )
 )
 const transferCheckTitle = computed(() => (
-  transferCheck.value.allPassed ? '转存任务前置校验已通过' : '转存任务前置校验未通过'
+  transferCheck.value.allPassed ? '转存前置校验已通过' : '转存前置校验未通过'
 ))
 const transferCheckSummary = computed(() => {
   if (!transferCheck.value.totalCount) {
     return ''
   }
   if (transferCheck.value.allPassed) {
-    return `已选 ${transferCheck.value.totalCount} 件文物，均符合馆内转存条件，可直接创建转存任务。`
+    return `已选 ${transferCheck.value.totalCount} 件文物，均符合转存条件，可直接提交。`
   }
   if (!formData.targetLocationCode) {
     return `已选 ${transferCheck.value.totalCount} 件文物，请先选择目标库位，系统会同步校验是否与当前库位冲突。`
@@ -442,6 +477,7 @@ async function handleSubmit() {
     ElMessage.warning(transferCheck.value.invalidItems[0]?.message || '当前选中文物不符合转存条件')
     return
   }
+
   saving.value = true
   try {
     if (selectedRelics.value.length > 1) {
@@ -497,8 +533,11 @@ function handleReset() {
     pageSize: 10,
     keyword: '',
     categoryCode: '',
+    materialCode: '',
+    preservationStatusCode: '',
     storageLocationCode: '',
-    currentStatus: 'IN_STOCK'
+    currentStatus: 'IN_STOCK',
+    excludeActiveTransferTask: true
   })
   clearSelection()
   loadPage()
@@ -544,7 +583,7 @@ async function handleQuickCreateFromRoute() {
   await openTransferDialog(relic, { quickCreate: true })
 }
 
-dictStore.ensureMultipleItems(['relic_category', 'storage_location', 'preservation_status'])
+dictStore.ensureMultipleItems(['relic_category', 'relic_material', 'storage_location', 'preservation_status'])
 watch(
   () => route.fullPath,
   () => {
@@ -559,6 +598,26 @@ loadPage()
 <style scoped>
 .transfer-metrics {
   grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.list-section__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.list-section__title {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.list-section__desc {
+  margin-top: 8px;
+  color: var(--text-second);
+  font-size: 13px;
+  line-height: 1.8;
 }
 
 .transfer-name-cell {
@@ -600,6 +659,15 @@ loadPage()
   gap: 8px;
   flex-wrap: wrap;
   color: var(--text-second);
+}
+
+.table-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 18px;
 }
 
 .table-selection-tip {

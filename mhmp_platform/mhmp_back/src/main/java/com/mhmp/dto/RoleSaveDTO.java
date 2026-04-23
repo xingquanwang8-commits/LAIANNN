@@ -6,10 +6,10 @@ import lombok.Data;
 @Data
 public class RoleSaveDTO {
 
-    @NotBlank(message = "roleName is required")
+    @NotBlank(message = "角色名称不能为空")
     private String roleName;
 
-    @NotBlank(message = "roleCode is required")
+    @NotBlank(message = "角色编码不能为空")
     private String roleCode;
 
     private String status;

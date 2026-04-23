@@ -7,13 +7,13 @@
             <div class="overview-panel__eyebrow">MHMP Return Desk</div>
             <h2 class="overview-panel__title">出库归还</h2>
             <p class="overview-panel__desc">
-              集中处理已审批出库单的归还登记，实时查看待归还与已归还分布，并在详情抽屉中核对用途、
-              去向、审批意见和文物状态快照，保证出库业务形成完整闭环。
+              集中处理当前经手人负责的已审批出库单归还登记，实时查看待归还与已归还分布，
+              并在详情抽屉中核对用途、去向、审批意见和文物状态快照，保证出库业务形成完整闭环。
             </p>
           </div>
           <div class="overview-panel__meta">
             <span class="overview-chip">当前筛选 {{ pageData.total }} 条</span>
-            <span class="overview-chip overview-chip--accent">默认聚焦待归还业务</span>
+            <span class="overview-chip overview-chip--accent">默认仅展示本人负责的归还业务</span>
           </div>
         </div>
 
@@ -45,7 +45,7 @@
     <section class="page-card page-card--section">
       <PageHeader
         title="归还任务检索"
-        description="通过状态切换和关键字检索快速定位待归还或已归还的出库业务记录。"
+        description="通过状态切换和关键字检索快速定位当前经手人负责的待归还或已归还出库业务记录。"
       />
 
       <div class="query-toolbar query-toolbar--approval">
@@ -77,7 +77,7 @@
         <div>
           <div class="list-section__title">归还记录</div>
           <div class="list-section__desc">
-            当前展示 {{ currentPageCount }} 条归还记录，可直接在列表或详情抽屉内完成归还登记。
+            当前展示 {{ currentPageCount }} 条本人经手的归还记录，可直接在列表或详情抽屉内完成归还登记。
           </div>
         </div>
       </div>
@@ -269,7 +269,8 @@ const queryForm = reactive({
   pageNum: 1,
   pageSize: 10,
   keyword: '',
-  approveStatus: normalizeApproveStatus(typeof route.query.approveStatus === 'string' ? route.query.approveStatus : 'APPROVED')
+  approveStatus: normalizeApproveStatus(typeof route.query.approveStatus === 'string' ? route.query.approveStatus : 'APPROVED'),
+  onlyCurrentHandler: true
 })
 
 const statusOptions = computed(() => dictStore.itemsMap.outbound_status || [])
@@ -311,7 +312,8 @@ function handleReset() {
     pageNum: 1,
     pageSize: 10,
     keyword: '',
-    approveStatus: 'APPROVED'
+    approveStatus: 'APPROVED',
+    onlyCurrentHandler: true
   })
   loadData()
 }

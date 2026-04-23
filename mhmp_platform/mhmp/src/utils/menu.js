@@ -1,4 +1,19 @@
 const SHORTCUT_EXCLUDED_PATHS = new Set(['/dashboard', '/profile'])
+const PREFERRED_SHORTCUT_PATHS = [
+  '/relic/list',
+  '/inventory/inbound',
+  '/inventory/inbound/approve',
+  '/inventory/outbound/apply',
+  '/inventory/outbound/approve',
+  '/inventory/outbound/return',
+  '/inventory/transfer',
+  '/inventory/transfer/my',
+  '/inventory/task',
+  '/inventory/task/my',
+  '/repair/apply',
+  '/repair/process',
+  '/repair/acceptance'
+]
 
 export function getFirstAccessiblePath(menus = []) {
   for (const menu of menus) {
@@ -18,7 +33,12 @@ export function flattenMenus(menus = []) {
 }
 
 export function collectShortcutMenus(menus = [], limit = 8) {
-  return flattenMenus(menus)
+  const allMenus = flattenMenus(menus)
     .filter((menu) => menu.path && !SHORTCUT_EXCLUDED_PATHS.has(menu.path) && (!menu.children || menu.children.length === 0))
-    .slice(0, limit)
+  const menuMap = new Map(allMenus.map((menu) => [menu.path, menu]))
+  const preferredMenus = PREFERRED_SHORTCUT_PATHS
+    .map((path) => menuMap.get(path))
+    .filter(Boolean)
+  const fallbackMenus = allMenus.filter((menu) => !PREFERRED_SHORTCUT_PATHS.includes(menu.path))
+  return [...preferredMenus, ...fallbackMenus].slice(0, limit)
 }

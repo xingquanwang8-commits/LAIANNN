@@ -525,6 +525,7 @@ async function handleSaveDetail(row) {
   })
   ElMessage.success('盘点明细已保存')
   await openDetail(detail.value.id)
+  await loadTasks()
 }
 
 async function handleSubmitTask() {

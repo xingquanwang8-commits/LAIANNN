@@ -9,6 +9,9 @@ import com.mhmp.entity.RelicOutboundOrder;
 import com.mhmp.mapper.RelicMapper;
 import com.mhmp.mapper.RelicOutboundDetailMapper;
 import com.mhmp.mapper.RelicOutboundOrderMapper;
+import com.mhmp.mapper.SysRoleMapper;
+import com.mhmp.mapper.SysUserMapper;
+import com.mhmp.mapper.SysUserRoleMapper;
 import com.mhmp.service.BusinessNoService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,6 +42,12 @@ class OutboundServiceImplTest {
     private RelicMapper relicMapper;
     @Mock
     private BusinessNoService businessNoService;
+    @Mock
+    private SysUserMapper sysUserMapper;
+    @Mock
+    private SysRoleMapper sysRoleMapper;
+    @Mock
+    private SysUserRoleMapper sysUserRoleMapper;
 
     private OutboundServiceImpl outboundService;
 
@@ -48,7 +57,10 @@ class OutboundServiceImplTest {
             relicOutboundOrderMapper,
             relicOutboundDetailMapper,
             relicMapper,
-            businessNoService
+            businessNoService,
+            sysUserMapper,
+            sysRoleMapper,
+            sysUserRoleMapper
         );
         LoginUser loginUser = LoginUser.builder()
             .id(101L)
@@ -103,6 +115,7 @@ class OutboundServiceImplTest {
         RelicOutboundOrder order = new RelicOutboundOrder();
         order.setId(2L);
         order.setApproveStatus("APPROVED");
+        order.setHandlerUserId(101L);
 
         RelicOutboundDetail detail = new RelicOutboundDetail();
         detail.setOrderId(2L);

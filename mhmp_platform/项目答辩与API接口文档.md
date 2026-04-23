@@ -3,7 +3,7 @@
 ## 文档说明
 - 文档用途：用于毕业答辩时快速理解本系统的技术栈、架构设计、业务模块和接口清单。
 - 适用范围：`mhmp` 前端 + `mhmp_back` 后端。
-- 基线版本：基于当前仓库代码整理，更新时间为 2026-04-20。
+- 基线版本：基于当前仓库代码整理，更新时间为 2026-04-23。
 - 维护规则：后续只要系统发生以下变化，必须同步更新本文档：
   - 新增、删除、重命名接口
   - 修改权限码、菜单结构、登录鉴权方式
@@ -147,6 +147,7 @@ mhmp_platform/
 - `researcher` / 研究员：负责建档、入库登记、出库申请、转存确认、盘点、修复申请和修复过程记录，不再保留审批类权限
 - 盘点任务支持“高级研究员发起并指派研究员负责人”，研究员进入“我的盘点”页面处理自己负责的盘点任务
 - 转存任务支持“系统管理员/高级研究员发起并指派研究员执行”，研究员进入“我的转存”页面确认完成任务
+- 出库申请中的经手人改为从“研究员”账号中选择；出库归还页默认仅展示当前经手人本人负责的出库单
   - `docent` / 讲解员：保持原只读讲解类权限不变
 - 演示库默认账号 `researcher` 已迁移为 `senior_researcher`，便于直接演示审批与修复验收流程
 - 演示数据额外预置了 `senior_researcher02`、`senior_researcher03`、`senior_researcher04` 三个高级研究员账号，便于多账号分角色演示审批链路
@@ -215,9 +216,11 @@ mhmp_platform/
 
 ### 7.2 文物业务相关
 - `relic`：文物主档案
+- `relic` 补充说明：文物类别编码已统一规范为 `BRONZE`、`PAINTING`、`JADE` 等标准值，旧的兼容编码 `BRONZE_WARE`、`PAINTING_CALLIGRAPHY`、`JADE_ARTIFACT` 已在当前库中停用并做数据归并
 - `relic_attachment`：文物附件
 - `relic_inbound_order` / `relic_inbound_detail`：入库单及明细
 - `relic_outbound_order` / `relic_outbound_detail`：出库单及明细
+- `relic_outbound_order` 补充说明：新增 `handler_user_id`，用于保存真实经手人用户 ID；`handler_name` 继续保留为展示名快照，便于列表和日志直接展示
 - `relic_transfer_task`：馆内转存任务，记录派发人、研究员负责人、目标库位和确认结果
 - `inventory_task` / `inventory_task_detail`：盘点任务及明细，其中 `inventory_task.principal_user_id` 记录负责人用户 ID，`principal_name` 记录负责人展示名快照
 - `repair_task`：修复任务
@@ -363,7 +366,7 @@ mhmp_platform/
 ### 9.4 文物管理
 | 方法 | 路径 | 权限 | 说明 | 关键参数 |
 | --- | --- | --- | --- | --- |
-| GET | `/api/relic/page` | `relic:list:view` / `relic:view` | 文物分页查询 | `pageNum`、`pageSize`、`keyword`、`categoryCode`、`materialCode`、`preservationStatusCode`、`currentStatus`、`storageLocationCode` |
+| GET | `/api/relic/page` | `relic:list:view` / `relic:view` | 文物分页查询 | `pageNum`、`pageSize`、`keyword`、`categoryCode`、`materialCode`、`preservationStatusCode`、`currentStatus`、`storageLocationCode`、`excludeActiveTransferTask` |
 | GET | `/api/relic/{id}` | `relic:detail:view` 等 | 文物详情 | 路径参数 `id` |
 | GET | `/api/relic/{id}/attachments` | `relic:detail:view` 等 | 文物附件列表 | 路径参数 `id` |
 | POST | `/api/relic` | `relic:add` | 新增文物 | `relicNo`、`name`、`categoryCode`、`materialCode`、`era`、`source`、`storageLocationCode`、`preservationStatusCode`、`currentStatus`、`protectionLevel`、`storageCondition`、`attentionNote`、`description`、`note`、`imageUrl`、`appraisalReportUrl`、`attachments` |
@@ -393,9 +396,10 @@ mhmp_platform/
 #### 9.5.2 出库
 | 方法 | 路径 | 权限 | 说明 | 关键参数 |
 | --- | --- | --- | --- | --- |
-| GET | `/api/outbound/page` | `inventory:outbound:apply:view` / `inventory:outbound:approve:view` / `inventory:outbound:return:view` | 出库单分页 | `pageNum`、`pageSize`、`keyword`、`approveStatus`、`applyUserId` |
+| GET | `/api/outbound/page` | `inventory:outbound:apply:view` / `inventory:outbound:approve:view` / `inventory:outbound:return:view` | 出库单分页 | `pageNum`、`pageSize`、`keyword`、`approveStatus`、`applyUserId`、`onlyCurrentHandler` |
 | GET | `/api/outbound/{id}` | 同上 | 出库单详情 | 路径参数 `id` |
-| POST | `/api/outbound` | `inventory:outbound:submit` | 新建出库申请 | `purpose`、`destination`、`handlerName`、`outboundTime`、`remark`、`relicIds` |
+| GET | `/api/outbound/handlers` | `inventory:outbound:submit` | 获取可选出库经手人 | 无，返回可选研究员列表 |
+| POST | `/api/outbound` | `inventory:outbound:submit` | 新建出库申请 | `purpose`、`destination`、`handlerUserId`、`outboundTime`、`remark`、`relicIds` |
 | POST | `/api/outbound/approve/{id}` | `inventory:outbound:approve` | 审批通过 | `approveRemark` |
 | POST | `/api/outbound/reject/{id}` | `inventory:outbound:reject` | 审批驳回 | `approveRemark` |
 | POST | `/api/outbound/return/{id}` | `inventory:outbound:return` | 文物归还登记 | `returnTime`、`remark` |
@@ -421,7 +425,10 @@ mhmp_platform/
 补充说明：
 - 高级研究员和系统管理员可以为任意“研究员”发起盘点任务。
 - 研究员只能为自己发起盘点任务，前端“我的盘点”页面通过 `principalUserId = 当前用户ID` 过滤任务。
+- 盘点任务在首次保存盘点明细后会自动从 `CREATED` 变为 `IN_PROGRESS`，提交完成后变为 `COMPLETED`。
 - 系统管理员和高级研究员可以发起转存任务，并将任务派发给研究员执行。
+- 发起转存时，前端会基于 `/api/relic/page` 的 `excludeActiveTransferTask=true` 过滤掉已存在未完成转存任务的文物，避免重复派发。
+- 出库归还页默认带 `onlyCurrentHandler=true`，只展示当前登录经手人本人负责的出库单。
 - 研究员在“我的转存”页面确认任务完成后，系统才会正式更新文物库位；当前版本确认时不再要求上传照片。
 
 ### 9.6 修复管理
@@ -458,10 +465,10 @@ mhmp_platform/
 4. 文物状态更新为在库，库位生效
 
 ### 10.3 出库流程
-1. 选择文物并填写出库用途、去向
+1. 选择文物并填写出库用途、去向，同时从研究员列表中选择经手人
 2. 创建出库申请
 3. 审批通过或驳回
-4. 如已出库，后续执行归还登记
+4. 如已出库，由对应经手人在“出库归还”页面登记归还，归还后文物状态回写为在库
 
 ### 10.4 盘点流程
 1. 高级研究员或研究员针对指定库位发起盘点任务，并选择研究员负责人
@@ -472,9 +479,10 @@ mhmp_platform/
 ### 10.5 转存流程
 1. 系统管理员或高级研究员选择文物并发起转存任务
 2. 选择目标库位，并指派研究员负责人
-3. 研究员在“我的转存”页面查看自己负责的转存任务
-4. 实际完成转存后，研究员点击“确认转存”完成任务闭环
-5. 系统正式更新文物库位，并在文物详情时间线中记录转存结果
+3. 系统会自动排除已存在未完成转存任务的文物，避免重复派发
+4. 研究员在“我的转存”页面查看自己负责的转存任务
+5. 实际完成转存后，研究员点击“确认转存”完成任务闭环
+6. 系统正式更新文物库位，并在文物详情时间线中记录转存结果
 
 ### 10.6 修复流程
 1. 从待修复文物中发起修复申请

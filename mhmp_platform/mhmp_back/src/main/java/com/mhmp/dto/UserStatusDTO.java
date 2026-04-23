@@ -6,6 +6,6 @@ import lombok.Data;
 @Data
 public class UserStatusDTO {
 
-    @NotBlank(message = "status is required")
+    @NotBlank(message = "状态不能为空")
     private String status;
 }

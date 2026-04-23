@@ -17,7 +17,8 @@ public class OutboundCreateDTO {
     @NotBlank(message = "去向不能为空")
     private String destination;
 
-    private String handlerName;
+    @NotNull(message = "经手人不能为空")
+    private Long handlerUserId;
 
     @NotNull(message = "申请时间不能为空")
     private LocalDateTime outboundTime;

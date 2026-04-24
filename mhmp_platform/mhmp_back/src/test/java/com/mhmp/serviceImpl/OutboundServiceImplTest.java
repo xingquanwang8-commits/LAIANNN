@@ -6,6 +6,9 @@ import com.mhmp.dto.OutboundReturnDTO;
 import com.mhmp.entity.Relic;
 import com.mhmp.entity.RelicOutboundDetail;
 import com.mhmp.entity.RelicOutboundOrder;
+import com.mhmp.entity.SysRole;
+import com.mhmp.entity.SysUser;
+import com.mhmp.entity.SysUserRole;
 import com.mhmp.mapper.RelicMapper;
 import com.mhmp.mapper.RelicOutboundDetailMapper;
 import com.mhmp.mapper.RelicOutboundOrderMapper;
@@ -13,6 +16,7 @@ import com.mhmp.mapper.SysRoleMapper;
 import com.mhmp.mapper.SysUserMapper;
 import com.mhmp.mapper.SysUserRoleMapper;
 import com.mhmp.service.BusinessNoService;
+import com.mhmp.vo.OutboundHandlerVO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -141,5 +145,40 @@ class OutboundServiceImplTest {
         verify(relicOutboundOrderMapper).updateById(order);
         verify(relicMapper).updateById(relic);
         verify(relicMapper, never()).selectById(12L);
+    }
+
+    @Test
+    void handlerOptionsShouldBeSortedByUsername() {
+        SysRole researcherRole = new SysRole();
+        researcherRole.setId(10L);
+
+        SysUserRole firstRelation = new SysUserRole();
+        firstRelation.setUserId(301L);
+        SysUserRole secondRelation = new SysUserRole();
+        secondRelation.setUserId(302L);
+
+        SysUser firstUser = new SysUser();
+        firstUser.setId(301L);
+        firstUser.setUsername("zulu_researcher");
+        firstUser.setRealName("Alpha User");
+        firstUser.setStatus("ENABLED");
+
+        SysUser secondUser = new SysUser();
+        secondUser.setId(302L);
+        secondUser.setUsername("alpha_researcher");
+        secondUser.setRealName("Zulu User");
+        secondUser.setStatus("ENABLED");
+
+        when(sysRoleMapper.findByRoleCode("researcher")).thenReturn(researcherRole);
+        when(sysUserRoleMapper.selectList(any())).thenReturn(List.of(firstRelation, secondRelation));
+        when(sysUserMapper.selectBatchIds(any())).thenReturn(List.of(firstUser, secondUser));
+
+        List<OutboundHandlerVO> handlers = outboundService.handlerOptions();
+
+        assertEquals(2, handlers.size());
+        assertEquals("alpha_researcher", handlers.get(0).getUsername());
+        assertEquals("Zulu User", handlers.get(0).getDisplayName());
+        assertEquals("zulu_researcher", handlers.get(1).getUsername());
+        assertEquals("Alpha User", handlers.get(1).getDisplayName());
     }
 }

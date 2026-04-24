@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 
@@ -328,7 +329,7 @@ public class TransferTaskServiceImpl implements TransferTaskService {
         return sysUserMapper.selectBatchIds(userIds).stream()
             .filter(Objects::nonNull)
             .filter(user -> "ENABLED".equals(user.getStatus()))
-            .sorted(Comparator.comparing(this::resolveDisplayName))
+            .sorted(Comparator.comparing(this::resolvePrincipalSortKey))
             .map(this::toPrincipalVO)
             .toList();
     }
@@ -370,5 +371,15 @@ public class TransferTaskServiceImpl implements TransferTaskService {
             return user.getUsername().trim();
         }
         return "当前用户";
+    }
+
+    private String resolvePrincipalSortKey(SysUser user) {
+        if (user == null) {
+            return "";
+        }
+        if (StringUtils.hasText(user.getUsername())) {
+            return user.getUsername().trim().toLowerCase(Locale.ROOT);
+        }
+        return resolveDisplayName(user).trim().toLowerCase(Locale.ROOT);
     }
 }

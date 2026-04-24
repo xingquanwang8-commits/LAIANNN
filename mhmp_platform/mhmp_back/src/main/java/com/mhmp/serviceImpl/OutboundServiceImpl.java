@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -132,7 +133,7 @@ public class OutboundServiceImpl implements OutboundService {
         return sysUserMapper.selectBatchIds(userIds).stream()
             .filter(Objects::nonNull)
             .filter(user -> "ENABLED".equals(user.getStatus()))
-            .sorted(Comparator.comparing(this::resolveDisplayName))
+            .sorted(Comparator.comparing(this::resolveUsernameSortKey))
             .map(this::toHandlerVO)
             .toList();
     }
@@ -373,6 +374,16 @@ public class OutboundServiceImpl implements OutboundService {
             return user.getUsername().trim();
         }
         return "当前用户";
+    }
+
+    private String resolveUsernameSortKey(SysUser user) {
+        if (user == null) {
+            return "";
+        }
+        if (StringUtils.hasText(user.getUsername())) {
+            return user.getUsername().trim().toLowerCase(Locale.ROOT);
+        }
+        return resolveDisplayName(user).trim().toLowerCase(Locale.ROOT);
     }
 
     private record OutboundOrderContext(List<RelicOutboundDetail> details, Map<Long, Relic> relicMap) {

@@ -66,6 +66,21 @@ export function resolveStatusTagType(status) {
   return tagTypeMap[status] || 'info'
 }
 
+export function formatUserOptionLabel(user, fallback = '--') {
+  if (!user) {
+    return fallback
+  }
+  const displayName = user.displayName || user.realName || user.nickName || user.username
+  const username = user.username?.trim()
+  if (!displayName) {
+    return fallback
+  }
+  if (!username || username === displayName) {
+    return displayName
+  }
+  return `${displayName}（${username}）`
+}
+
 export function flattenTree(nodes = []) {
   return nodes.flatMap((node) => [node, ...flattenTree(node.children || [])])
 }

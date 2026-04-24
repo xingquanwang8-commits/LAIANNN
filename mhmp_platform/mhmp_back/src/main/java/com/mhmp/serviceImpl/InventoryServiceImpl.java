@@ -40,6 +40,7 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -351,7 +352,7 @@ public class InventoryServiceImpl implements InventoryService {
         return sysUserMapper.selectBatchIds(userIds).stream()
             .filter(Objects::nonNull)
             .filter(user -> "ENABLED".equals(user.getStatus()))
-            .sorted(Comparator.comparing(this::resolvePrincipalDisplayName))
+            .sorted(Comparator.comparing(this::resolvePrincipalSortKey))
             .map(this::toPrincipalVO)
             .toList();
     }
@@ -380,5 +381,15 @@ public class InventoryServiceImpl implements InventoryService {
             return user.getUsername().trim();
         }
         return "当前用户";
+    }
+
+    private String resolvePrincipalSortKey(SysUser user) {
+        if (user == null) {
+            return "";
+        }
+        if (StringUtils.hasText(user.getUsername())) {
+            return user.getUsername().trim().toLowerCase(Locale.ROOT);
+        }
+        return resolvePrincipalDisplayName(user).trim().toLowerCase(Locale.ROOT);
     }
 }

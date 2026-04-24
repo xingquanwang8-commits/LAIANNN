@@ -236,12 +236,13 @@
             <el-select
               v-model="formData.principalUserId"
               placeholder="请选择负责执行转存的研究员"
+              filterable
               :loading="principalLoading"
             >
               <el-option
                 v-for="item in principalOptions"
                 :key="item.id"
-                :label="item.displayName"
+                :label="formatUserOptionLabel(item)"
                 :value="item.id"
               />
             </el-select>
@@ -307,7 +308,7 @@ import {
 import PageHeader from '@/components/common/PageHeader.vue'
 import { useDictStore } from '@/stores/dict'
 import { validateElForm } from '@/utils/form'
-import { formatDateTime, resolveDictLabel } from '@/utils/format'
+import { formatDateTime, formatUserOptionLabel, resolveDictLabel } from '@/utils/format'
 import {
   analyzeRelicSelection,
   checkTransferRelicEligibility,
@@ -373,9 +374,10 @@ const dialogTitle = computed(() => (
   selectedRelics.value.length > 1 ? `发起转存（已选 ${selectedRelics.value.length} 件）` : '发起转存'
 ))
 const selectedRelicPreview = computed(() => selectedRelics.value.slice(0, 4))
-const selectedPrincipalLabel = computed(() =>
-  principalOptions.value.find((item) => item.id === formData.principalUserId)?.displayName || ''
-)
+const selectedPrincipalLabel = computed(() => {
+  const principal = principalOptions.value.find((item) => item.id === formData.principalUserId)
+  return principal ? formatUserOptionLabel(principal, '') : ''
+})
 const transferCheck = computed(() =>
   analyzeRelicSelection(
     selectedRelics.value.map((item) => ({

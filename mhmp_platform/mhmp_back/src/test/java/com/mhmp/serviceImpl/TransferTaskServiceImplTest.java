@@ -5,13 +5,16 @@ import com.mhmp.dto.TransferTaskConfirmDTO;
 import com.mhmp.dto.TransferTaskCreateDTO;
 import com.mhmp.entity.Relic;
 import com.mhmp.entity.RelicTransferTask;
+import com.mhmp.entity.SysRole;
 import com.mhmp.entity.SysUser;
+import com.mhmp.entity.SysUserRole;
 import com.mhmp.mapper.RelicMapper;
 import com.mhmp.mapper.RelicTransferTaskMapper;
 import com.mhmp.mapper.SysRoleMapper;
 import com.mhmp.mapper.SysUserMapper;
 import com.mhmp.mapper.SysUserRoleMapper;
 import com.mhmp.service.BusinessNoService;
+import com.mhmp.vo.TransferTaskPrincipalVO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -139,6 +142,35 @@ class TransferTaskServiceImplTest {
         assertNotNull(task.getCompleteTime());
         verify(relicMapper).updateById(relic);
         verify(relicTransferTaskMapper).updateById(task);
+    }
+
+    @Test
+    void taskPrincipalsShouldBeSortedByUsername() {
+        mockLogin(900L, "admin");
+
+        SysRole researcherRole = new SysRole();
+        researcherRole.setId(10L);
+
+        SysUserRole firstRelation = new SysUserRole();
+        firstRelation.setUserId(301L);
+        SysUserRole secondRelation = new SysUserRole();
+        secondRelation.setUserId(302L);
+
+        SysUser firstUser = buildUser(301L, "zulu_researcher", "Alpha User");
+        SysUser secondUser = buildUser(302L, "alpha_researcher", "Zulu User");
+
+        when(sysUserMapper.selectRoleCodesByUserId(900L)).thenReturn(List.of("admin"));
+        when(sysRoleMapper.findByRoleCode("researcher")).thenReturn(researcherRole);
+        when(sysUserRoleMapper.selectList(any())).thenReturn(List.of(firstRelation, secondRelation));
+        when(sysUserMapper.selectBatchIds(any())).thenReturn(List.of(firstUser, secondUser));
+
+        List<TransferTaskPrincipalVO> principals = transferTaskService.taskPrincipals();
+
+        assertEquals(2, principals.size());
+        assertEquals("alpha_researcher", principals.get(0).getUsername());
+        assertEquals("Zulu User", principals.get(0).getDisplayName());
+        assertEquals("zulu_researcher", principals.get(1).getUsername());
+        assertEquals("Alpha User", principals.get(1).getDisplayName());
     }
 
     private void mockLogin(Long userId, String username) {

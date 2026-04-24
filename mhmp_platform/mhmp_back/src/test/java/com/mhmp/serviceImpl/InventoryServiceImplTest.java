@@ -127,14 +127,14 @@ class InventoryServiceImplTest {
 
         SysUser firstUser = new SysUser();
         firstUser.setId(301L);
-        firstUser.setUsername("researcher02");
-        firstUser.setRealName("李一");
+        firstUser.setUsername("zulu_researcher");
+        firstUser.setRealName("Alpha User");
         firstUser.setStatus("ENABLED");
 
         SysUser secondUser = new SysUser();
         secondUser.setId(302L);
-        secondUser.setUsername("researcher03");
-        secondUser.setRealName("王二");
+        secondUser.setUsername("alpha_researcher");
+        secondUser.setRealName("Zulu User");
         secondUser.setStatus("ENABLED");
 
         when(sysUserMapper.selectRoleCodesByUserId(200L)).thenReturn(List.of("senior_researcher"));
@@ -145,8 +145,10 @@ class InventoryServiceImplTest {
         List<InventoryTaskPrincipalVO> principals = inventoryService.taskPrincipals();
 
         assertEquals(2, principals.size());
-        assertEquals("李一", principals.get(0).getDisplayName());
-        assertEquals("王二", principals.get(1).getDisplayName());
+        assertEquals("alpha_researcher", principals.get(0).getUsername());
+        assertEquals("Zulu User", principals.get(0).getDisplayName());
+        assertEquals("zulu_researcher", principals.get(1).getUsername());
+        assertEquals("Alpha User", principals.get(1).getDisplayName());
         assertTrue(principals.stream().allMatch(item -> item.getId() != null));
     }
 

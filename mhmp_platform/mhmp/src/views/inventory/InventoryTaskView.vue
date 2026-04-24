@@ -199,14 +199,9 @@
               <el-option
                 v-for="item in principalOptions"
                 :key="item.id"
-                :label="item.displayName"
+                :label="formatUserOptionLabel(item)"
                 :value="item.id"
-              >
-                <div class="principal-option">
-                  <span class="principal-option__name">{{ item.displayName }}</span>
-                  <span class="principal-option__meta">{{ item.username }}</span>
-                </div>
-              </el-option>
+              />
             </el-select>
           </el-form-item>
           <el-form-item label="备注">
@@ -257,7 +252,7 @@ import StatusTag from '@/components/common/StatusTag.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useDictStore } from '@/stores/dict'
 import { validateElForm } from '@/utils/form'
-import { formatDateTime, resolveDictLabel } from '@/utils/format'
+import { formatDateTime, formatUserOptionLabel, resolveDictLabel } from '@/utils/format'
 import { checkInventoryRelicEligibility, pickRelicBusinessFields } from '@/utils/relicBusinessRules'
 import InventoryTaskDrawer from './components/InventoryTaskDrawer.vue'
 
@@ -642,22 +637,6 @@ loadTasks()
 
 .dialog-overview__title {
   font-size: 22px;
-}
-
-.principal-option {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.principal-option__name {
-  color: var(--text-main);
-}
-
-.principal-option__meta {
-  color: var(--text-second);
-  font-size: 12px;
 }
 
 .table-footer {

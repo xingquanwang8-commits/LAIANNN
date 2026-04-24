@@ -145,7 +145,7 @@
             </div>
             <div class="overview-panel__meta">
               <span class="overview-chip">审批状态默认待审批</span>
-              <span class="overview-chip">经手人 {{ selectedHandler?.displayName || '待选择' }}</span>
+              <span class="overview-chip">经手人 {{ selectedHandlerLabel || '待选择' }}</span>
               <span class="overview-chip overview-chip--accent">已选文物 {{ outboundSelection.totalCount }} 件</span>
             </div>
           </div>
@@ -174,14 +174,9 @@
                   <el-option
                     v-for="item in handlerOptions"
                     :key="item.id"
-                    :label="item.displayName"
+                    :label="formatUserOptionLabel(item)"
                     :value="item.id"
-                  >
-                    <div class="principal-option">
-                      <span class="principal-option__name">{{ item.displayName }}</span>
-                      <span class="principal-option__meta">{{ item.username }}</span>
-                    </div>
-                  </el-option>
+                  />
                 </el-select>
               </el-form-item>
             </el-col>
@@ -328,7 +323,7 @@ import StatusTag from '@/components/common/StatusTag.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useDictStore } from '@/stores/dict'
 import { validateElForm } from '@/utils/form'
-import { formatDateTime, resolveDictLabel } from '@/utils/format'
+import { formatDateTime, formatUserOptionLabel, resolveDictLabel } from '@/utils/format'
 import {
   analyzeRelicSelection,
   checkOutboundRelicEligibility,
@@ -389,6 +384,9 @@ const selectedRelics = computed(() =>
 const selectedHandler = computed(() =>
   handlerOptions.value.find((item) => item.id === form.handlerUserId) || null
 )
+const selectedHandlerLabel = computed(() => (
+  selectedHandler.value ? formatUserOptionLabel(selectedHandler.value, '') : ''
+))
 const outboundSelection = computed(() =>
   analyzeRelicSelection(selectedRelics.value, checkOutboundRelicEligibility)
 )
@@ -647,21 +645,6 @@ loadOrders()
 .dialog-overview__title,
 .drawer-overview__title {
   font-size: 22px;
-}
-
-.principal-option {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.principal-option__name {
-  font-weight: 600;
-}
-
-.principal-option__meta {
-  color: var(--text-second);
-  font-size: 12px;
 }
 
 .table-footer {

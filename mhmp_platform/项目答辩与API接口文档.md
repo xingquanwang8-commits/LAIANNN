@@ -290,6 +290,19 @@ mhmp_platform/
   - `fileSize`
   - `fileSuffix`
 
+### 8.7 文件预览约定
+- 接口：`GET /api/files/preview`
+- 参数：
+  - `fileUrl`：系统上传后的访问地址，必须以 `/uploads/` 开头
+- 支持范围：
+  - `pdf`：系统内嵌预览
+  - `doc`、`docx`：提取文本内容后预览
+  - `txt`、`log`、`md`、`json`、`xml`、`csv`：按文本预览
+- 不支持的文件类型会返回 `previewType = UNSUPPORTED`，前端仍保留“打开原件”入口
+- “打开原件”会直接在新的浏览器标签页打开系统上传文件本身，不再进入系统内框架页面
+- 当前已接入页面：文物详情、文物建档/编辑、我的修复、修复任务详情抽屉
+- 浏览器说明：PDF 预览主要借助浏览器内置能力，Edge 下体验最稳定；非 Edge 浏览器如果无法直接预览，可通过“打开原件”或浏览器下载能力查看
+
 ## 9. API 接口清单
 
 ### 9.1 认证与菜单
@@ -313,6 +326,7 @@ mhmp_platform/
 | PUT | `/api/profile` | `profile:view` | 修改个人资料 | `nickName`、`realName`、`phone`、`email`、`gender`、`avatarUrl`、`remark` |
 | PUT | `/api/profile/password` | `profile:view` | 修改密码 | `oldPassword`、`newPassword` |
 | POST | `/api/files/upload` | 已登录 | 上传业务文件 | `file`、`bizType` |
+| GET | `/api/files/preview` | 已登录 | 预览业务文件 | 查询参数 `fileUrl` |
 | GET | `/api/dict/types` | 已登录 | 获取可用字典类型 | 无 |
 | GET | `/api/dict/{dictTypeCode}/items` | 已登录 | 获取某字典类型下的字典项 | 路径参数 `dictTypeCode` |
 

@@ -4,9 +4,12 @@ import com.mhmp.common.annotation.OperationLog;
 import com.mhmp.common.exception.BusinessException;
 import com.mhmp.common.result.R;
 import com.mhmp.config.FileStorageProperties;
+import com.mhmp.service.FilePreviewService;
+import com.mhmp.vo.FilePreviewVO;
 import com.mhmp.vo.FileUploadVO;
 import org.springframework.http.MediaType;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -31,17 +34,20 @@ public class FileController {
     private static final DateTimeFormatter FOLDER_FORMATTER = DateTimeFormatter.ofPattern("yyyyMM");
 
     private final FileStorageProperties fileStorageProperties;
+    private final FilePreviewService filePreviewService;
 
-    public FileController(FileStorageProperties fileStorageProperties) {
+    public FileController(FileStorageProperties fileStorageProperties,
+                          FilePreviewService filePreviewService) {
         this.fileStorageProperties = fileStorageProperties;
+        this.filePreviewService = filePreviewService;
     }
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @OperationLog(module = "File", businessType = "UPLOAD", description = "Upload business file")
+    @OperationLog(module = "文件管理", businessType = "UPLOAD", description = "上传业务文件")
     public R<FileUploadVO> upload(@RequestPart("file") MultipartFile file,
-                                       @RequestParam(value = "bizType", required = false) String bizType) {
+                                  @RequestParam(value = "bizType", required = false) String bizType) {
         if (file == null || file.isEmpty()) {
-            throw new BusinessException("Uploaded file cannot be empty");
+            throw new BusinessException("上传文件不能为空");
         }
 
         String safeBizType = normalizeBizType(bizType);
@@ -57,7 +63,7 @@ public class FileController {
             Files.createDirectories(targetDirectory);
             Files.copy(file.getInputStream(), targetFile, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ex) {
-            throw new BusinessException("File upload failed");
+            throw new BusinessException("文件上传失败");
         }
 
         FileUploadVO vo = new FileUploadVO();
@@ -66,6 +72,11 @@ public class FileController {
         vo.setFileSize(file.getSize());
         vo.setFileSuffix(fileSuffix);
         return R.success(vo);
+    }
+
+    @GetMapping("/preview")
+    public R<FilePreviewVO> preview(@RequestParam("fileUrl") String fileUrl) {
+        return R.success(filePreviewService.preview(fileUrl));
     }
 
     private String normalizeBizType(String bizType) {

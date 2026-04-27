@@ -143,14 +143,21 @@
           <el-table-column label="资料类型" min-width="120">
             <template #default="{ row }">{{ attachmentTypeLabelMap[row.attachmentType] || row.attachmentType || '--' }}</template>
           </el-table-column>
-          <el-table-column prop="fileName" label="文件名称" min-width="240" />
+          <el-table-column label="文件名称" min-width="260">
+            <template #default="{ row }">
+              <div class="document-file-name">{{ row.fileName || '--' }}</div>
+            </template>
+          </el-table-column>
           <el-table-column label="文件大小" min-width="120">
             <template #default="{ row }">{{ formatFileSize(row.fileSize) }}</template>
           </el-table-column>
           <el-table-column prop="remark" label="备注" min-width="220" show-overflow-tooltip />
-          <el-table-column label="操作" class-name="table-action-column" width="100">
+          <el-table-column label="操作" class-name="table-action-column" width="180">
             <template #default="{ row }">
-              <a :href="row.fileUrl" target="_blank" rel="noreferrer">查看</a>
+              <div class="file-action-group">
+                <el-button text type="primary" @click="openFilePreview(row)">预览</el-button>
+                <el-button text type="primary" :icon="TopRight" @click="openOriginalFile(row)">打开原件</el-button>
+              </div>
             </template>
           </el-table-column>
         </el-table>
@@ -189,13 +196,21 @@
         </div>
       </section>
     </div>
+    <FilePreviewDialog
+      v-model="previewVisible"
+      :file="previewFile"
+    />
   </el-drawer>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import { ElMessage } from 'element-plus'
+import { TopRight } from '@element-plus/icons-vue'
+import FilePreviewDialog from '@/components/common/FilePreviewDialog.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
+import { openOriginalFile as openOriginalFileUrl } from '@/utils/filePreview'
 import { formatDateTime } from '@/utils/format'
 
 const props = defineProps({
@@ -251,6 +266,8 @@ const currentAcceptanceStatusLabel = computed(() =>
 const logCount = computed(() => props.detail?.logs?.length || 0)
 const historyTaskCount = computed(() => props.detail?.historyTasks?.length || 0)
 const attachmentCount = computed(() => props.detail?.attachments?.length || 0)
+const previewVisible = ref(false)
+const previewFile = ref(null)
 
 function formatFileSize(fileSize) {
   if (!fileSize) {
@@ -263,6 +280,21 @@ function formatFileSize(fileSize) {
     return `${(fileSize / 1024).toFixed(1)} KB`
   }
   return `${(fileSize / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function openFilePreview(file) {
+  if (!file?.fileUrl) {
+    ElMessage.warning('当前文件地址无效，无法预览')
+    return
+  }
+  previewFile.value = file
+  previewVisible.value = true
+}
+
+function openOriginalFile(file) {
+  if (!openOriginalFileUrl(file)) {
+    ElMessage.warning('浏览器阻止了新页面打开，请允许弹出窗口后重试')
+  }
 }
 </script>
 
@@ -308,6 +340,19 @@ function formatFileSize(fileSize) {
   color: var(--text-second);
   font-size: 13px;
   line-height: 1.7;
+}
+
+.file-action-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.document-file-name {
+  line-height: 1.6;
+  white-space: normal;
+  word-break: break-all;
 }
 
 @media (max-width: 960px) {

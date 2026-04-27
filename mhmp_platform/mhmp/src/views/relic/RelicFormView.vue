@@ -195,9 +195,23 @@
               <div class="upload-card">
                 <div class="upload-card__header">鉴定报告</div>
                 <div class="upload-card__body upload-card__body--left">
-                  <a v-if="form.appraisalReportUrl" :href="form.appraisalReportUrl" target="_blank" rel="noreferrer">
-                    查看当前鉴定报告
-                  </a>
+                  <div v-if="form.appraisalReportUrl" class="file-action-group">
+                    <el-button
+                      text
+                      type="primary"
+                      @click="openFilePreview({ fileName: '鉴定报告', fileUrl: form.appraisalReportUrl })"
+                    >
+                      预览当前鉴定报告
+                    </el-button>
+                    <el-button
+                      text
+                      type="primary"
+                      :icon="TopRight"
+                      @click="openOriginalFile({ fileName: '鉴定报告', fileUrl: form.appraisalReportUrl })"
+                    >
+                      打开原件
+                    </el-button>
+                  </div>
                   <span v-else class="upload-placeholder upload-placeholder--inline">暂无鉴定报告</span>
                   <el-upload :show-file-list="false" :http-request="handleReportUpload">
                     <el-button>上传报告</el-button>
@@ -224,9 +238,23 @@
               <div class="upload-card">
                 <div class="upload-card__header">鉴定报告</div>
                 <div class="upload-card__body upload-card__body--left">
-                  <a v-if="form.appraisalReportUrl" :href="form.appraisalReportUrl" target="_blank" rel="noreferrer">
-                    查看当前鉴定报告
-                  </a>
+                  <div v-if="form.appraisalReportUrl" class="file-action-group">
+                    <el-button
+                      text
+                      type="primary"
+                      @click="openFilePreview({ fileName: '鉴定报告', fileUrl: form.appraisalReportUrl })"
+                    >
+                      预览当前鉴定报告
+                    </el-button>
+                    <el-button
+                      text
+                      type="primary"
+                      :icon="TopRight"
+                      @click="openOriginalFile({ fileName: '鉴定报告', fileUrl: form.appraisalReportUrl })"
+                    >
+                      打开原件
+                    </el-button>
+                  </div>
                   <span v-else class="upload-placeholder upload-placeholder--inline">暂无鉴定报告</span>
                   <div class="upload-card__actions upload-card__actions--left">
                     <el-upload :show-file-list="false" :http-request="handleReportUpload">
@@ -303,7 +331,8 @@
                     <div class="attachment-item__remark">{{ item.remark || '业务附件' }}</div>
                   </div>
                   <div class="attachment-item__actions">
-                    <a :href="item.fileUrl" target="_blank" rel="noreferrer">查看附件</a>
+                    <el-button text type="primary" @click="openFilePreview(item)">预览</el-button>
+                    <el-button text type="primary" :icon="TopRight" @click="openOriginalFile(item)">打开原件</el-button>
                     <el-button text type="danger" @click="removeAttachment(item.fileUrl)">移除</el-button>
                   </div>
                 </div>
@@ -373,6 +402,11 @@
         <el-button type="primary" :loading="creatingMaterial" @click="handleCreateMaterial">保存材质</el-button>
       </template>
     </el-dialog>
+
+    <FilePreviewDialog
+      v-model="previewVisible"
+      :file="previewFile"
+    />
   </div>
 </template>
 
@@ -380,7 +414,9 @@
 import { computed, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { TopRight } from '@element-plus/icons-vue'
 import { uploadFileApi } from '@/api/file'
+import FilePreviewDialog from '@/components/common/FilePreviewDialog.vue'
 import {
   createRelicApi,
   createRelicCategoryApi,
@@ -390,6 +426,7 @@ import {
 } from '@/api/relic'
 import { useDictStore } from '@/stores/dict'
 import { validateElForm } from '@/utils/form'
+import { openOriginalFile as openOriginalFileUrl } from '@/utils/filePreview'
 import { resolveDictLabel } from '@/utils/format'
 
 const PROTECTION_LEVEL_OPTIONS = [
@@ -449,6 +486,8 @@ const categoryDialogVisible = ref(false)
 const materialDialogVisible = ref(false)
 const creatingCategory = ref(false)
 const creatingMaterial = ref(false)
+const previewVisible = ref(false)
+const previewFile = ref(null)
 const isEdit = computed(() => Boolean(route.params.id))
 
 const form = reactive({
@@ -766,6 +805,21 @@ async function handleAttachmentUpload(option) {
 
 function removeAttachment(fileUrl) {
   form.attachments = form.attachments.filter((item) => item.fileUrl !== fileUrl)
+}
+
+function openFilePreview(file) {
+  if (!file?.fileUrl) {
+    ElMessage.warning('当前文件地址无效，无法预览')
+    return
+  }
+  previewFile.value = file
+  previewVisible.value = true
+}
+
+function openOriginalFile(file) {
+  if (!openOriginalFileUrl(file)) {
+    ElMessage.warning('浏览器阻止了新页面打开，请允许弹出窗口后重试')
+  }
 }
 
 function removeRelicImage(fileUrl) {
@@ -1113,6 +1167,13 @@ loadDetail()
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
+}
+
+.file-action-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .attachment-empty {

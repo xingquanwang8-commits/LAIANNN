@@ -211,7 +211,7 @@
               <div v-if="imageAttachments.length" class="upload-list">
                 <div v-for="item in imageAttachments" :key="item.fileUrl" class="upload-item upload-item--image">
                   <img :src="item.fileUrl" alt="修复过程图片" class="upload-thumb">
-                  <span>{{ item.fileName }}</span>
+                  <span class="upload-item__name">{{ item.fileName }}</span>
                   <el-button text type="danger" @click="removeAttachment(item.fileUrl)">移除</el-button>
                 </div>
               </div>
@@ -230,7 +230,9 @@
               </el-upload>
               <div v-if="fileAttachments.length" class="upload-list">
                 <div v-for="item in fileAttachments" :key="item.fileUrl" class="upload-item">
-                  <span>{{ item.fileName }}</span>
+                  <span class="upload-item__name">{{ item.fileName }}</span>
+                  <el-button text type="primary" @click="openFilePreview(item)">预览</el-button>
+                  <el-button text type="primary" :icon="TopRight" @click="openOriginalFile(item)">打开原件</el-button>
                   <el-button text type="danger" @click="removeAttachment(item.fileUrl)">移除</el-button>
                 </div>
               </div>
@@ -254,6 +256,11 @@
       </template>
     </el-dialog>
 
+    <FilePreviewDialog
+      v-model="previewVisible"
+      :file="previewFile"
+    />
+
     <RepairTaskDrawer v-model="drawerVisible" :detail="detail" />
   </div>
 </template>
@@ -262,11 +269,14 @@
 import { computed, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { TopRight } from '@element-plus/icons-vue'
 import { addRepairLogApi, applyRepairAcceptanceApi, getMyRepairPageApi, getRepairDetailApi } from '@/api/repair'
 import { uploadFileApi } from '@/api/file'
+import FilePreviewDialog from '@/components/common/FilePreviewDialog.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import { useAuthStore } from '@/stores/auth'
+import { openOriginalFile as openOriginalFileUrl } from '@/utils/filePreview'
 import { validateElForm } from '@/utils/form'
 import RepairTaskDrawer from './components/RepairTaskDrawer.vue'
 import { formatDateTime } from '@/utils/format'
@@ -277,6 +287,8 @@ const loading = ref(false)
 const saving = ref(false)
 const dialogVisible = ref(false)
 const drawerVisible = ref(false)
+const previewVisible = ref(false)
+const previewFile = ref(null)
 const formRef = ref()
 const currentTaskId = ref(null)
 const currentTask = ref(null)
@@ -415,6 +427,21 @@ function removeAttachment(fileUrl) {
   }
 }
 
+function openFilePreview(file) {
+  if (!file?.fileUrl) {
+    ElMessage.warning('当前文件地址无效，无法预览')
+    return
+  }
+  previewFile.value = file
+  previewVisible.value = true
+}
+
+function openOriginalFile(file) {
+  if (!openOriginalFileUrl(file)) {
+    ElMessage.warning('浏览器阻止了新页面打开，请允许弹出窗口后重试')
+  }
+}
+
 async function refreshCurrentDetail(id) {
   if (drawerVisible.value && detail.value?.id === id) {
     await openDetail(id)
@@ -540,12 +567,12 @@ loadPage()
   padding: 10px 0;
 }
 
-.upload-item span {
+.upload-item__name {
   min-width: 0;
   flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.5;
+  white-space: normal;
+  word-break: break-all;
 }
 
 .upload-item--image {

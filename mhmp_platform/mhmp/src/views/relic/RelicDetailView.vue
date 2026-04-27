@@ -214,9 +214,23 @@
             <el-descriptions-item label="注意事项" :span="2">{{ detail.attentionNote || '--' }}</el-descriptions-item>
             <el-descriptions-item label="备注" :span="2">{{ filteredNote || '--' }}</el-descriptions-item>
             <el-descriptions-item label="鉴定报告" :span="2">
-              <a v-if="detail.appraisalReportUrl" :href="detail.appraisalReportUrl" target="_blank" rel="noreferrer">
-                查看鉴定报告
-              </a>
+              <div v-if="detail.appraisalReportUrl" class="file-action-group">
+                <el-button
+                  text
+                  type="primary"
+                  @click="openFilePreview({ fileName: '鉴定报告', fileUrl: detail.appraisalReportUrl })"
+                >
+                  预览鉴定报告
+                </el-button>
+                <el-button
+                  text
+                  type="primary"
+                  :icon="TopRight"
+                  @click="openOriginalFile({ fileName: '鉴定报告', fileUrl: detail.appraisalReportUrl })"
+                >
+                  打开原件
+                </el-button>
+              </div>
               <span v-else>--</span>
             </el-descriptions-item>
           </el-descriptions>
@@ -275,14 +289,21 @@
                 <el-table-column label="附件类型" min-width="140">
                   <template #default="{ row }">{{ row.typeLabel }}</template>
                 </el-table-column>
-                <el-table-column prop="fileName" label="文件名称" min-width="220" />
+                <el-table-column label="文件名称" min-width="260">
+                  <template #default="{ row }">
+                    <div class="document-file-name">{{ row.fileName || '--' }}</div>
+                  </template>
+                </el-table-column>
                 <el-table-column label="文件大小" min-width="120">
                   <template #default="{ row }">{{ row.fileSizeText }}</template>
                 </el-table-column>
                 <el-table-column prop="remark" label="备注" min-width="180" show-overflow-tooltip />
-                <el-table-column label="操作" class-name="table-action-column" width="120">
+                <el-table-column label="操作" class-name="table-action-column" width="180">
                   <template #default="{ row }">
-                    <a :href="row.fileUrl" target="_blank" rel="noreferrer">打开文件</a>
+                    <div class="file-action-group">
+                      <el-button text type="primary" @click="openFilePreview(row)">预览</el-button>
+                      <el-button text type="primary" :icon="TopRight" @click="openOriginalFile(row)">打开原件</el-button>
+                    </div>
                   </template>
                 </el-table-column>
               </el-table>
@@ -321,6 +342,11 @@
       </section>
     </template>
 
+    <FilePreviewDialog
+      v-model="previewVisible"
+      :file="previewFile"
+    />
+
     <RepairAcceptanceDialog
       v-model="acceptanceVisible"
       :task-id="acceptanceTaskId"
@@ -335,13 +361,16 @@
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { TopRight } from '@element-plus/icons-vue'
 import { approveInboundApi } from '@/api/inbound'
 import { approveOutboundApi, rejectOutboundApi } from '@/api/outbound'
 import { getRelicDetailApi } from '@/api/relic'
+import FilePreviewDialog from '@/components/common/FilePreviewDialog.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useDictStore } from '@/stores/dict'
 import { formatDateTime, resolveDictLabel } from '@/utils/format'
+import { openOriginalFile as openOriginalFileUrl } from '@/utils/filePreview'
 import { downloadRelicLedger, printRelicLedger } from '@/utils/relicLedger'
 import {
   checkInboundRelicEligibility,
@@ -362,6 +391,8 @@ const loading = ref(false)
 const detail = ref(null)
 const acceptanceVisible = ref(false)
 const acceptanceTaskId = ref(null)
+const previewVisible = ref(false)
+const previewFile = ref(null)
 
 const categoryOptions = computed(() => dictStore.itemsMap.relic_category || [])
 const materialOptions = computed(() => dictStore.itemsMap.relic_material || [])
@@ -692,6 +723,21 @@ function formatFileSize(fileSize) {
     return `${(fileSize / 1024).toFixed(1)} KB`
   }
   return `${(fileSize / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function openFilePreview(file) {
+  if (!file?.fileUrl) {
+    ElMessage.warning('当前文件地址无效，无法预览')
+    return
+  }
+  previewFile.value = file
+  previewVisible.value = true
+}
+
+function openOriginalFile(file) {
+  if (!openOriginalFileUrl(file)) {
+    ElMessage.warning('浏览器阻止了新页面打开，请允许弹出窗口后重试')
+  }
 }
 
 function handleBusinessPageJump(item) {
@@ -1213,6 +1259,19 @@ loadDetail()
   margin-top: 10px;
   color: var(--text-main);
   line-height: 1.7;
+}
+
+.file-action-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.document-file-name {
+  line-height: 1.6;
+  white-space: normal;
+  word-break: break-all;
 }
 
 @media (max-width: 1180px) {

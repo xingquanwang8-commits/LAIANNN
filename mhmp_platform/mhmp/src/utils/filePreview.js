@@ -1,27 +1,3 @@
-export const IMAGE_PREVIEW_SUFFIXES = new Set(['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'svg'])
-
-export function resolveFileSuffix(file) {
-  if (!file) {
-    return ''
-  }
-  const suffix = (file.fileSuffix || '').trim().toLowerCase()
-  if (suffix) {
-    return suffix
-  }
-  const fileUrl = file.fileUrl || ''
-  const cleanUrl = fileUrl.split('?')[0]
-  const index = cleanUrl.lastIndexOf('.')
-  return index >= 0 ? cleanUrl.slice(index + 1).toLowerCase() : ''
-}
-
-export function buildPreviewFile(file) {
-  return {
-    fileName: file?.fileName || '文件预览',
-    fileUrl: resolveFileAccessUrl(file?.fileUrl || ''),
-    fileSuffix: resolveFileSuffix(file)
-  }
-}
-
 export function resolveFileAccessUrl(fileUrl) {
   if (!fileUrl) {
     return ''

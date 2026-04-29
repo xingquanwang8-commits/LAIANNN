@@ -199,17 +199,10 @@
                     <el-button
                       text
                       type="primary"
-                      @click="openFilePreview({ fileName: '鉴定报告', fileUrl: form.appraisalReportUrl })"
-                    >
-                      预览当前鉴定报告
-                    </el-button>
-                    <el-button
-                      text
-                      type="primary"
                       :icon="TopRight"
                       @click="openOriginalFile({ fileName: '鉴定报告', fileUrl: form.appraisalReportUrl })"
                     >
-                      打开原件
+                      预览
                     </el-button>
                   </div>
                   <span v-else class="upload-placeholder upload-placeholder--inline">暂无鉴定报告</span>
@@ -242,17 +235,10 @@
                     <el-button
                       text
                       type="primary"
-                      @click="openFilePreview({ fileName: '鉴定报告', fileUrl: form.appraisalReportUrl })"
-                    >
-                      预览当前鉴定报告
-                    </el-button>
-                    <el-button
-                      text
-                      type="primary"
                       :icon="TopRight"
                       @click="openOriginalFile({ fileName: '鉴定报告', fileUrl: form.appraisalReportUrl })"
                     >
-                      打开原件
+                      预览
                     </el-button>
                   </div>
                   <span v-else class="upload-placeholder upload-placeholder--inline">暂无鉴定报告</span>
@@ -331,8 +317,7 @@
                     <div class="attachment-item__remark">{{ item.remark || '业务附件' }}</div>
                   </div>
                   <div class="attachment-item__actions">
-                    <el-button text type="primary" @click="openFilePreview(item)">预览</el-button>
-                    <el-button text type="primary" :icon="TopRight" @click="openOriginalFile(item)">打开原件</el-button>
+                    <el-button text type="primary" :icon="TopRight" @click="openOriginalFile(item)">预览</el-button>
                     <el-button text type="danger" @click="removeAttachment(item.fileUrl)">移除</el-button>
                   </div>
                 </div>
@@ -403,10 +388,6 @@
       </template>
     </el-dialog>
 
-    <FilePreviewDialog
-      v-model="previewVisible"
-      :file="previewFile"
-    />
   </div>
 </template>
 
@@ -416,7 +397,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { TopRight } from '@element-plus/icons-vue'
 import { uploadFileApi } from '@/api/file'
-import FilePreviewDialog from '@/components/common/FilePreviewDialog.vue'
 import {
   createRelicApi,
   createRelicCategoryApi,
@@ -486,8 +466,6 @@ const categoryDialogVisible = ref(false)
 const materialDialogVisible = ref(false)
 const creatingCategory = ref(false)
 const creatingMaterial = ref(false)
-const previewVisible = ref(false)
-const previewFile = ref(null)
 const isEdit = computed(() => Boolean(route.params.id))
 
 const form = reactive({
@@ -805,15 +783,6 @@ async function handleAttachmentUpload(option) {
 
 function removeAttachment(fileUrl) {
   form.attachments = form.attachments.filter((item) => item.fileUrl !== fileUrl)
-}
-
-function openFilePreview(file) {
-  if (!file?.fileUrl) {
-    ElMessage.warning('当前文件地址无效，无法预览')
-    return
-  }
-  previewFile.value = file
-  previewVisible.value = true
 }
 
 function openOriginalFile(file) {

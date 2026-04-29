@@ -155,8 +155,7 @@
           <el-table-column label="操作" class-name="table-action-column" width="180">
             <template #default="{ row }">
               <div class="file-action-group">
-                <el-button text type="primary" @click="openFilePreview(row)">预览</el-button>
-                <el-button text type="primary" :icon="TopRight" @click="openOriginalFile(row)">打开原件</el-button>
+                <el-button text type="primary" :icon="TopRight" @click="openOriginalFile(row)">预览</el-button>
               </div>
             </template>
           </el-table-column>
@@ -196,18 +195,13 @@
         </div>
       </section>
     </div>
-    <FilePreviewDialog
-      v-model="previewVisible"
-      :file="previewFile"
-    />
   </el-drawer>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { TopRight } from '@element-plus/icons-vue'
-import FilePreviewDialog from '@/components/common/FilePreviewDialog.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import { openOriginalFile as openOriginalFileUrl } from '@/utils/filePreview'
@@ -266,8 +260,6 @@ const currentAcceptanceStatusLabel = computed(() =>
 const logCount = computed(() => props.detail?.logs?.length || 0)
 const historyTaskCount = computed(() => props.detail?.historyTasks?.length || 0)
 const attachmentCount = computed(() => props.detail?.attachments?.length || 0)
-const previewVisible = ref(false)
-const previewFile = ref(null)
 
 function formatFileSize(fileSize) {
   if (!fileSize) {
@@ -280,15 +272,6 @@ function formatFileSize(fileSize) {
     return `${(fileSize / 1024).toFixed(1)} KB`
   }
   return `${(fileSize / (1024 * 1024)).toFixed(1)} MB`
-}
-
-function openFilePreview(file) {
-  if (!file?.fileUrl) {
-    ElMessage.warning('当前文件地址无效，无法预览')
-    return
-  }
-  previewFile.value = file
-  previewVisible.value = true
 }
 
 function openOriginalFile(file) {

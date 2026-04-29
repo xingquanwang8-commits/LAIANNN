@@ -231,8 +231,7 @@
               <div v-if="fileAttachments.length" class="upload-list">
                 <div v-for="item in fileAttachments" :key="item.fileUrl" class="upload-item">
                   <span class="upload-item__name">{{ item.fileName }}</span>
-                  <el-button text type="primary" @click="openFilePreview(item)">预览</el-button>
-                  <el-button text type="primary" :icon="TopRight" @click="openOriginalFile(item)">打开原件</el-button>
+                  <el-button text type="primary" :icon="TopRight" @click="openOriginalFile(item)">预览</el-button>
                   <el-button text type="danger" @click="removeAttachment(item.fileUrl)">移除</el-button>
                 </div>
               </div>
@@ -256,11 +255,6 @@
       </template>
     </el-dialog>
 
-    <FilePreviewDialog
-      v-model="previewVisible"
-      :file="previewFile"
-    />
-
     <RepairTaskDrawer v-model="drawerVisible" :detail="detail" />
   </div>
 </template>
@@ -272,7 +266,6 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { TopRight } from '@element-plus/icons-vue'
 import { addRepairLogApi, applyRepairAcceptanceApi, getMyRepairPageApi, getRepairDetailApi } from '@/api/repair'
 import { uploadFileApi } from '@/api/file'
-import FilePreviewDialog from '@/components/common/FilePreviewDialog.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -287,8 +280,6 @@ const loading = ref(false)
 const saving = ref(false)
 const dialogVisible = ref(false)
 const drawerVisible = ref(false)
-const previewVisible = ref(false)
-const previewFile = ref(null)
 const formRef = ref()
 const currentTaskId = ref(null)
 const currentTask = ref(null)
@@ -425,15 +416,6 @@ function removeAttachment(fileUrl) {
   if (index >= 0) {
     formData.attachments.splice(index, 1)
   }
-}
-
-function openFilePreview(file) {
-  if (!file?.fileUrl) {
-    ElMessage.warning('当前文件地址无效，无法预览')
-    return
-  }
-  previewFile.value = file
-  previewVisible.value = true
 }
 
 function openOriginalFile(file) {

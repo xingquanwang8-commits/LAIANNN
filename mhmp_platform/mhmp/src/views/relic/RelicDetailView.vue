@@ -218,17 +218,10 @@
                 <el-button
                   text
                   type="primary"
-                  @click="openFilePreview({ fileName: '鉴定报告', fileUrl: detail.appraisalReportUrl })"
-                >
-                  预览鉴定报告
-                </el-button>
-                <el-button
-                  text
-                  type="primary"
                   :icon="TopRight"
                   @click="openOriginalFile({ fileName: '鉴定报告', fileUrl: detail.appraisalReportUrl })"
                 >
-                  打开原件
+                  预览
                 </el-button>
               </div>
               <span v-else>--</span>
@@ -301,8 +294,7 @@
                 <el-table-column label="操作" class-name="table-action-column" width="180">
                   <template #default="{ row }">
                     <div class="file-action-group">
-                      <el-button text type="primary" @click="openFilePreview(row)">预览</el-button>
-                      <el-button text type="primary" :icon="TopRight" @click="openOriginalFile(row)">打开原件</el-button>
+                      <el-button text type="primary" :icon="TopRight" @click="openOriginalFile(row)">预览</el-button>
                     </div>
                   </template>
                 </el-table-column>
@@ -342,11 +334,6 @@
       </section>
     </template>
 
-    <FilePreviewDialog
-      v-model="previewVisible"
-      :file="previewFile"
-    />
-
     <RepairAcceptanceDialog
       v-model="acceptanceVisible"
       :task-id="acceptanceTaskId"
@@ -365,7 +352,6 @@ import { TopRight } from '@element-plus/icons-vue'
 import { approveInboundApi } from '@/api/inbound'
 import { approveOutboundApi, rejectOutboundApi } from '@/api/outbound'
 import { getRelicDetailApi } from '@/api/relic'
-import FilePreviewDialog from '@/components/common/FilePreviewDialog.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useDictStore } from '@/stores/dict'
@@ -391,8 +377,6 @@ const loading = ref(false)
 const detail = ref(null)
 const acceptanceVisible = ref(false)
 const acceptanceTaskId = ref(null)
-const previewVisible = ref(false)
-const previewFile = ref(null)
 
 const categoryOptions = computed(() => dictStore.itemsMap.relic_category || [])
 const materialOptions = computed(() => dictStore.itemsMap.relic_material || [])
@@ -723,15 +707,6 @@ function formatFileSize(fileSize) {
     return `${(fileSize / 1024).toFixed(1)} KB`
   }
   return `${(fileSize / (1024 * 1024)).toFixed(1)} MB`
-}
-
-function openFilePreview(file) {
-  if (!file?.fileUrl) {
-    ElMessage.warning('当前文件地址无效，无法预览')
-    return
-  }
-  previewFile.value = file
-  previewVisible.value = true
 }
 
 function openOriginalFile(file) {

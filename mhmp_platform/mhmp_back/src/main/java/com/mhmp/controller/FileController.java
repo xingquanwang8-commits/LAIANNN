@@ -4,12 +4,9 @@ import com.mhmp.common.annotation.OperationLog;
 import com.mhmp.common.exception.BusinessException;
 import com.mhmp.common.result.R;
 import com.mhmp.config.FileStorageProperties;
-import com.mhmp.service.FilePreviewService;
-import com.mhmp.vo.FilePreviewVO;
 import com.mhmp.vo.FileUploadVO;
 import org.springframework.http.MediaType;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -34,12 +31,9 @@ public class FileController {
     private static final DateTimeFormatter FOLDER_FORMATTER = DateTimeFormatter.ofPattern("yyyyMM");
 
     private final FileStorageProperties fileStorageProperties;
-    private final FilePreviewService filePreviewService;
 
-    public FileController(FileStorageProperties fileStorageProperties,
-                          FilePreviewService filePreviewService) {
+    public FileController(FileStorageProperties fileStorageProperties) {
         this.fileStorageProperties = fileStorageProperties;
-        this.filePreviewService = filePreviewService;
     }
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -72,11 +66,6 @@ public class FileController {
         vo.setFileSize(file.getSize());
         vo.setFileSuffix(fileSuffix);
         return R.success(vo);
-    }
-
-    @GetMapping("/preview")
-    public R<FilePreviewVO> preview(@RequestParam("fileUrl") String fileUrl) {
-        return R.success(filePreviewService.preview(fileUrl));
     }
 
     private String normalizeBizType(String bizType) {

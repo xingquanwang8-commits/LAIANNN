@@ -4,7 +4,6 @@
 
     <div class="layout-content">
       <AppHeader @logout="handleLogout" @profile="handleProfile" />
-      <AppTabs />
 
       <main class="layout-main">
         <router-view />
@@ -17,7 +16,6 @@
 import { useRouter } from 'vue-router'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppSidebar from '@/components/layout/AppSidebar.vue'
-import AppTabs from '@/components/layout/AppTabs.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()

@@ -13,7 +13,6 @@ import com.mhmp.mapper.RelicMapper;
 import com.mhmp.mapper.RelicOutboundOrderMapper;
 import com.mhmp.mapper.RepairTaskMapper;
 import com.mhmp.service.DashboardService;
-import com.mhmp.vo.DashboardHomeVO;
 import com.mhmp.vo.DashboardStatusSliceVO;
 import com.mhmp.vo.DashboardSummaryVO;
 import org.springframework.stereotype.Service;
@@ -80,21 +79,6 @@ public class DashboardServiceImpl implements DashboardService {
         return vo;
     }
 
-    @Override
-    public DashboardHomeVO home() {
-        DashboardHomeVO vo = new DashboardHomeVO();
-        vo.setBadge("MHMP Operations Hub");
-        vo.setTitle("博物馆文物综合管理平台");
-        vo.setDescription("本系统围绕博物馆文物全生命周期管理建设，覆盖馆藏建档、库存流转、盘点核验、修复闭环、角色权限和操作留痕等核心业务，便于日常管理、业务演示和毕业答辩讲解。");
-        vo.setCards(List.of(
-            createHomeCard("01", "文物档案统一管理", "集中维护文物基础信息、图片资料、鉴定报告、保存状态、库位和相关附件。"),
-            createHomeCard("02", "库存流转闭环", "支持入库、出库、归还、馆内转存和盘点任务，保证文物流向清晰可追踪。"),
-            createHomeCard("03", "修复过程可追溯", "覆盖修复申请、审批、过程记录、验收和历史归档，便于演示完整业务链路。"),
-            createHomeCard("04", "权限与日志联动", "基于角色、菜单和按钮权限控制功能入口，并通过操作日志记录关键业务行为。")
-        ));
-        return vo;
-    }
-
     private List<DashboardStatusSliceVO> buildStatusDistribution() {
         Map<String, Long> statusCountMap = relicMapper.selectList(
                 Wrappers.<Relic>query().select("current_status")
@@ -122,13 +106,5 @@ public class DashboardServiceImpl implements DashboardService {
         slice.setStatus(status);
         slice.setCount(count);
         return slice;
-    }
-
-    private DashboardHomeVO.HomeCardVO createHomeCard(String orderNo, String title, String description) {
-        DashboardHomeVO.HomeCardVO card = new DashboardHomeVO.HomeCardVO();
-        card.setOrderNo(orderNo);
-        card.setTitle(title);
-        card.setDescription(description);
-        return card;
     }
 }

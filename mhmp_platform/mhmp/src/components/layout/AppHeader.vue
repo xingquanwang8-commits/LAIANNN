@@ -1,9 +1,6 @@
 <template>
   <header class="header-shell page-card">
-    <div>
-      <div class="header-title">{{ route.meta.title || '工作台' }}</div>
-      <div v-if="breadcrumbText" class="header-breadcrumb text-secondary">{{ breadcrumbText }}</div>
-    </div>
+    <AppTabs class="header-tabs" />
 
     <div class="header-actions">
       <button class="header-user" type="button" @click="$emit('profile')">
@@ -24,23 +21,15 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import AppTabs from '@/components/layout/AppTabs.vue'
 import { useAuthStore } from '@/stores/auth'
 
 defineEmits(['logout', 'profile'])
 
 const authStore = useAuthStore()
-const route = useRoute()
 
 const roleText = computed(() => authStore.user?.roles?.join(' / ') || '未分配角色')
 const userInitial = computed(() => authStore.displayName?.slice(0, 1) || '馆')
-const breadcrumbText = computed(() => {
-  const titles = route.matched
-    .filter((record) => record.meta?.title)
-    .map((record) => record.meta.title)
-    .filter((title, index, list) => title && title !== list[index - 1])
-  return titles.length > 1 ? titles.join(' / ') : ''
-})
 </script>
 
 <style scoped>
@@ -59,20 +48,16 @@ const breadcrumbText = computed(() => {
     linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(249, 242, 235, 0.97) 42%, rgba(244, 236, 228, 0.95));
 }
 
-.header-title {
-  font-size: 20px;
-  font-weight: 700;
-}
-
-.header-breadcrumb {
-  margin-top: 4px;
-  font-size: 12px;
+.header-tabs {
+  flex: 1;
+  min-width: 0;
 }
 
 .header-actions {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .header-user {
@@ -138,6 +123,10 @@ const breadcrumbText = computed(() => {
     flex-direction: column;
     align-items: flex-start;
     border-radius: 18px;
+  }
+
+  .header-tabs {
+    width: 100%;
   }
 
   .header-actions {

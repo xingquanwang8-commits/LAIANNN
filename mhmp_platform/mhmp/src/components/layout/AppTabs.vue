@@ -1,5 +1,5 @@
 <template>
-  <nav class="tabs-shell page-card" aria-label="页面标签导航">
+  <nav class="tabs-shell" aria-label="页面标签导航">
     <el-scrollbar class="tabs-scrollbar">
       <div class="tabs-track">
         <button
@@ -148,12 +148,7 @@ function normalizePath(path) {
 
 <style scoped>
 .tabs-shell {
-  min-height: 54px;
-  padding: 8px 10px;
-  border-radius: 16px;
-  background:
-    radial-gradient(circle at 0 50%, rgba(123, 44, 42, 0.08), transparent 24%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(249, 242, 235, 0.95));
+  min-width: 0;
 }
 
 .tabs-scrollbar {
@@ -229,10 +224,6 @@ function normalizePath(path) {
 }
 
 @media (max-width: 720px) {
-  .tabs-shell {
-    padding: 8px;
-  }
-
   .tab-item {
     max-width: 142px;
   }

@@ -6,10 +6,3 @@ export function getDashboardSummaryApi() {
     method: 'get'
   })
 }
-
-export function getDashboardHomeApi() {
-  return request({
-    url: '/dashboard/home',
-    method: 'get'
-  })
-}

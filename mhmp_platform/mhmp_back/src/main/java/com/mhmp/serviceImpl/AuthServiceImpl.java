@@ -174,6 +174,9 @@ public class AuthServiceImpl implements AuthService {
 
     private MenuVO normalizeMenu(MenuVO menu) {
         menu.setChildren(new ArrayList<>(normalizeMenus(menu.getChildren())));
+        if ("/dashboard".equals(menu.getPath()) || "dashboard".equals(menu.getPath())) {
+            menu.setMenuName("首页");
+        }
         if (!StringUtils.hasText(menu.getPath()) && menu.getChildren().isEmpty() && !StringUtils.hasText(menu.getMenuName())) {
             return null;
         }

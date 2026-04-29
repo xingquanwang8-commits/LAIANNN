@@ -32,6 +32,11 @@ export function flattenMenus(menus = []) {
   return menus.flatMap((menu) => [menu, ...flattenMenus(menu.children || [])])
 }
 
+export function findMenuByPath(menus = [], path = '') {
+  const normalizedPath = normalizePath(path)
+  return flattenMenus(menus).find((menu) => normalizePath(menu.path) === normalizedPath)
+}
+
 export function collectShortcutMenus(menus = [], limit = 8) {
   const allMenus = flattenMenus(menus)
     .filter((menu) => menu.path && !SHORTCUT_EXCLUDED_PATHS.has(menu.path) && (!menu.children || menu.children.length === 0))
@@ -41,4 +46,11 @@ export function collectShortcutMenus(menus = [], limit = 8) {
     .filter(Boolean)
   const fallbackMenus = allMenus.filter((menu) => !PREFERRED_SHORTCUT_PATHS.includes(menu.path))
   return [...preferredMenus, ...fallbackMenus].slice(0, limit)
+}
+
+function normalizePath(path) {
+  if (!path) {
+    return ''
+  }
+  return path.startsWith('/') ? path : `/${path}`
 }

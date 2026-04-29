@@ -13,7 +13,7 @@ export const APP_ROUTE_DEFINITIONS = [
     name: 'dashboard',
     component: () => import('@/views/dashboard/DashboardView.vue'),
     meta: {
-      title: '工作台',
+      title: '首页',
       requiresAuth: true,
       permission: 'dashboard:view'
     }
@@ -153,7 +153,7 @@ export const APP_ROUTE_DEFINITIONS = [
     name: 'inventory-outbound-return',
     component: () => import('@/views/outbound/OutboundReturnView.vue'),
     meta: {
-      title: '鍑哄簱褰掕繕',
+      title: '出库归还',
       requiresAuth: true,
       permission: 'inventory:outbound:return:view'
     }
@@ -203,7 +203,7 @@ export const APP_ROUTE_DEFINITIONS = [
     name: 'inventory-task-my',
     component: () => import('@/views/inventory/InventoryMyView.vue'),
     meta: {
-      title: '鎴戠殑鐩樼偣',
+      title: '我的盘点',
       requiresAuth: true,
       permission: 'inventory:task:view'
     }

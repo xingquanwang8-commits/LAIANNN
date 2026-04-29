@@ -17,6 +17,14 @@ const routes = [
     }
   },
   {
+    path: '/file-preview',
+    name: 'filePreview',
+    component: () => import('@/views/common/FilePreviewView.vue'),
+    meta: {
+      title: '文件预览'
+    }
+  },
+  {
     path: '/',
     component: MainLayout,
     redirect: '/dashboard',

@@ -10,3 +10,11 @@ export function uploadFileApi(file, bizType = 'common') {
     data: formData
   })
 }
+
+export function getFilePreviewApi(fileUrl) {
+  return request({
+    url: '/files/preview',
+    method: 'get',
+    params: { fileUrl }
+  })
+}

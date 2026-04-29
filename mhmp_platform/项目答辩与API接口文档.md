@@ -3,7 +3,7 @@
 ## 文档说明
 - 文档用途：用于毕业答辩时快速理解本系统的技术栈、架构设计、业务模块和接口清单。
 - 适用范围：`mhmp` 前端 + `mhmp_back` 后端。
-- 基线版本：基于当前仓库代码整理，更新时间为 2026-04-23。
+- 基线版本：基于当前仓库代码整理，更新时间为 2026-04-29。
 - 维护规则：后续只要系统发生以下变化，必须同步更新本文档：
   - 新增、删除、重命名接口
   - 修改权限码、菜单结构、登录鉴权方式
@@ -56,6 +56,7 @@
 | Lombok | 代码简化 | DTO/VO/Entity 常用 getter/setter |
 | Spring AOP | 切面 | 记录操作日志 |
 | Jakarta Validation | 参数校验 | DTO 字段校验 |
+| Apache POI | 文档解析 | Word、Excel 等业务文件文本预览 |
 
 ### 2.3 基础运行环境
 | 项目 | 默认值 | 说明 |
@@ -291,9 +292,11 @@ mhmp_platform/
   - `fileSuffix`
 
 ### 8.7 文件预览约定
-- 系统不再提供单独的后端转文本预览接口，前端统一使用“预览”按钮直接在新的浏览器标签页打开 `/uploads/**` 上传原件。
-- 前端会把历史数据中带有 `localhost` 或完整域名的上传地址规范化为当前站点下的 `/uploads/**` 相对路径，避免系统内 iframe 预览造成连接拒绝。
-- PDF 主要借助浏览器内置预览能力，Edge 下体验最稳定；`doc`、`docx`、Word 等文件是否直接预览取决于浏览器和本机 Office/插件能力，浏览器不支持时可能表现为下载。
+- 前端统一使用“预览”按钮打开独立文件预览页，不再停留在系统主框架内。
+- PDF 使用浏览器内置能力在预览页中展示，Edge 下体验最稳定；页面右上角提供“下载源文件”按钮。
+- Word、Excel 和常见文本文件通过 `GET /api/files/preview` 提取纯文本内容进行预览，接口只允许读取 `/uploads/**` 下的系统上传文件。
+- 前端会把历史数据中带有 `localhost` 或完整域名的上传地址规范化为当前站点下的 `/uploads/**` 相对路径，避免预览时连接到错误主机。
+- 下载源文件时优先使用业务记录中的原文件名，缺少后缀时按文件 URL 或上传后缀自动补齐，保证 PDF 预览名和下载名尽量一致。
 - 当前已接入页面：文物详情、文物建档/编辑、我的修复、修复任务详情抽屉。
 
 ## 9. API 接口清单
@@ -319,6 +322,7 @@ mhmp_platform/
 | PUT | `/api/profile` | `profile:view` | 修改个人资料 | `nickName`、`realName`、`phone`、`email`、`gender`、`avatarUrl`、`remark` |
 | PUT | `/api/profile/password` | `profile:view` | 修改密码 | `oldPassword`、`newPassword` |
 | POST | `/api/files/upload` | 已登录 | 上传业务文件 | `file`、`bizType` |
+| GET | `/api/files/preview` | 无 | 提取 Word、Excel、文本文件的预览文本 | 查询参数 `fileUrl`，仅支持 `/uploads/**` |
 | GET | `/api/dict/types` | 已登录 | 获取可用字典类型 | 无 |
 | GET | `/api/dict/{dictTypeCode}/items` | 已登录 | 获取某字典类型下的字典项 | 路径参数 `dictTypeCode` |
 

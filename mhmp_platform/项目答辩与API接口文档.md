@@ -293,10 +293,10 @@ mhmp_platform/
 
 ### 8.7 文件预览约定
 - 前端统一使用“预览”按钮打开独立文件预览页，不再停留在系统主框架内。
-- PDF 使用浏览器内置能力在预览页中展示，Edge 下体验最稳定；页面右上角提供“下载源文件”按钮。
+- PDF 通过 `GET /api/files/source` 以内嵌方式在预览页中展示，避免静态资源被浏览器 iframe 策略拦截；页面右上角提供“下载源文件”按钮。
 - Word、Excel 和常见文本文件通过 `GET /api/files/preview` 提取纯文本内容进行预览，接口只允许读取 `/uploads/**` 下的系统上传文件。
 - 前端会把历史数据中带有 `localhost` 或完整域名的上传地址规范化为当前站点下的 `/uploads/**` 相对路径，避免预览时连接到错误主机。
-- 下载源文件时优先使用业务记录中的原文件名，缺少后缀时按文件 URL 或上传后缀自动补齐，保证 PDF 预览名和下载名尽量一致。
+- 预览和下载源文件时优先使用业务记录中的原文件名，缺少后缀时按文件 URL 或上传后缀自动补齐，保证 PDF 预览名和下载名尽量一致。
 - 当前已接入页面：文物详情、文物建档/编辑、我的修复、修复任务详情抽屉。
 
 ## 9. API 接口清单
@@ -323,6 +323,7 @@ mhmp_platform/
 | PUT | `/api/profile/password` | `profile:view` | 修改密码 | `oldPassword`、`newPassword` |
 | POST | `/api/files/upload` | 已登录 | 上传业务文件 | `file`、`bizType` |
 | GET | `/api/files/preview` | 无 | 提取 Word、Excel、文本文件的预览文本 | 查询参数 `fileUrl`，仅支持 `/uploads/**` |
+| GET | `/api/files/source` | 无 | 输出源文件用于 PDF 内嵌预览或下载 | `fileUrl`、`fileName`、`download` |
 | GET | `/api/dict/types` | 已登录 | 获取可用字典类型 | 无 |
 | GET | `/api/dict/{dictTypeCode}/items` | 已登录 | 获取某字典类型下的字典项 | 路径参数 `dictTypeCode` |
 

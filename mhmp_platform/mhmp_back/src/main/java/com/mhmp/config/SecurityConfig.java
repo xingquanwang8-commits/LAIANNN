@@ -31,9 +31,11 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/login").permitAll()
                 .requestMatchers("/api/files/preview").permitAll()
+                .requestMatchers("/api/files/source").permitAll()
                 .requestMatchers("/uploads/**").permitAll()
                 .anyRequest().authenticated()
             )
+            .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()))
             .exceptionHandling(exception -> exception
                 .authenticationEntryPoint((request, response, authException) ->
                     writeJson(response, objectMapper, HttpServletResponse.SC_UNAUTHORIZED, R.fail(401, "未登录或登录已过期")))

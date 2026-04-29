@@ -57,6 +57,7 @@ import {
   IMAGE_PREVIEW_SUFFIXES,
   PDF_PREVIEW_SUFFIXES,
   TEXT_PREVIEW_SUFFIXES,
+  buildFileSourceUrl,
   ensureFileNameSuffix,
   resolveFileAccessUrl,
   resolveFileSuffix
@@ -77,6 +78,13 @@ const suffix = computed(() => {
   return querySuffix || resolveFileSuffix({ fileName: queryFileName.value, fileUrl: accessUrl.value })
 })
 const fileName = computed(() => ensureFileNameSuffix(queryFileName.value, suffix.value))
+const previewFile = computed(() => ({
+  fileName: fileName.value,
+  fileUrl: accessUrl.value,
+  fileSuffix: suffix.value
+}))
+const sourcePreviewUrl = computed(() => buildFileSourceUrl(previewFile.value))
+const sourceDownloadUrl = computed(() => buildFileSourceUrl(previewFile.value, { download: true }))
 
 const previewMode = computed(() => {
   if (!accessUrl.value) {
@@ -95,10 +103,10 @@ const previewMode = computed(() => {
 })
 
 const pdfPreviewUrl = computed(() => {
-  if (!accessUrl.value) {
+  if (!sourcePreviewUrl.value) {
     return ''
   }
-  return `${accessUrl.value}${accessUrl.value.includes('#') ? '&' : '#'}toolbar=1&navpanes=0`
+  return `${sourcePreviewUrl.value}#toolbar=1&navpanes=0`
 })
 
 watch(fileName, (name) => {
@@ -152,20 +160,10 @@ async function downloadSourceFile() {
     return
   }
   downloading.value = true
-  try {
-    const response = await fetch(accessUrl.value)
-    if (!response.ok) {
-      throw new Error('下载源文件失败')
-    }
-    const blob = await response.blob()
-    const objectUrl = URL.createObjectURL(blob)
-    triggerDownload(objectUrl, fileName.value)
-    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000)
-  } catch (error) {
-    triggerDownload(accessUrl.value, fileName.value)
-  } finally {
+  triggerDownload(sourceDownloadUrl.value, fileName.value)
+  window.setTimeout(() => {
     downloading.value = false
-  }
+  }, 300)
 }
 
 function triggerDownload(url, name) {

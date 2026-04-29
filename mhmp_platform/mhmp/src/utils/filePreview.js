@@ -50,6 +50,17 @@ export function resolveFileAccessUrl(fileUrl) {
   return fileUrl
 }
 
+export function buildFileSourceUrl(file, { download = false } = {}) {
+  if (!file?.fileUrl) {
+    return ''
+  }
+  const params = new URLSearchParams()
+  params.set('fileUrl', resolveFileAccessUrl(file.fileUrl))
+  params.set('fileName', resolvePreviewFileName(file))
+  params.set('download', download ? 'true' : 'false')
+  return `/api/files/source?${params.toString()}`
+}
+
 export function buildFilePreviewUrl(file) {
   if (!file?.fileUrl) {
     return ''
